@@ -6,11 +6,11 @@ export const updateCampaign = async ({
   id,
   title,
   description,
-  category,
+  campaignType,
   goal,
   deadline,
   image,
-  updatedAt, // Acts as the current timestamp on update
+  timestamp, // Acts as the current timestamp on update
 }) => {
   await connectToGateway();
   const contract = await getContract();
@@ -20,11 +20,11 @@ export const updateCampaign = async ({
     id,
     title,
     description,
-    category,
+    campaignType,
     goal,
     deadline,
     image,
-    updatedAt
+    timestamp
   );
 
   return result ? JSON.parse(result.toString()) : null;

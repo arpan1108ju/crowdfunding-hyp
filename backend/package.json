@@ -20,6 +20,7 @@
     "fabric-ca-client": "^2.2.20",
     "fabric-network": "^2.2.20",
     "jsonwebtoken": "^9.0.2",
+    "uuid": "^11.1.0",
     "zod": "^3.24.3"
   },
   "devDependencies": {
