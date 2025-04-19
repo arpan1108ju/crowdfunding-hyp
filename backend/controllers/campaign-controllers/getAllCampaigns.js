@@ -7,7 +7,8 @@ export const getAllCampaignsHandler = async (req, res) => {
   try {
     const result = await getAllCampaigns();
     sendSuccess(res, result, "Fetched campaign details successfully!");
-  } catch (error) {
-    sendError(res, error,"Failed to fetch campaign details.");
+  }  catch (error) {
+    // Catch and handle CustomError
+    sendError(res, error.details || error.message, error.message, error.statusCode || 500);
   }
 };

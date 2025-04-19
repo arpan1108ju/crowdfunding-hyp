@@ -105,7 +105,7 @@ func (s *SmartContract) CreateCampaign(ctx contractapi.TransactionContextInterfa
 
 // UpdateCampaign allows campaign owner to update editable fields before deadline and before donations
 func (s *SmartContract) UpdateCampaign(ctx contractapi.TransactionContextInterface,
-	 id, title, description, campaignType string, target,
+	 id, title, description, campaignType string, target ,
 	  deadline int64, image string, timestamp int64) (*ResponseMessage, error) {
 	campaign, err := s.ReadCampaign(ctx, id)
 	if err != nil {
