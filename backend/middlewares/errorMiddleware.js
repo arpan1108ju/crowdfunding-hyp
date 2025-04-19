@@ -10,4 +10,3 @@ export const errorHandler = (err,req,res,next) => {
      console.log("Error : ",err.message);
      res.status(statusCode).json({message :  err.message}); 
 }
- 
