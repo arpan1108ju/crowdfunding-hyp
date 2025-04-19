@@ -26,9 +26,13 @@ const main = async () => {
       image: CAMPAIGN_IMAGE,
       createdAt: CAMPAIGN_CREATED_AT,
     });
+    
+    // consoling result
     console.log(
       `✅ Transaction has been submitted: `,result
     );
+
+
   } catch (error) {
     console.error(`❌ Failed to submit transaction: `,error);
 
