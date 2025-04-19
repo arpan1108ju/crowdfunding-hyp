@@ -8,7 +8,7 @@
     });
   };
   
- const sendError = (res, error = {}, message = "Something went wrong", statusCode = 500) => {
+ const sendError = (res, error = {}, message = "Internal Server Error", statusCode = 500) => {
     return res.status(statusCode).json({
       success: false,
       message,

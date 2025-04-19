@@ -6,8 +6,6 @@ import fs from 'fs';
 import { CONNECTION_PROFILE_PATH , WALLET_PATH } from '../paths.js';
 
 
-
-
 async function registerUser() {
     try {
         const ccp = JSON.parse(fs.readFileSync(CONNECTION_PROFILE_PATH, 'utf8'));
