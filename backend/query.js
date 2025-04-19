@@ -18,7 +18,7 @@ async function query() {
         console.log('✅ Query Result:', result);
         
     } catch (error) {
-        console.error(`❌ Failed to submit transaction: ${error}`);   
+        console.error(`❌ Failed to submit transaction: `,error);   
     }
     finally {
         await disconnectFromGateway();

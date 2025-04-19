@@ -27,6 +27,7 @@ export const createCampaign = async ({
     createdAt
   );
 
+  
   return result ? JSON.parse(result.toString()) : null;
 
 };
