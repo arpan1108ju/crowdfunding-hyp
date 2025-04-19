@@ -13,11 +13,13 @@
   "dependencies": {
     "@prisma/client": "^6.6.0",
     "backend": "file:",
+    "bcrypt": "^5.1.1",
     "cors": "^2.8.5",
     "dotenv": "^16.5.0",
     "express": "^5.1.0",
     "fabric-ca-client": "^2.2.20",
     "fabric-network": "^2.2.20",
+    "jsonwebtoken": "^9.0.2",
     "uuid": "^11.1.0",
     "zod": "^3.24.3"
   },
