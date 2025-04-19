@@ -4,3 +4,5 @@ node_modules/
 !/wallet/.gitkeep
 
 .env
+
+package-lock.json
