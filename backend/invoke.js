@@ -17,7 +17,7 @@ import { createCampaign } from "./methods/invoke/createCampaign.js";
 const main = async () => {
   try {
     const result = await createCampaign({
-      id: "12122363123122221124423",
+      id: "1213022u32u32u30232",
       title: CAMPAIGN_TITLE,
       description: CAMPAIGN_DESC,
       category: CAMPAIGN_CATEGORY,
@@ -28,11 +28,7 @@ const main = async () => {
     });
     
     // consoling result
-    console.log(
-      `✅ Transaction has been submitted: `,result
-    );
-
-
+    console.log(`✅ Transaction has been submitted: `,result);
   } catch (error) {
     console.error(`❌ Failed to submit transaction: `,error);
 
