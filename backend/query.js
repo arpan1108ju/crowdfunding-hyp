@@ -8,13 +8,6 @@ import { getCampaign } from "./methods/query/getCampaign.js";
 async function query() {
     try {
         const result = await getAllCampaigns();
-        // const result = await getCampaign({id : "camp1234"});
-
-        // await connectToGateway();
-        // const contract = await getContract();
-        // const result = await contract.evaluateTransaction(GET_CAMPAIGN,"camp1234");
-
-
         console.log('✅ Query Result:', result);
         
     } catch (error) {
