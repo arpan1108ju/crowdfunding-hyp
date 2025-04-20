@@ -33,3 +33,12 @@ model User {
 
   createdAt       DateTime  @default(now())
 }
+
+model File {
+  id         String    @id @default(cuid())
+  filename   String
+  mimetype   String
+  size       Int
+  ipfsHash   String
+  uploadedAt DateTime @default(now())
+}
