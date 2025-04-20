@@ -43,7 +43,7 @@ presetup() {
 
 export CHANNEL_NAME="mychannel"
 export CC_RUNTIME_LANGUAGE="golang"
-export VERSION="1"
+export VERSION="2"
 export CC_SRC_PATH=${PWD}/chaincode/go-crowdfunding
 export CC_NAME="crowdfundingGO"
 

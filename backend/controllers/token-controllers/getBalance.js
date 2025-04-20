@@ -4,7 +4,7 @@ import { sendError, sendSuccess } from "../../utils/responses.js";
 export const getBalanceHandler = async (req, res) => {
   try {
     const balance = await getBalance();
-    sendSuccess(res, balance, "fetched balance successfully");
+    sendSuccess(res, {balance}, "fetched balance successfully");
   } catch (error) {
     // Catch and handle CustomError
     sendError(

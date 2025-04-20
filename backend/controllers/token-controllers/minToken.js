@@ -15,7 +15,7 @@ export const minTokenHandler = async (req, res) => {
 
     const result = await mintToken({ currency, amountPaid });
 
-    sendSuccess(res, result, "minting token successful!");
+    sendSuccess(res, {result}, "minting token successful!");
   } catch (error) {
     // Catch and handle CustomError
     sendError(

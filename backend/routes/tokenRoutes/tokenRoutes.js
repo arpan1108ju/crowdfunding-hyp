@@ -5,6 +5,7 @@ import { setExchangeRateHandler } from "../../controllers/token-controllers/setE
 import { getTokenMetadataHandler } from "../../controllers/token-controllers/getTokenMetadata.js";
 import { setTokenMetadataHandler } from "../../controllers/token-controllers/setTokenMetadata.js";
 import { minTokenHandler } from "../../controllers/token-controllers/minToken.js";
+import { setAdminHandler } from "../../controllers/token-controllers/setAdmin.js";
 
 const router = express.Router();
 
@@ -15,5 +16,7 @@ router.get('/metadata',getTokenMetadataHandler);
 router.post('/exchange-rate',setExchangeRateHandler);
 router.post('/metadata',setTokenMetadataHandler);
 router.post('/mint',minTokenHandler);
+
+router.post('/admin',setAdminHandler);
 
 export default router;

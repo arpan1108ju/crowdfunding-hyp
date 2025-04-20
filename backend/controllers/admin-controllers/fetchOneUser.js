@@ -5,13 +5,21 @@ import { CustomError } from "../../utils/customError.js";
 
 export const fetchOneUser = async (req, res) => {
     try {
-      const email = req.query.email; // extract query param
-      if (!email) {
-        throw new CustomError("Email is required", 400);
+      const {id} = req.params; // extract query param
+      if (!id) {
+        throw new CustomError("ID is required", 400);
       }
   
       const user = await db.user.findUnique({
-        where: { email }
+        where: { id },
+        select : {
+           id : true,
+           username : true,
+           email : true,
+           isVerified : true,
+           role : true,
+           createdAt : true
+        }
       });
   
       if (!user) {

@@ -1,30 +1,51 @@
 import { sendSuccess, sendError } from "../../utils/responses.js";
 import db from "../../utils/db.js";
 import { CustomError } from "../../utils/customError.js";
+import { verifiedSchema } from "../../utils/apiSchema.js";
 
 
 
 export const fetchAllUser = async (req, res) => {
   try {
-    const { verify } = req.query;
+    const { verified } = req.query;
 
-    if (verify === undefined) {
-      throw new CustomError("Missing 'verify' query parameter", 400);
+    const validation = verifiedSchema.safeParse(verified);
+        
+    if (!validation.success) {
+          throw new CustomError("Invalid data", 400, validation.error.errors);
     }
 
-    // Convert string to boolean (query params are strings by default)
-    const isVerified = verify === "true";
+    // if (verified === undefined || verified === "true" || verified === "false") {
+    //   throw new CustomError("Missing 'verify' query parameter", 400);
+    // }
 
-    const users = await db.user.findMany({
-      where: { verified: isVerified },
-      select: {
-        id: true,
-        username: true,
-        email: true,
-        verified: true,
-        createdAt: true
-      }
-    });
+    let isVerified = null;
+    if(verified === "true") isVerified = true;
+    else if(verified === "false") isVerified = false;
+
+    let users;
+
+    if(isVerified === null){
+       users = await db.user.findMany({
+        select : {
+          id : true,
+          email : true,
+          isVerified : true
+        }
+       })
+    }
+    else {
+      users = await db.user.findMany({
+        where: { isVerified },
+        select: {
+          id: true,
+          email: true,
+          isVerified: true,
+        }
+      });
+    }
+
+
 
     sendSuccess(res, users, "Users fetched successfully!");
   } catch (error) {
