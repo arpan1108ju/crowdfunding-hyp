@@ -45,12 +45,13 @@ export const signup = async (req, res) => {
       select: {
         username: true,
         email: true,
+        isVerified : true
       },
     });
 
     //  Create JWT Token
     const token = jwt.sign(
-      { email: user.email, username: user.username },
+      { email: user.email, username: user.username ,isVerified : user.isVerified },
       JWT_SECRET,
       { expiresIn: EXP_TIME } // token valid for 7 days
     );

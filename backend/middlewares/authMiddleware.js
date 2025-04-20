@@ -14,6 +14,11 @@ export const authenticateToken = (req, res, next) => {
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
     req.user = decoded; // attach user info to request
+
+    if(!decoded.isVerified){
+       throw new CustomError("Not verifed",403);
+    }
+
     next();
   } catch (error) {
     // Catch and handle CustomError

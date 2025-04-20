@@ -4,7 +4,7 @@ import db from "../../utils/db.js";
 import jwt from "jsonwebtoken"; // Make sure this line is included
 import bcrypt from "bcrypt";
 import { sendSuccess, sendError } from "../../utils/responses.js";
-import { SALT_LENGTH, JWT_SECRET, EXP_TIME } from "../../config.js";
+import { JWT_SECRET, EXP_TIME } from "../../config.js";
 
 export const login = async (req, res) => {
   try {
@@ -36,11 +36,12 @@ export const login = async (req, res) => {
     const user = {
       username: existingUser.username,
       email: existingUser.email,
+      isVerified : existingUser.isVerified
     };
 
     //  Create JWT Token
     const token = jwt.sign(
-      { email: user.email, username: user.username },
+      user,
       JWT_SECRET,
       { expiresIn: EXP_TIME } // token valid for 7 days
     );

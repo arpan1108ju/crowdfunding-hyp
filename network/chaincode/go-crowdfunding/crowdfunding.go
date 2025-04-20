@@ -8,9 +8,42 @@ import (
 	"github.com/hyperledger/fabric-contract-api-go/contractapi"
 )
 
+
+const name = "CrowdfundingToken"
+const symbol = "CFT"
+const totalInitialSupply = 0
+
+const TOKEN_METADATA = "token_metadata"
+const ADMIN = "admin"
+const BalancePrefix = "balance_"
+const RatePrefix = "rate_"
+
+
+
 type SmartContract struct {
 	contractapi.Contract
 }
+
+// Token metadata
+type TokenMetadata struct {
+	Name        string `json:"name"`
+	Symbol      string `json:"symbol"`
+	TotalSupply uint64 `json:"totalSupply"`
+}
+
+// User balance mapping
+type Balance struct {
+	Owner   string `json:"owner"`
+	Balance uint64 `json:"balance"`
+}
+
+// Admin exchange rate mapping (fiat to token)
+type ExchangeRate struct {
+	Currency   string  `json:"currency"`
+	RateToToken float64 `json:"rateToToken"` // e.g., 1 USD = 10 tokens => rate = 10.0
+}
+
+
 
 // Campaign defines a crowdfunding campaign
 type Campaign struct {
@@ -19,12 +52,12 @@ type Campaign struct {
 	Title           string   `json:"title"`
 	Description     string   `json:"description"`
 	CampaignType    string   `json:"campaignType"`
-	Target          int64    `json:"target"`
-	Deadline        int64    `json:"deadline"`
-	AmountCollected int64    `json:"amountCollected"`
+	Target          uint64    `json:"target"`
+	Deadline        uint64    `json:"deadline"`
+	AmountCollected uint64    `json:"amountCollected"`
 	Image           string   `json:"image"`
 	Donators        []string `json:"donators"`
-	Donations       []int64  `json:"donations"`
+	Donations       []uint64  `json:"donations"`
 	Withdrawn       bool     `json:"withdrawn"`
 	Canceled        bool     `json:"canceled"`
 }
@@ -32,27 +65,235 @@ type Campaign struct {
 // PaymentDetail records a payment-related event
 type PaymentDetail struct {
 	CampaignID  string `json:"campaignId"`
-	Amount      int64  `json:"amount"`
-	Timestamp   int64  `json:"timestamp"`
+	Amount      uint64  `json:"amount"`
+	Timestamp   uint64  `json:"timestamp"`
 	PaymentType string `json:"paymentType"`
 }
+
 
 type ResponseMessage struct {
 	Message  string `json:"message"`
 }
 
 
+
+
 // Init initializes the chaincode
 func (s *SmartContract) InitLedger(ctx contractapi.TransactionContextInterface) error {
+
+	metadata := TokenMetadata{
+		Name:        name,
+		Symbol:      symbol,
+		TotalSupply: totalInitialSupply,
+	}
+	metadataBytes, _ := json.Marshal(metadata)
+	ctx.GetStub().PutState(TOKEN_METADATA, metadataBytes)
 
 	log.Printf("Successfully called InitLedger")
 	return nil
 }
 
+func (s *SmartContract) GetTokenMetadata(ctx contractapi.TransactionContextInterface) (*TokenMetadata, error) {
+	metaBytes, err := ctx.GetStub().GetState(TOKEN_METADATA)
+	if err != nil || metaBytes == nil {
+		return nil, fmt.Errorf("token metadata not found")
+	}
+	var metadata TokenMetadata
+	json.Unmarshal(metaBytes, &metadata)
+	return &metadata, nil
+}
+
+
+func (s *SmartContract) isAdmin(ctx contractapi.TransactionContextInterface) (bool, error) {
+	clientID, err := ctx.GetClientIdentity().GetID()
+	if err != nil {
+		return false, err
+	}
+	adminID, err := ctx.GetStub().GetState(ADMIN)
+	if err != nil || adminID == nil {
+		return false, nil
+	}
+	return string(adminID) == clientID, nil
+}
+
+func (s *SmartContract) SetAdmin(ctx contractapi.TransactionContextInterface) error {
+	clientID, err := ctx.GetClientIdentity().GetID()
+	if err != nil {
+		return err
+	}
+	return ctx.GetStub().PutState(ADMIN, []byte(clientID))
+}
+
+
+func (s *SmartContract) SetExchangeRate(ctx contractapi.TransactionContextInterface, currency string, rate float64) error {
+	isAdmin, err := s.isAdmin(ctx)
+	if err != nil || !isAdmin {
+		return fmt.Errorf("unauthorized: only admin can set exchange rate")
+	}
+	rateObj := ExchangeRate{
+		Currency:   currency,
+		RateToToken: rate,
+	}
+	rateBytes, _ := json.Marshal(rateObj)
+
+	rateKey, err := ctx.GetStub().CreateCompositeKey(RatePrefix, []string{currency})
+	if err != nil {
+		return  fmt.Errorf("failed to create composite key for %s: %v", rateKey, err)
+	}
+
+	return ctx.GetStub().PutState(rateKey, rateBytes)
+}
+
+// GetExchangeRate fetches the exchange rate for a given currency
+func (s *SmartContract) GetExchangeRate(ctx contractapi.TransactionContextInterface, currency string) (*ExchangeRate, error) {
+	// Fetch the exchange rate using the composite key 'exchangeRate' and currency as part of the key
+	exchangeRateKey, err := ctx.GetStub().CreateCompositeKey(RatePrefix, []string{currency})
+	if err != nil {
+		return nil, fmt.Errorf("failed to create composite key: %v", err)
+	}
+
+	exchangeRateJSON, err := ctx.GetStub().GetState(exchangeRateKey)
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch exchange rate: %v", err)
+	}
+	if exchangeRateJSON == nil {
+		return nil, fmt.Errorf("exchange rate for currency %s does not exist", currency)
+	}
+
+	var exchangeRate ExchangeRate
+	err = json.Unmarshal(exchangeRateJSON, &exchangeRate)
+	if err != nil {
+		return nil, err
+	}
+
+	return &exchangeRate, nil
+}
+
+
+
+
+func (s *SmartContract) MintToken(ctx contractapi.TransactionContextInterface, currency string, amountPaid float64) error {
+	// Fetch exchange rate
+
+	rateKey, err := ctx.GetStub().CreateCompositeKey(RatePrefix, []string{currency})
+	if err != nil {
+		return  fmt.Errorf("failed to create composite key for %s: %v", rateKey, err)
+	}
+
+	rateBytes, err := ctx.GetStub().GetState(rateKey)
+	if err != nil || rateBytes == nil {
+		return fmt.Errorf("no exchange rate for currency %s", currency)
+	}
+
+	userID, err := ctx.GetClientIdentity().GetID()
+	if err != nil {
+		return fmt.Errorf("failed to get client identity: %v", err)
+	}
+
+
+	var rate ExchangeRate
+	json.Unmarshal(rateBytes, &rate)
+
+	tokensToMint := uint64(amountPaid * rate.RateToToken)
+
+	balanceKey, err := ctx.GetStub().CreateCompositeKey(BalancePrefix, []string{userID})
+	if err != nil {
+		return  fmt.Errorf("failed to create composite key for %s: %v", balanceKey, err)
+	}
+
+	balanceBytes, _ := ctx.GetStub().GetState(balanceKey)
+	var balance Balance
+	if balanceBytes != nil {
+		json.Unmarshal(balanceBytes, &balance)
+	} else {
+		balance = Balance{Owner: userID, Balance: 0}
+	}
+	balance.Balance += tokensToMint
+	newBalanceBytes, _ := json.Marshal(balance)
+	ctx.GetStub().PutState(balanceKey, newBalanceBytes)
+
+	// Update total supply
+	metaBytes, _ := ctx.GetStub().GetState(TOKEN_METADATA)
+	var metadata TokenMetadata
+	json.Unmarshal(metaBytes, &metadata)
+	metadata.TotalSupply += tokensToMint
+	updatedMetaBytes, _ := json.Marshal(metadata)
+	ctx.GetStub().PutState(TOKEN_METADATA, updatedMetaBytes)
+
+	return nil
+}
+
+func (s *SmartContract) GetBalance(ctx contractapi.TransactionContextInterface) (uint64, error) {
+	
+	userID, err := ctx.GetClientIdentity().GetID()
+	if err != nil {
+		return 0,fmt.Errorf("failed to get client identity: %v", err)
+	}
+
+	balanceKey, err := ctx.GetStub().CreateCompositeKey(BalancePrefix, []string{userID})
+	if err != nil {
+		return  0,fmt.Errorf("failed to create composite key for %s: %v", balanceKey, err)
+	}
+	
+	balanceBytes, err := ctx.GetStub().GetState(balanceKey)
+	if err != nil || balanceBytes == nil {
+		return 0, nil
+	}
+	var balance Balance
+	json.Unmarshal(balanceBytes, &balance)
+	return balance.Balance, nil
+}
+
+func (s *SmartContract) GetTokenBalance(ctx contractapi.TransactionContextInterface,userID string) (uint64, error) {
+	
+	balanceKey, err := ctx.GetStub().CreateCompositeKey(BalancePrefix, []string{userID})
+	if err != nil {
+		return  0,fmt.Errorf("failed to create composite key for %s: %v", balanceKey, err)
+	}
+	
+	balanceBytes, err := ctx.GetStub().GetState(balanceKey)
+	if err != nil || balanceBytes == nil {
+		return 0, nil
+	}
+	var balance Balance
+	json.Unmarshal(balanceBytes, &balance)
+	return balance.Balance, nil
+}
+
+// UpdateTokenBalance updates the token balance for a user
+func (s *SmartContract) UpdateTokenBalance(ctx contractapi.TransactionContextInterface, userID string, amount uint64) error {
+	tokenBalanceKey, err := ctx.GetStub().CreateCompositeKey(BalancePrefix, []string{userID})
+	if err != nil {
+		return fmt.Errorf("failed to create composite key: %v", err)
+	}
+
+	// Get the current token balance
+	currentBalance, err := s.GetTokenBalance(ctx, userID)
+	if err != nil {
+		return fmt.Errorf("failed to get token balance: %v", err)
+	}
+
+	// Update the balance
+	newBalance := currentBalance + amount
+
+	// Store the new balance
+	tokenBalanceJSON, err := json.Marshal(newBalance)
+	if err != nil {
+		return fmt.Errorf("failed to marshal new token balance: %v", err)
+	}
+
+	err = ctx.GetStub().PutState(tokenBalanceKey, tokenBalanceJSON)
+	if err != nil {
+		return fmt.Errorf("failed to update token balance: %v", err)
+	}
+
+	return nil
+}
+
+
+
 // CreateCampaign adds a new campaign to the ledger
-func (s *SmartContract) CreateCampaign(ctx contractapi.TransactionContextInterface,
-	id, title, description, campaignType string, target, deadline int64, image string,
-	 timestamp int64) (*ResponseMessage, error) {
+func (s *SmartContract) CreateCampaign(ctx contractapi.TransactionContextInterface,id, title, description, campaignType string, target, deadline uint64, image string, timestamp uint64) (*ResponseMessage, error) {
 	exists, err := s.CampaignExists(ctx, id)
 	if err != nil {
 		return nil, err
@@ -83,7 +324,7 @@ func (s *SmartContract) CreateCampaign(ctx contractapi.TransactionContextInterfa
 		Withdrawn:       false,
 		Canceled:        false,
 		Donators:        []string{},
-		Donations:       []int64{},
+		Donations:       []uint64{},
 	}
 
 	campaignJSON, err := json.Marshal(campaign)
@@ -104,9 +345,7 @@ func (s *SmartContract) CreateCampaign(ctx contractapi.TransactionContextInterfa
 }
 
 // UpdateCampaign allows campaign owner to update editable fields before deadline and before donations
-func (s *SmartContract) UpdateCampaign(ctx contractapi.TransactionContextInterface,
-	 id, title, description, campaignType string, target ,
-	  deadline int64, image string, timestamp int64) (*ResponseMessage, error) {
+func (s *SmartContract) UpdateCampaign(ctx contractapi.TransactionContextInterface,id, title, description, campaignType string, target ,deadline uint64, image string, timestamp uint64) (*ResponseMessage, error) {
 	campaign, err := s.ReadCampaign(ctx, id)
 	if err != nil {
 		return nil , err
@@ -163,8 +402,7 @@ func (s *SmartContract) UpdateCampaign(ctx contractapi.TransactionContextInterfa
 }
 
 // DonateToCampaign allows a user to donate to a campaign
-func (s *SmartContract) DonateToCampaign(ctx contractapi.TransactionContextInterface,
-	 id string, amount int64, timestamp int64) (*ResponseMessage, error) {
+func (s *SmartContract) DonateToCampaign(ctx contractapi.TransactionContextInterface,id string, amount uint64, timestamp uint64) (*ResponseMessage, error) {
 	campaign, err := s.ReadCampaign(ctx, id)
 	if err != nil {
 		return nil,err
@@ -179,6 +417,23 @@ func (s *SmartContract) DonateToCampaign(ctx contractapi.TransactionContextInter
 	donorID, err := ctx.GetClientIdentity().GetID()
 	if err != nil {
 		return nil,err
+	}
+
+
+	// Fetch the donor's token balance
+	donorBalance, err := s.GetTokenBalance(ctx, donorID)
+	if err != nil {
+		return nil, err
+	}
+
+	if donorBalance < amount {
+		return nil, fmt.Errorf("insufficient tokens")
+	}
+
+	// Deduct the tokens from the donor's balance
+	err = s.UpdateTokenBalance(ctx, donorID, -amount)
+	if err != nil {
+		return nil, err
 	}
 
 	campaign.AmountCollected += amount
@@ -213,8 +468,7 @@ func (s *SmartContract) DonateToCampaign(ctx contractapi.TransactionContextInter
 }
 
 // Withdraw allows the campaign owner to withdraw funds after deadline
-func (s *SmartContract) Withdraw(ctx contractapi.TransactionContextInterface, 
-	id string, timestamp int64) (*ResponseMessage, error) {
+func (s *SmartContract) Withdraw(ctx contractapi.TransactionContextInterface, id string, timestamp uint64) (*ResponseMessage, error) {
 	campaign, err := s.ReadCampaign(ctx, id)
 	if err != nil {
 		return nil,err
@@ -236,6 +490,12 @@ func (s *SmartContract) Withdraw(ctx contractapi.TransactionContextInterface,
 	}
 	if campaign.Owner != clientID {
 		return nil,fmt.Errorf("only campaign owner can withdraw")
+	}
+
+	// Update token balance for the owner
+	err = s.UpdateTokenBalance(ctx, clientID, campaign.AmountCollected)
+	if err != nil {
+		return nil, err
 	}
 
 	campaign.Withdrawn = true
@@ -267,8 +527,7 @@ func (s *SmartContract) Withdraw(ctx contractapi.TransactionContextInterface,
 }
 
 // CancelCampaign cancels the campaign and refunds donors
-func (s *SmartContract) CancelCampaign(ctx contractapi.TransactionContextInterface,
-	 id string, timestamp int64) (*ResponseMessage,error) {
+func (s *SmartContract) CancelCampaign(ctx contractapi.TransactionContextInterface,id string, timestamp uint64) (*ResponseMessage,error) {
 	campaign, err := s.ReadCampaign(ctx, id)
 	if err != nil {
 		return nil,err
@@ -290,13 +549,21 @@ func (s *SmartContract) CancelCampaign(ctx contractapi.TransactionContextInterfa
 
 	for i, donor := range campaign.Donators {
 		amount := campaign.Donations[i]
+
+		// Add tokens back to the donor's balance
+		err := s.UpdateTokenBalance(ctx, donor, amount)
+		if err != nil {
+			return nil, fmt.Errorf("failed to refund donor %s: %v", donor, err)
+		}
+
 		refund := PaymentDetail{
 			CampaignID:  id,
 			Amount:      amount,
 			Timestamp:   timestamp,
 			PaymentType: "refund",
 		}
-		err := s.appendPayment(ctx, donor, refund)
+		err = s.appendPayment(ctx, donor, refund)
+
 		if err != nil {
 			return nil,fmt.Errorf("failed to log refund: %v", err)
 		}
