@@ -52,11 +52,7 @@ export const signup = async (req, res) => {
 
     //  Create JWT Token
     const token = jwt.sign(
-      {
-        email: user.email,
-        username: user.username,
-        isVerified: user.isVerified,
-      },
+      user,
       JWT_SECRET,
       { expiresIn: EXP_TIME } // token valid for 7 days
     );

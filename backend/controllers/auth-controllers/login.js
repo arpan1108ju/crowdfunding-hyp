@@ -19,6 +19,12 @@ export const login = async (req, res) => {
     //  Find user by email
     const existingUser = await db.user.findUnique({
       where: { email },
+      select : {
+        username: true,
+        email: true,
+        isVerified: true,
+        role : true
+      }
     });
 
     if (!existingUser) {
