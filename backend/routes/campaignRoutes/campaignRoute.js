@@ -7,19 +7,20 @@ import { withdrawCampaignHandler } from "../../controllers/campaign-controllers/
 import { cancelCampaignHandler } from "../../controllers/campaign-controllers/cancelCampaign.js";
 import { deleteCampaignHandler } from "../../controllers/campaign-controllers/deleteCampaign.js";
 import { updateCampaignHandler } from "../../controllers/campaign-controllers/updateCampaign.js";
+import {authenticateToken} from "../../middlewares/authMiddleware.js"
 
 const router = express.Router();
 
-router.get('/',getAllCampaignsHandler);
-router.get('/:id',getCampaignHandler);
+router.get('/',authenticateToken,getAllCampaignsHandler);
+router.get('/:id',authenticateToken,getCampaignHandler);
 
-router.post('/',createCampaignHandler);
+router.post('/',authenticateToken,createCampaignHandler);
 
-router.post('/:id/donate',donateCampaignHandler);
-router.post('/:id/withdraw',withdrawCampaignHandler);
-router.post('/:id/cancel',cancelCampaignHandler);
-router.patch('/:id',updateCampaignHandler);
-router.delete('/:id',deleteCampaignHandler);
+router.post('/:id/donate',authenticateToken,donateCampaignHandler);
+router.post('/:id/withdraw',authenticateToken,withdrawCampaignHandler);
+router.post('/:id/cancel',authenticateToken,cancelCampaignHandler);
+router.patch('/:id',authenticateToken,updateCampaignHandler);
+router.delete('/:id',authenticateToken,deleteCampaignHandler);
 
 
 export default router;
