@@ -24,6 +24,11 @@ export const superadminMiddleware = (req, res, next) => {
       throw new CustomError("Not authorized", 403);
     }
 
+    const context = requestContext.get();
+    if (context) {
+      context.user =  req.user;
+    }
+
     next();
   } catch (error) {
     // Catch and handle CustomError

@@ -16,6 +16,7 @@ export const adminMiddleware = (req, res, next) => {
     const decoded = jwt.verify(token, JWT_SECRET);
     req.user = decoded; // attach user info to request
 
+
     if (!decoded.isVerified) {
       throw new CustomError("Not verifed", 403);
     }
@@ -23,6 +24,13 @@ export const adminMiddleware = (req, res, next) => {
     if (decoded.role !== Role.ADMIN && decoded.role !== Role.SUPERADMIN) {
       throw new CustomError("Not authorized", 403);
     }
+
+
+    const context = requestContext.get();
+    if (context) {
+      context.user =  req.user;;
+    }
+
 
     next();
   } catch (error) {

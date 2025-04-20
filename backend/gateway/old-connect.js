@@ -4,16 +4,10 @@ import fs from 'fs';
 import { CONNECTION_PROFILE_PATH, WALLET_PATH } from '../paths.js';
 import { getGateway, setGateway } from './gateway.js';
 import { APP_USER } from '../constants.js';
-import { getCurrentUser } from '../utils/getCurrentUser.js';
 
 const currentRole = APP_USER;
 
 export const connectToGateway = async () => {
-
-
-    const user = await getCurrentUser();
-
-    console.log("user : ",user);
 
     let gateway = await getGateway();
     if(gateway){

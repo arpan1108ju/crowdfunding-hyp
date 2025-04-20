@@ -2,6 +2,7 @@ import jwt from "jsonwebtoken";
 import { JWT_SECRET } from "../config.js";
 import { CustomError } from "../utils/customError.js";
 import { sendError } from "../utils/responses.js";
+import { requestContext } from "../utils/requestContext.js";
 
 export const authMiddleware = (req, res, next) => {
   const authHeader = req.headers["authorization"];
@@ -14,6 +15,14 @@ export const authMiddleware = (req, res, next) => {
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
     req.user = decoded; // attach user info to request
+
+
+    const context = requestContext.get();
+    if (context) {
+      context.user = req.user;
+    }
+
+
 
     if (!decoded.isVerified) {
       throw new CustomError("Not verifed", 403);

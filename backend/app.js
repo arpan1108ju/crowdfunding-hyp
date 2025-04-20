@@ -14,12 +14,15 @@ import uploadRoutes from "./routes/uploadRoutes/uploadRoutes.js";
 import superadminRoutes from "./routes/superadminRoutes/superadminRoutes.js";
 
 import { errorHandler, notFound } from './middlewares/errorMiddleware.js';
+import { contextMiddleware } from './middlewares/requestContextMiddleware.js';
 
 const app = express();
 
 
 app.use(cors())
 app.use(express.json());
+
+app.use(contextMiddleware); 
 
 app.use('/api/v1/auth',authRoutes);
 app.use('/api/v1/campaigns',campaignRoutes);

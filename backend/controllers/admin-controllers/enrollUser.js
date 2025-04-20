@@ -4,10 +4,7 @@ import { CustomError } from "../../utils/customError.js";
 import { CONNECTION_PROFILE_PATH } from "../../paths.js";
 
 import FabricCAServices from 'fabric-ca-client';
-import { Wallets } from 'fabric-network';
-
 import fs from 'fs';
-
 
 export const enrollUser = async (req, res) => {
   try {
@@ -69,15 +66,19 @@ async function registerUser(adminIdentity, existingUser) {
       enrollmentSecret: secret,
     });
 
-    const certificate = enrollment.certificate;
-    const privateKey = enrollment.key.toBytes();
-
+    const x509Identity = {
+      credentials: {
+          certificate: enrollment.certificate,
+          privateKey: enrollment.key.toBytes(),
+      },
+      mspId: 'Org1MSP',
+      type: 'X.509',
+  };
     // Store in DB
     await db.user.update({
       where: { id: existingUser.id },
       data: {
-        certificate,
-        privateKey,
+        x509Identity
       },
     });
 
