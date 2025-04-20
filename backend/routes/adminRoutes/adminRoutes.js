@@ -10,7 +10,7 @@ const router = express.Router();
 router.get('/fetch-one-user/:id',fetchOneUser);
 router.get('/fetch-all-users',fetchAllUser);
 router.post('/enroll-user/:id',enrollUser);
-router.post('/revoke-user',revokeUser);
+router.post('/revoke-user/:id',revokeUser);
 
 
 export default router;
