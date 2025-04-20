@@ -1,9 +1,12 @@
 import { sendSuccess, sendError } from "../../utils/responses.js";
-import { CustomError } from "../../utils/customError.js";
 import db from "../../utils/db.js";
+import { CustomError } from "../../utils/customError.js";
 
 export const enrollUser = async (req, res) => {
   try {
+
+    res.send({message : "ok"});
+
     const { id } = req.params;
 
     // Step 1: Check if user exists
@@ -31,6 +34,6 @@ export const enrollUser = async (req, res) => {
     // Step 3: Send success response
     sendSuccess(res, updatedUser, "User successfully enrolled (verified).");
   } catch (error) {
-    sendError(res, error.details || {}, error.message, error.statusCode || 500);
+    sendError(res, error.details || error.message , error.message, error.statusCode || 500);
   }
 };

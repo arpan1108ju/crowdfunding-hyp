@@ -25,6 +25,12 @@
                         /cancel
 
 
+        /api/v1/superadmin - 
+                        post /user/:id , change role
+
+
+
+
 1. admin enrolls user verification stuffs
 2. native currency 
 3. /api/paymentDetails
