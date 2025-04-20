@@ -62,12 +62,22 @@ type Campaign struct {
 	Canceled        bool     `json:"canceled"`
 }
 
+
+type PaymentType string
+
+const (
+	DONATION   PaymentType = "DONATION"
+	REFUND     PaymentType = "REFUND"
+	WITHDRAWAL PaymentType = "WITHDRAWAL"
+	CANCEL     PaymentType = "CANCEL"
+)
+
 // PaymentDetail records a payment-related event
 type PaymentDetail struct {
 	CampaignID  string `json:"campaignId"`
 	Amount      uint64  `json:"amount"`
 	Timestamp   uint64  `json:"timestamp"`
-	PaymentType string `json:"paymentType"`
+	PaymentType PaymentType `json:"paymentType"`
 }
 
 
@@ -454,7 +464,7 @@ func (s *SmartContract) DonateToCampaign(ctx contractapi.TransactionContextInter
 		CampaignID:  id,
 		Amount:      amount,
 		Timestamp:   timestamp,
-		PaymentType: "donation",
+		PaymentType: DONATION,
 	}
 
 	log.Printf("Successfully donated to campaign: %s", id)
@@ -514,7 +524,7 @@ func (s *SmartContract) Withdraw(ctx contractapi.TransactionContextInterface, id
 		CampaignID:  id,
 		Amount:      campaign.AmountCollected,
 		Timestamp:   timestamp,
-		PaymentType: "withdrawal",
+		PaymentType: WITHDRAWAL,
 	}
 
 	log.Printf("Successfully withdrawn campaign: %s", id)
@@ -560,7 +570,7 @@ func (s *SmartContract) CancelCampaign(ctx contractapi.TransactionContextInterfa
 			CampaignID:  id,
 			Amount:      amount,
 			Timestamp:   timestamp,
-			PaymentType: "refund",
+			PaymentType: REFUND,
 		}
 		err = s.appendPayment(ctx, donor, refund)
 

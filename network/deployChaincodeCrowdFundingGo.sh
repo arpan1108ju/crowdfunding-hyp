@@ -230,6 +230,11 @@ DONATION_TIMESTAMP="1000000010"
 WITHDRAW_TIMESTAMP="2000100000"
 CANCEL_TIMESTAMP="1000100000"
 
+# Variables for SetExchangeRate function
+export CURRENCY="INR"  # Replace with the currency for which to set the exchange rate
+export EXCHANGE_RATE="34"  # Replace with the rate (e.g., how many tokens per 1 USD)
+export AMOUNT_PAID="100.0"  
+
 # ======================== Functions ============================
 
 CreateCampaign() {
@@ -310,25 +315,96 @@ GetAllCampaigns() {
         -c '{"function": "GetAllCampaigns", "Args":[]}' | jq .
 }
 
+GetTokenMetadata() {
+    echo "============= Read token metadata ============="
+
+    setGlobalsForPeer0Org2
+
+    peer chaincode query -C $CHANNEL_NAME -n ${CC_NAME} \
+        -c '{"function": "GetTokenMetadata", "Args":[]}' | jq .
+}
+
+SetAdmin() {
+    echo "================= Set admin ============================"
+
+    setGlobalsForPeer0Org1
+
+    peer chaincode invoke -o localhost:7050 \
+        --ordererTLSHostnameOverride orderer.example.com \
+        --tls $CORE_PEER_TLS_ENABLED \
+        --cafile $ORDERER_CA \
+        -C $CHANNEL_NAME -n ${CC_NAME} \
+        --peerAddresses localhost:7051 --tlsRootCertFiles $PEER0_ORG1_CA \
+        --peerAddresses localhost:9051 --tlsRootCertFiles $PEER0_ORG2_CA \
+        -c '{"function": "SetAdmin", "Args":[]}'
+}
+
+SetExchangeRate() {
+    echo "================= Set exchange rate ============================"
+
+    setGlobalsForPeer0Org1
+
+    peer chaincode invoke -o localhost:7050 \
+        --ordererTLSHostnameOverride orderer.example.com \
+        --tls $CORE_PEER_TLS_ENABLED \
+        --cafile $ORDERER_CA \
+        -C $CHANNEL_NAME -n ${CC_NAME} \
+        --peerAddresses localhost:7051 --tlsRootCertFiles $PEER0_ORG1_CA \
+        --peerAddresses localhost:9051 --tlsRootCertFiles $PEER0_ORG2_CA \
+        -c '{"function": "SetExchangeRate", "Args":["'"$CURRENCY"'","'"$EXCHANGE_RATE"'"]}'
+}
+
+GetExchangeRate() {
+    echo "================= Get exchange rate ============================"
+
+    setGlobalsForPeer0Org1
+
+    peer chaincode query -C $CHANNEL_NAME -n ${CC_NAME} \
+        -c '{"function": "GetExchangeRate", "Args":["'"$CURRENCY"'"]}' | jq .
+}
+
+MintToken() {
+    echo "================= Mint Token ============================"
+
+    setGlobalsForPeer0Org1
+
+    peer chaincode invoke -o localhost:7050 \
+        --ordererTLSHostnameOverride orderer.example.com \
+        --tls $CORE_PEER_TLS_ENABLED \
+        --cafile $ORDERER_CA \
+        -C $CHANNEL_NAME -n ${CC_NAME} \
+        --peerAddresses localhost:7051 --tlsRootCertFiles $PEER0_ORG1_CA \
+        --peerAddresses localhost:9051 --tlsRootCertFiles $PEER0_ORG2_CA \
+        -c '{"function": "MintToken", "Args":["'"$CURRENCY"'","'"$AMOUNT_PAID"'"]}'
+}
+
+GetBalance() {
+    echo "================= Get balance ============================"
+
+    setGlobalsForPeer0Org1
+
+    peer chaincode query -C $CHANNEL_NAME -n ${CC_NAME} \
+        -c '{"function": "GetBalance", "Args": []}' | jq .
+}
 
 
 
 
 # Run this function if you add any new dependency in chaincode
-presetup
+# presetup
 
-packageChaincode
-installChaincode
-queryInstalledForOrg1
-queryInstalledForOrg2
-approveForMyOrg1
-checkCommitReadyness
-approveForMyOrg2
-checkCommitReadyness
-commitChaincodeDefination
-queryCommitted
+# packageChaincode
+# installChaincode
+# queryInstalledForOrg1
+# queryInstalledForOrg2
+# approveForMyOrg1
+# checkCommitReadyness
+# approveForMyOrg2
+# checkCommitReadyness
+# commitChaincodeDefination
+# queryCommitted
 
-chaincodeInvokeInit
+# chaincodeInvokeInit
 # sleep 3
 # CreateCampaign
 # sleep 3
@@ -344,3 +420,17 @@ chaincodeInvokeInit
 # sleep 2
 # GetAllCampaigns 
 
+GetTokenMetadata
+# sleep 2
+
+# SetAdmin
+# sleep 2
+# SetExchangeRate
+
+
+# sleep 2
+# GetExchangeRate
+# sleep 2
+# MintToken
+# sleep 2
+# GetBalance
