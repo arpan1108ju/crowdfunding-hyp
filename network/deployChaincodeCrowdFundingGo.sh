@@ -43,7 +43,7 @@ presetup() {
 
 export CHANNEL_NAME="mychannel"
 export CC_RUNTIME_LANGUAGE="golang"
-export VERSION="2"
+export VERSION="4"
 export CC_SRC_PATH=${PWD}/chaincode/go-crowdfunding
 export CC_NAME="crowdfundingGO"
 
@@ -378,6 +378,23 @@ MintToken() {
         -c '{"function": "MintToken", "Args":["'"$CURRENCY"'","'"$AMOUNT_PAID"'"]}'
 }
 
+# USER_ID=
+# AMOUNT_UPDATE=
+# UpdateTokenBalance() {
+#     echo "================= Update Balance ============================"
+
+#     setGlobalsForPeer0Org1
+
+#     peer chaincode invoke -o localhost:7050 \
+#         --ordererTLSHostnameOverride orderer.example.com \
+#         --tls $CORE_PEER_TLS_ENABLED \
+#         --cafile $ORDERER_CA \
+#         -C $CHANNEL_NAME -n ${CC_NAME} \
+#         --peerAddresses localhost:7051 --tlsRootCertFiles $PEER0_ORG1_CA \
+#         --peerAddresses localhost:9051 --tlsRootCertFiles $PEER0_ORG2_CA \
+#         -c '{"function": "UpdateTokenBalance", "Args":["'"$USER_ID"'","'"$AMOUNT_UPDATE"'"]}'
+# }
+
 GetBalance() {
     echo "================= Get balance ============================"
 
@@ -417,8 +434,8 @@ chaincodeInvokeInit
 # sleep 2
 
 # ReadCampaign 
-sleep 2
-GetAllCampaigns 
+# sleep 2
+# GetAllCampaigns 
 
 # GetTokenMetadata
 # sleep 2
@@ -434,3 +451,5 @@ GetAllCampaigns
 # MintToken
 # sleep 2
 # GetBalance
+
+# UpdateTokenBalance

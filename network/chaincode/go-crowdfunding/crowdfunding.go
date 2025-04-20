@@ -311,17 +311,19 @@ func (s *SmartContract) UpdateTokenBalance(ctx contractapi.TransactionContextInt
 		return fmt.Errorf("failed to create composite key: %v", err)
 	}
 
-	// Get the current token balance
-	currentBalance, err := s.GetTokenBalance(ctx, userID)
-	if err != nil {
-		return fmt.Errorf("failed to get token balance: %v", err)
+	balanceBytes, err := ctx.GetStub().GetState(tokenBalanceKey)
+	if err != nil || balanceBytes == nil {
+		return fmt.Errorf("failed to extract balance : %v", err)
 	}
 
+	var balance Balance
+	json.Unmarshal(balanceBytes, &balance)
+
 	// Update the balance
-	newBalance := currentBalance + amount
+	balance.Balance += amount
 
 	// Store the new balance
-	tokenBalanceJSON, err := json.Marshal(newBalance)
+	tokenBalanceJSON, err := json.Marshal(balance)
 	if err != nil {
 		return fmt.Errorf("failed to marshal new token balance: %v", err)
 	}
@@ -462,10 +464,19 @@ func (s *SmartContract) DonateToCampaign(ctx contractapi.TransactionContextInter
 	if err != nil {
 		return nil,err
 	}
+
+	if campaign.Deadline <= timestamp {
+		return nil,fmt.Errorf("cannot donate after deadline")
+	}
+
+	if campaign.Withdrawn {
+		return nil,fmt.Errorf("cannot donate to a withdrawn campaign")
+	}
+
 	if campaign.Canceled {
 		return nil,fmt.Errorf("cannot donate to a canceled campaign")
 	}
-	if campaign.AmountCollected+amount > campaign.Target {
+	if campaign.AmountCollected + amount > campaign.Target {
 		return nil,fmt.Errorf("donation exceeds campaign target")
 	}
 
