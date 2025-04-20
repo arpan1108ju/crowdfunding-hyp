@@ -12,7 +12,7 @@ export const createCampaignHandler = async (req, res) => {
       throw new CustomError("Invalid data", 400, validation.error.errors);
     }
 
-    const { title, description, campaignType, goal, deadline, image } = validation.data;
+    const { title, description, campaignType, target, deadline, image } = validation.data;
 
     const id = uuidv4();
 
@@ -21,7 +21,7 @@ export const createCampaignHandler = async (req, res) => {
       title,
       description,
       campaignType,
-      goal : goal.toString(),
+      target : target.toString(),
       deadline : deadline.toString(),
       image,
       createdAt : Date.now().toString()

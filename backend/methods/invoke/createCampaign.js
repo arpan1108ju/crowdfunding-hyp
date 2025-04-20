@@ -7,7 +7,7 @@ export const createCampaign = async ({
   title,
   description,
   campaignType,
-  goal,
+  target,
   deadline,
   image,
   createdAt,
@@ -21,7 +21,7 @@ export const createCampaign = async ({
     title,
     description,
     campaignType,
-    goal,
+    target,
     deadline,
     image,
     createdAt

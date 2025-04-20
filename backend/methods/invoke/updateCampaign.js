@@ -7,7 +7,7 @@ export const updateCampaign = async ({
   title,
   description,
   campaignType,
-  goal,
+  target,
   deadline,
   image,
   timestamp, // Acts as the current timestamp on update
@@ -21,7 +21,7 @@ export const updateCampaign = async ({
     title,
     description,
     campaignType,
-    goal,
+    target,
     deadline,
     image,
     timestamp
