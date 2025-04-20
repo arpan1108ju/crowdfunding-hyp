@@ -10,6 +10,7 @@ import adminRoutes from "./routes/adminRoutes/adminRoutes.js";
 import authRoutes from "./routes/authRoutes/authRoutes.js";
 import campaignRoutes from "./routes/campaignRoutes/campaignRoute.js";
 import tokenRoutes from "./routes/tokenRoutes/tokenRoutes.js";
+import uploadRoutes from "./routes/uploadRoutes/uploadRoutes.js";
 import superadminRoutes from "./routes/superadminRoutes/superadminRoutes.js";
 
 import { errorHandler, notFound } from './middlewares/errorMiddleware.js';
@@ -30,6 +31,8 @@ app.use('/api/v1/admin',adminRoutes);
 app.use('/api/v1/superadmin',superadminRoutes);
 app.use('/api/v1/token',tokenRoutes);
 
+//just for testing
+app.use('/api/v1/upload',uploadRoutes);
 
 app.use(notFound);
 app.use(errorHandler);
