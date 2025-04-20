@@ -5,8 +5,6 @@ import { CustomError } from "../../utils/customError.js";
 export const enrollUser = async (req, res) => {
   try {
 
-    res.send({message : "ok"});
-
     const { id } = req.params;
 
     // Step 1: Check if user exists
