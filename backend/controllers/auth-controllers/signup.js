@@ -45,21 +45,27 @@ export const signup = async (req, res) => {
       select: {
         username: true,
         email: true,
-        isVerified : true
+        isVerified: true,
+        role : true,
+        x509Identity : true
       },
     });
 
     //  Create JWT Token
     const token = jwt.sign(
-      { email: user.email, username: user.username ,isVerified : user.isVerified },
+      user,
       JWT_SECRET,
       { expiresIn: EXP_TIME } // token valid for 7 days
     );
 
     //  Send success response with token
-    sendSuccess(res,{user,token}, "Signup successful!" );
-
+    sendSuccess(res, { user, token }, "Signup successful!");
   } catch (error) {
-    sendError(res, error.details || error.message, error.message, error.statusCode || 500);
+    sendError(
+      res,
+      error.details || error.message,
+      error.message,
+      error.statusCode || 500
+    );
   }
 };

@@ -4,6 +4,7 @@ import { Wallets } from 'fabric-network';
 import fs from 'fs';
 
 import { CONNECTION_PROFILE_PATH , WALLET_PATH } from '../paths.js';
+import { APP_ADMIN, APP_USER } from '../constants.js';
 
 
 async function registerUser() {
@@ -15,29 +16,29 @@ async function registerUser() {
 
         const wallet = await Wallets.newFileSystemWallet(WALLET_PATH);
 
-        const userExists = await wallet.get('appUser');
+        const userExists = await wallet.get(APP_USER);
         if (userExists) {
             console.log('appUser already exists in wallet');
             return;
         }
 
-        const adminIdentity = await wallet.get('admin');
+        const adminIdentity = await wallet.get(APP_ADMIN);
         if (!adminIdentity) {
             console.log('Admin identity not found in wallet');
             return;
         }
 
         const provider = wallet.getProviderRegistry().getProvider(adminIdentity.type);
-        const adminUser = await provider.getUserContext(adminIdentity, 'admin');
+        const adminUser = await provider.getUserContext(adminIdentity, APP_ADMIN);
 
         const secret = await ca.register({
             affiliation: 'org1.department1',
-            enrollmentID: 'appUser',
+            enrollmentID: APP_USER,
             role: 'client'
         }, adminUser);
 
         const enrollment = await ca.enroll({
-            enrollmentID: 'appUser',
+            enrollmentID: APP_USER,
             enrollmentSecret: secret
         });
 
@@ -50,7 +51,7 @@ async function registerUser() {
             type: 'X.509',
         };
 
-        await wallet.put('appUser', x509Identity);
+        await wallet.put(APP_USER, x509Identity);
         console.log('✅ Successfully registered and enrolled appUser');
     } catch (error) {
         console.error(`❌ Error registering user: ${error}`);

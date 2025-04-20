@@ -3,8 +3,8 @@ import { JWT_SECRET } from "../config.js";
 import { CustomError } from "../utils/customError.js";
 import { sendError } from "../utils/responses.js";
 
-export const authenticateToken = (req, res, next) => {
-  const authHeader = req.headers['authorization'];
+export const authMiddleware = (req, res, next) => {
+  const authHeader = req.headers["authorization"];
   const token = authHeader && authHeader.split(" ")[1]; // Get token after "Bearer"
 
   if (!token) {
@@ -15,13 +15,18 @@ export const authenticateToken = (req, res, next) => {
     const decoded = jwt.verify(token, JWT_SECRET);
     req.user = decoded; // attach user info to request
 
-    if(!decoded.isVerified){
-       throw new CustomError("Not verifed",403);
+    if (!decoded.isVerified) {
+      throw new CustomError("Not verifed", 403);
     }
 
     next();
   } catch (error) {
     // Catch and handle CustomError
-    sendError(res, error.details || error.message, error.message, error.statusCode || 500);
+    sendError(
+      res,
+      error.details || error.message,
+      error.message,
+      error.statusCode || 500
+    );
   }
 };

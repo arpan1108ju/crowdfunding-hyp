@@ -19,25 +19,28 @@ export const login = async (req, res) => {
     //  Find user by email
     const existingUser = await db.user.findUnique({
       where: { email },
+      select : {
+        username: true,
+        email: true,
+        isVerified: true,
+        role : true,
+        password : true,
+        x509Identity : true
+      }
     });
 
     if (!existingUser) {
       throw new CustomError("Email not registered!", 404);
     }
+    const {password : dbPassword , ...user} = existingUser;
 
     //  Compare entered password with stored hashed password
-    const isPasswordValid = await bcrypt.compare(password, existingUser.password);
+    const isPasswordValid = await bcrypt.compare(password, dbPassword);
 
     if (!isPasswordValid) {
       throw new CustomError("Invalid password!", 401);
     }
 
-    // Send success response (omit password)
-    const user = {
-      username: existingUser.username,
-      email: existingUser.email,
-      isVerified : existingUser.isVerified
-    };
 
     //  Create JWT Token
     const token = jwt.sign(
