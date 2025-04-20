@@ -1,1 +1,2 @@
 Installed chaincodes on peer:
+Package ID: tokenGO_1:5e58cd92f2ff1acf40cb5f8ca4954711452c020b99ff4efd9de9f5f37c76e5cd, Label: tokenGO_1
