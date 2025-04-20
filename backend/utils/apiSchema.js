@@ -1,5 +1,12 @@
+import { Role } from "@prisma/client";
 import { z } from "zod";
 
+export const RoleSchema = z.nativeEnum(Role);
+
+// 2. changeRoleSchema: only allows "ADMIN" and "USER"
+export const changeRoleSchema = z.object({
+  role: z.enum([Role.ADMIN, Role.USER])
+});
 
 export  const verifiedSchema = z.enum([
   "true",

@@ -10,6 +10,7 @@ import adminRoutes from "./routes/adminRoutes/adminRoutes.js";
 import authRoutes from "./routes/authRoutes/authRoutes.js";
 import campaignRoutes from "./routes/campaignRoutes/campaignRoute.js";
 import tokenRoutes from "./routes/tokenRoutes/tokenRoutes.js";
+import superadminRoutes from "./routes/superadminRoutes/superadminRoutes.js";
 
 import { errorHandler, notFound } from './middlewares/errorMiddleware.js';
 
@@ -26,12 +27,16 @@ app.use('/api/v1/dummy',dummyRoute);
 
 //admin
 app.use('/api/v1/admin',adminRoutes);
+app.use('/api/v1/superadmin',superadminRoutes);
 app.use('/api/v1/token',tokenRoutes);
+
 
 app.use(notFound);
 app.use(errorHandler);
 
 
 app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
+    console.log('======================================')
+    console.log(`Server is running on port:${PORT}`);
+    console.log('======================================')
 });
