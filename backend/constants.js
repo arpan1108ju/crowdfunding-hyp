@@ -30,9 +30,27 @@ const GET_USER_PAYMENTS="GetUserPayments";
 const DELETE_CAMPAIGN="DeleteCampaign";
 const UPDATE_CAMPAIGN = "UpdateCampaign";
 
+
+const GET_BALANCE = "GetBalance";
+const MINT_TOKEN = "MintToken";
+const GET_TOKEN_METADATA = "GetTokenMetadata";
+const SET_TOKEN_METADATA = "SetTokenMetadata";
+const GET_EXCHANGE_RATE = "GetExchangeRate";
+const SET_EXCHANGE_RATE = "SetExchangeRate";
+
+
 const ADMIN = "admin";
 const USER = "appUser";
 export { 
+
+    GET_BALANCE,
+    GET_EXCHANGE_RATE,
+    GET_TOKEN_METADATA,
+    SET_EXCHANGE_RATE,
+    SET_TOKEN_METADATA,
+    MINT_TOKEN,
+
+
     ADMIN,
     USER,
     CAMPAIGN_ID,

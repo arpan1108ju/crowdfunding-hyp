@@ -26,3 +26,27 @@ export const donateCampaignSchema = z.object({
 });
 
 export const updateCampaignSchema = createCampaignSchema.partial();
+
+export const currencySchema = z.enum([
+  "USD",
+  "INR"
+])
+
+export const getExchangeRateSchema = z.object({
+    currency : currencySchema
+})
+
+export const setExchangeRateSchema = z.object({
+  currency : currencySchema,
+  rate : z.number().positive({message : "rate must be positive"})
+})
+
+export const setTokenMetadataSchema = z.object({
+    name : z.string().min(3),
+    symbol : z.string().min(3)
+})
+
+export const mintTokenSchema = z.object({
+   currency : currencySchema,
+   amountPaid : z.number().positive({message : "amount paid must be positive"})
+})

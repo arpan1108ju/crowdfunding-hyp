@@ -9,15 +9,15 @@ import (
 )
 
 
-const name = "CrowdfundingToken"
-const symbol = "CFT"
-const totalInitialSupply = 0
+const NAME = "CrowdfundingToken"
+const SYMBOL = "CFT"
+const TOTAL_INITIAL_SUPPLY = 0
 
 const TOKEN_METADATA = "token_metadata"
 const ADMIN = "admin"
 const BalancePrefix = "balance_"
 const RatePrefix = "rate_"
-
+const CampaignPrefix = "campaign_"
 
 
 type SmartContract struct {
@@ -92,9 +92,9 @@ type ResponseMessage struct {
 func (s *SmartContract) InitLedger(ctx contractapi.TransactionContextInterface) error {
 
 	metadata := TokenMetadata{
-		Name:        name,
-		Symbol:      symbol,
-		TotalSupply: totalInitialSupply,
+		Name:        NAME,
+		Symbol:      SYMBOL,
+		TotalSupply: TOTAL_INITIAL_SUPPLY,
 	}
 	metadataBytes, _ := json.Marshal(metadata)
 	ctx.GetStub().PutState(TOKEN_METADATA, metadataBytes)
@@ -102,6 +102,25 @@ func (s *SmartContract) InitLedger(ctx contractapi.TransactionContextInterface) 
 	log.Printf("Successfully called InitLedger")
 	return nil
 }
+
+func (s *SmartContract) SetTokenMetadata(ctx contractapi.TransactionContextInterface,name string,symbol string) (*TokenMetadata, error) {
+	
+	isAdmin, err := s.isAdmin(ctx)
+	if err != nil || !isAdmin {
+		return nil,fmt.Errorf("unauthorized: only admin can set exchange rate")
+	}
+	
+	metadata := TokenMetadata{
+		Name:        name,
+		Symbol:      symbol,
+		TotalSupply: TOTAL_INITIAL_SUPPLY,
+	}
+	metadataBytes, _ := json.Marshal(metadata)
+	ctx.GetStub().PutState(TOKEN_METADATA, metadataBytes)
+
+	return &metadata, nil
+}
+
 
 func (s *SmartContract) GetTokenMetadata(ctx contractapi.TransactionContextInterface) (*TokenMetadata, error) {
 	metaBytes, err := ctx.GetStub().GetState(TOKEN_METADATA)
@@ -342,7 +361,13 @@ func (s *SmartContract) CreateCampaign(ctx contractapi.TransactionContextInterfa
 		return nil, err
 	}
 
-	err = ctx.GetStub().PutState(id, campaignJSON)
+
+	campaignKey, err := ctx.GetStub().CreateCompositeKey(CampaignPrefix, []string{id})
+	if err != nil {
+		return  nil,fmt.Errorf("failed to create composite key for %s: %v", campaignKey, err)
+	}
+
+	err = ctx.GetStub().PutState(campaignKey, campaignJSON)
 	if err != nil {
 		return nil, err
 	}
@@ -402,9 +427,14 @@ func (s *SmartContract) UpdateCampaign(ctx contractapi.TransactionContextInterfa
 		return nil,err
 	}
 
-	err = ctx.GetStub().PutState(id, campaignJSON)
+	campaignKey, err := ctx.GetStub().CreateCompositeKey(CampaignPrefix, []string{id})
 	if err != nil {
-		return nil,err
+		return  nil,fmt.Errorf("failed to create composite key for %s: %v", campaignKey, err)
+	}
+
+	err = ctx.GetStub().PutState(campaignKey, campaignJSON)
+	if err != nil {
+		return nil, err
 	}
 
 	log.Printf("Successfully updated campaign: %s", id)
@@ -455,9 +485,14 @@ func (s *SmartContract) DonateToCampaign(ctx contractapi.TransactionContextInter
 		return nil,err
 	}
 
-	err = ctx.GetStub().PutState(id, campaignJSON)
+	campaignKey, err := ctx.GetStub().CreateCompositeKey(CampaignPrefix, []string{id})
 	if err != nil {
-		return nil,err
+		return  nil,fmt.Errorf("failed to create composite key for %s: %v", campaignKey, err)
+	}
+
+	err = ctx.GetStub().PutState(campaignKey, campaignJSON)
+	if err != nil {
+		return nil, err
 	}
 
 	payment := PaymentDetail{
@@ -515,9 +550,14 @@ func (s *SmartContract) Withdraw(ctx contractapi.TransactionContextInterface, id
 		return nil,err
 	}
 
-	err = ctx.GetStub().PutState(id, campaignJSON)
+	campaignKey, err := ctx.GetStub().CreateCompositeKey(CampaignPrefix, []string{id})
 	if err != nil {
-		return nil,err
+		return  nil,fmt.Errorf("failed to create composite key for %s: %v", campaignKey, err)
+	}
+
+	err = ctx.GetStub().PutState(campaignKey, campaignJSON)
+	if err != nil {
+		return nil, err
 	}
 
 	payment := PaymentDetail{
@@ -587,7 +627,12 @@ func (s *SmartContract) CancelCampaign(ctx contractapi.TransactionContextInterfa
 
 	log.Printf("Successfully cenceled campaign: %s", id)
 
-	err = ctx.GetStub().PutState(id, campaignJSON)
+	campaignKey, err := ctx.GetStub().CreateCompositeKey(CampaignPrefix, []string{id})
+	if err != nil {
+		return  nil,fmt.Errorf("failed to create composite key for %s: %v", campaignKey, err)
+	}
+
+	err = ctx.GetStub().PutState(campaignKey, campaignJSON)
 	if err != nil {
 		return nil, err
 	}
@@ -621,7 +666,12 @@ func (s *SmartContract) DeleteCampaign(ctx contractapi.TransactionContextInterfa
 		return nil,fmt.Errorf("campaign is already canceled; deletion not allowed")
 	}
 
-	err = ctx.GetStub().DelState(id)
+	campaignKey, err := ctx.GetStub().CreateCompositeKey(CampaignPrefix, []string{id})
+	if err != nil {
+		return  nil,fmt.Errorf("failed to create composite key for %s: %v", campaignKey, err)
+	}
+
+	err = ctx.GetStub().DelState(campaignKey)
 	if err != nil {
 		return nil,fmt.Errorf("failed to delete campaign: %v", err)
 	}
@@ -632,7 +682,13 @@ func (s *SmartContract) DeleteCampaign(ctx contractapi.TransactionContextInterfa
 
 // ReadCampaign returns the campaign stored in the ledger with given ID
 func (s *SmartContract) ReadCampaign(ctx contractapi.TransactionContextInterface, id string) (*Campaign, error) {
-	campaignJSON, err := ctx.GetStub().GetState(id)
+	
+	campaignKey, err := ctx.GetStub().CreateCompositeKey(CampaignPrefix, []string{id})
+	if err != nil {
+		return  nil,fmt.Errorf("failed to create composite key for %s: %v", campaignKey, err)
+	}
+	
+	campaignJSON, err := ctx.GetStub().GetState(campaignKey)
 	if err != nil {
 		return nil, err
 	}
@@ -652,7 +708,10 @@ func (s *SmartContract) ReadCampaign(ctx contractapi.TransactionContextInterface
 
 // GetAllCampaigns returns all campaigns from world state
 func (s *SmartContract) GetAllCampaigns(ctx contractapi.TransactionContextInterface) ([]*Campaign, error) {
-	resultsIterator, err := ctx.GetStub().GetStateByRange("", "")
+	resultsIterator, err := ctx.GetStub().GetStateByPartialCompositeKey(CampaignPrefix, []string{})
+	
+	
+	
 	if err != nil {
 		return nil, err
 	}
@@ -678,7 +737,7 @@ func (s *SmartContract) GetAllCampaigns(ctx contractapi.TransactionContextInterf
 		campaigns = []*Campaign{}
 	}
 
-	log.Printf("Got all campaign : ")
+	log.Printf("Got all campaign : %d",len(campaigns))
 	return campaigns, nil
 
 }
@@ -736,7 +795,13 @@ func (s *SmartContract) appendPayment(ctx contractapi.TransactionContextInterfac
 
 // CampaignExists returns true if campaign with given ID exists
 func (s *SmartContract) CampaignExists(ctx contractapi.TransactionContextInterface, id string) (bool, error) {
-	campaignJSON, err := ctx.GetStub().GetState(id)
+	
+	campaignKey, err := ctx.GetStub().CreateCompositeKey(CampaignPrefix, []string{id})
+	if err != nil {
+		return  false,fmt.Errorf("failed to create composite key for %s: %v", campaignKey, err)
+	}
+	
+	campaignJSON, err := ctx.GetStub().GetState(campaignKey)
 	if err != nil {
 		return false, err
 	}

@@ -25,6 +25,8 @@ export const connectToGateway = async () => {
         throw new Error(`${currentRole} identity not found in wallet`);
     }
 
+    console.log('idn : ',identity);
+
     gateway = new Gateway();
     await gateway.connect(ccp, {
         wallet,

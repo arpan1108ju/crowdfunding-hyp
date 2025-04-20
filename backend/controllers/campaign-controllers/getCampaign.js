@@ -6,7 +6,6 @@ export const getCampaignHandler = async (req, res) => {
   try {
 
     const { id } = req.params;
-    console.log(id);
     
     const result = await getCampaign({id});
 

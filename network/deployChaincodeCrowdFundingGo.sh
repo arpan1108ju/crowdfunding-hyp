@@ -391,20 +391,20 @@ GetBalance() {
 
 
 # Run this function if you add any new dependency in chaincode
-# presetup
+presetup
 
-# packageChaincode
-# installChaincode
-# queryInstalledForOrg1
-# queryInstalledForOrg2
-# approveForMyOrg1
-# checkCommitReadyness
-# approveForMyOrg2
-# checkCommitReadyness
-# commitChaincodeDefination
-# queryCommitted
+packageChaincode
+installChaincode
+queryInstalledForOrg1
+queryInstalledForOrg2
+approveForMyOrg1
+checkCommitReadyness
+approveForMyOrg2
+checkCommitReadyness
+commitChaincodeDefination
+queryCommitted
 
-# chaincodeInvokeInit
+chaincodeInvokeInit
 # sleep 3
 # CreateCampaign
 # sleep 3
@@ -417,10 +417,10 @@ GetBalance() {
 # sleep 2
 
 # ReadCampaign 
-# sleep 2
-# GetAllCampaigns 
+sleep 2
+GetAllCampaigns 
 
-GetTokenMetadata
+# GetTokenMetadata
 # sleep 2
 
 # SetAdmin
