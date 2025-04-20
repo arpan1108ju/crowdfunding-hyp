@@ -3,11 +3,9 @@ import { Gateway, Wallets } from 'fabric-network';
 import fs from 'fs';
 import { CONNECTION_PROFILE_PATH, WALLET_PATH } from '../paths.js';
 import { getGateway, setGateway } from './gateway.js';
-import { USER , ADMIN } from '../constants.js';
+import { APP_USER } from '../constants.js';
 
-
-const currentRole = USER;
-
+const currentRole = APP_USER;
 
 export const connectToGateway = async () => {
 

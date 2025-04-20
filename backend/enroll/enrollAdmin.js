@@ -3,6 +3,7 @@ import { Wallets } from 'fabric-network';
 import fs from 'fs';
 
 import { CONNECTION_PROFILE_PATH , WALLET_PATH } from '../paths.js';
+import { APP_ADMIN } from '../constants.js';
 
 
 
@@ -27,14 +28,14 @@ async function enrollAdmin() {
         const wallet = await Wallets.newFileSystemWallet(WALLET_PATH);
 
         // Check if admin already exists
-        const identity = await wallet.get('admin');
+        const identity = await wallet.get(APP_ADMIN);
         if (identity) {
             console.log('Admin already enrolled');
             return;
         }
 
         // Enroll admin
-        const enrollment = await ca.enroll({ enrollmentID: 'admin', enrollmentSecret: 'adminpw' });
+        const enrollment = await ca.enroll({ enrollmentID: APP_ADMIN, enrollmentSecret: 'adminpw' });
 
         // Create and store identity
         const x509Identity = {
@@ -45,7 +46,7 @@ async function enrollAdmin() {
             mspId: 'Org1MSP',
             type: 'X.509',
         };
-        await wallet.put('admin', x509Identity);
+        await wallet.put(APP_ADMIN, x509Identity);
         console.log('✅ Successfully enrolled admin');
     } catch (error) {
         console.error(`❌ Failed to enroll admin: ${error}`);

@@ -27,6 +27,8 @@ model User {
   email           String    @unique
   password        String
 
+  x509Identity    String?
+
   isVerified      Boolean  @default(false)
   credentials     String?
 

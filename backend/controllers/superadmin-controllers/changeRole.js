@@ -23,16 +23,21 @@ export const changeRole = async (req, res) => {
             },
             select : {
                 id : true,
-                role : true
+                role : true,
+                isVerified : true
             }
         })
 
         if(!existingUser){
             throw new CustomError("User not found",404);
         }
-        if(existingUser.role === Role.SUPERADMIN){
+        else if(existingUser.isVerified === false){
+            throw new CustomError("cannot update role of unverified user",403);
+        }
+        else if(existingUser.role === Role.SUPERADMIN){
             throw new CustomError("Superadmin cannot be revoked",403);
         }
+
 
         const updatedUser = await db.user.update({
             where : {

@@ -33,9 +33,9 @@
 
 
 1. admin enrolls user verification stuffs
-2. native currency 
-3. /api/paymentDetails
-4. user currency management
+2. native currency ---> done 
+3. /api/paymentDetails --> done
+4. user currency management --> done
 5. error handling --> err returned by contract
 6. condition checking --> in contract (updateContract/dontate/cancel/withdraw)
 

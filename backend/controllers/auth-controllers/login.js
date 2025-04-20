@@ -24,7 +24,8 @@ export const login = async (req, res) => {
         email: true,
         isVerified: true,
         role : true,
-        password : true
+        password : true,
+        x509Identity : true
       }
     });
 

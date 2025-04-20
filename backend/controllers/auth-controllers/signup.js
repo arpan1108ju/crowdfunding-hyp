@@ -46,7 +46,8 @@ export const signup = async (req, res) => {
         username: true,
         email: true,
         isVerified: true,
-        role : true
+        role : true,
+        x509Identity : true
       },
     });
 
