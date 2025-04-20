@@ -15,7 +15,7 @@ export const setExchangeRateHandler = async (req, res) => {
 
     const result = await setExchangeRate({ currency, rate });
 
-    sendSuccess(res, result, "minting token successful!");
+    sendSuccess(res, {result}, "minting token successful!");
   } catch (error) {
     // Catch and handle CustomError
     sendError(

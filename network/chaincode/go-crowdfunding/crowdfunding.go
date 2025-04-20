@@ -15,6 +15,8 @@ const TOTAL_INITIAL_SUPPLY = 0
 
 const TOKEN_METADATA = "token_metadata"
 const ADMIN = "admin"
+const ERROR_BALANCE = 0
+
 const BalancePrefix = "balance_"
 const RatePrefix = "rate_"
 const CampaignPrefix = "campaign_"
@@ -145,19 +147,25 @@ func (s *SmartContract) isAdmin(ctx contractapi.TransactionContextInterface) (bo
 	return string(adminID) == clientID, nil
 }
 
-func (s *SmartContract) SetAdmin(ctx contractapi.TransactionContextInterface) error {
+func (s *SmartContract) SetAdmin(ctx contractapi.TransactionContextInterface) (*ResponseMessage,error) {
 	clientID, err := ctx.GetClientIdentity().GetID()
 	if err != nil {
-		return err
+		return nil,err
 	}
-	return ctx.GetStub().PutState(ADMIN, []byte(clientID))
+	err = ctx.GetStub().PutState(ADMIN, []byte(clientID))
+	if err != nil {
+		return nil, err
+	}
+
+	return &ResponseMessage{Message: "set admin successfully"}, nil
+
 }
 
 
-func (s *SmartContract) SetExchangeRate(ctx contractapi.TransactionContextInterface, currency string, rate float64) error {
+func (s *SmartContract) SetExchangeRate(ctx contractapi.TransactionContextInterface, currency string, rate float64) (*ResponseMessage,error) {
 	isAdmin, err := s.isAdmin(ctx)
 	if err != nil || !isAdmin {
-		return fmt.Errorf("unauthorized: only admin can set exchange rate")
+		return nil,fmt.Errorf("unauthorized: only admin can set exchange rate")
 	}
 	rateObj := ExchangeRate{
 		Currency:   currency,
@@ -167,10 +175,17 @@ func (s *SmartContract) SetExchangeRate(ctx contractapi.TransactionContextInterf
 
 	rateKey, err := ctx.GetStub().CreateCompositeKey(RatePrefix, []string{currency})
 	if err != nil {
-		return  fmt.Errorf("failed to create composite key for %s: %v", rateKey, err)
+		return  nil,fmt.Errorf("failed to create composite key for %s: %v", rateKey, err)
 	}
 
-	return ctx.GetStub().PutState(rateKey, rateBytes)
+
+
+	err = ctx.GetStub().PutState(rateKey, rateBytes)
+	if err != nil {
+		return nil, err
+	}
+
+	return &ResponseMessage{Message: "exchange rate set successfully"}, nil
 }
 
 // GetExchangeRate fetches the exchange rate for a given currency
@@ -201,22 +216,22 @@ func (s *SmartContract) GetExchangeRate(ctx contractapi.TransactionContextInterf
 
 
 
-func (s *SmartContract) MintToken(ctx contractapi.TransactionContextInterface, currency string, amountPaid float64) error {
+func (s *SmartContract) MintToken(ctx contractapi.TransactionContextInterface, currency string, amountPaid float64) (*ResponseMessage,error) {
 	// Fetch exchange rate
 
 	rateKey, err := ctx.GetStub().CreateCompositeKey(RatePrefix, []string{currency})
 	if err != nil {
-		return  fmt.Errorf("failed to create composite key for %s: %v", rateKey, err)
+		return  nil,fmt.Errorf("failed to create composite key for %s: %v", rateKey, err)
 	}
 
 	rateBytes, err := ctx.GetStub().GetState(rateKey)
 	if err != nil || rateBytes == nil {
-		return fmt.Errorf("no exchange rate for currency %s", currency)
+		return nil,fmt.Errorf("no exchange rate for currency %s", currency)
 	}
 
 	userID, err := ctx.GetClientIdentity().GetID()
 	if err != nil {
-		return fmt.Errorf("failed to get client identity: %v", err)
+		return nil,fmt.Errorf("failed to get client identity: %v", err)
 	}
 
 
@@ -227,7 +242,7 @@ func (s *SmartContract) MintToken(ctx contractapi.TransactionContextInterface, c
 
 	balanceKey, err := ctx.GetStub().CreateCompositeKey(BalancePrefix, []string{userID})
 	if err != nil {
-		return  fmt.Errorf("failed to create composite key for %s: %v", balanceKey, err)
+		return  nil,fmt.Errorf("failed to create composite key for %s: %v", balanceKey, err)
 	}
 
 	balanceBytes, _ := ctx.GetStub().GetState(balanceKey)
@@ -249,24 +264,24 @@ func (s *SmartContract) MintToken(ctx contractapi.TransactionContextInterface, c
 	updatedMetaBytes, _ := json.Marshal(metadata)
 	ctx.GetStub().PutState(TOKEN_METADATA, updatedMetaBytes)
 
-	return nil
+	return &ResponseMessage{Message: "token minted successfully"}, nil
 }
 
 func (s *SmartContract) GetBalance(ctx contractapi.TransactionContextInterface) (uint64, error) {
 	
 	userID, err := ctx.GetClientIdentity().GetID()
 	if err != nil {
-		return 0,fmt.Errorf("failed to get client identity: %v", err)
+		return ERROR_BALANCE,fmt.Errorf("failed to get client identity: %v", err)
 	}
 
 	balanceKey, err := ctx.GetStub().CreateCompositeKey(BalancePrefix, []string{userID})
 	if err != nil {
-		return  0,fmt.Errorf("failed to create composite key for %s: %v", balanceKey, err)
+		return  ERROR_BALANCE,fmt.Errorf("failed to create composite key for %s: %v", balanceKey, err)
 	}
 	
 	balanceBytes, err := ctx.GetStub().GetState(balanceKey)
 	if err != nil || balanceBytes == nil {
-		return 0, nil
+		return ERROR_BALANCE, nil
 	}
 	var balance Balance
 	json.Unmarshal(balanceBytes, &balance)
@@ -296,17 +311,19 @@ func (s *SmartContract) UpdateTokenBalance(ctx contractapi.TransactionContextInt
 		return fmt.Errorf("failed to create composite key: %v", err)
 	}
 
-	// Get the current token balance
-	currentBalance, err := s.GetTokenBalance(ctx, userID)
-	if err != nil {
-		return fmt.Errorf("failed to get token balance: %v", err)
+	balanceBytes, err := ctx.GetStub().GetState(tokenBalanceKey)
+	if err != nil || balanceBytes == nil {
+		return fmt.Errorf("failed to extract balance : %v", err)
 	}
 
+	var balance Balance
+	json.Unmarshal(balanceBytes, &balance)
+
 	// Update the balance
-	newBalance := currentBalance + amount
+	balance.Balance += amount
 
 	// Store the new balance
-	tokenBalanceJSON, err := json.Marshal(newBalance)
+	tokenBalanceJSON, err := json.Marshal(balance)
 	if err != nil {
 		return fmt.Errorf("failed to marshal new token balance: %v", err)
 	}
@@ -447,10 +464,19 @@ func (s *SmartContract) DonateToCampaign(ctx contractapi.TransactionContextInter
 	if err != nil {
 		return nil,err
 	}
+
+	if campaign.Deadline <= timestamp {
+		return nil,fmt.Errorf("cannot donate after deadline")
+	}
+
+	if campaign.Withdrawn {
+		return nil,fmt.Errorf("cannot donate to a withdrawn campaign")
+	}
+
 	if campaign.Canceled {
 		return nil,fmt.Errorf("cannot donate to a canceled campaign")
 	}
-	if campaign.AmountCollected+amount > campaign.Target {
+	if campaign.AmountCollected + amount > campaign.Target {
 		return nil,fmt.Errorf("donation exceeds campaign target")
 	}
 

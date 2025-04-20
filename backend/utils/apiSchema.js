@@ -1,5 +1,12 @@
 import { z } from "zod";
 
+
+export  const verifiedSchema = z.enum([
+  "true",
+  "false"
+]).optional();
+
+
 export const signupSchema = z.object({
   username: z.string().min(3),
   email: z.string().email(),
@@ -32,9 +39,6 @@ export const currencySchema = z.enum([
   "INR"
 ])
 
-export const getExchangeRateSchema = z.object({
-    currency : currencySchema
-})
 
 export const setExchangeRateSchema = z.object({
   currency : currencySchema,

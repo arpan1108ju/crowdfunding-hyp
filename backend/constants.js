@@ -37,12 +37,13 @@ const GET_TOKEN_METADATA = "GetTokenMetadata";
 const SET_TOKEN_METADATA = "SetTokenMetadata";
 const GET_EXCHANGE_RATE = "GetExchangeRate";
 const SET_EXCHANGE_RATE = "SetExchangeRate";
-
+const SET_ADMIN = "SetAdmin";
 
 const ADMIN = "admin";
 const USER = "appUser";
 export { 
 
+    SET_ADMIN,
     GET_BALANCE,
     GET_EXCHANGE_RATE,
     GET_TOKEN_METADATA,

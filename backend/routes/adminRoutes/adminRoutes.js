@@ -7,7 +7,7 @@ import { fetchAllUser } from "../../controllers/admin-controllers/fetchAllUser.j
 const router = express.Router();
 
 
-router.get('/fetch-one-user',fetchOneUser);
+router.get('/fetch-one-user/:id',fetchOneUser);
 router.get('/fetch-all-users',fetchAllUser);
 router.post('/enroll-user/:id',enrollUser);
 router.post('/revoke-user',revokeUser);
