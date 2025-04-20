@@ -9,7 +9,7 @@ const router = express.Router();
 
 router.get('/fetch-one-user',fetchOneUser);
 router.get('/fetch-all-users',fetchAllUser);
-router.post('/enroll-user',enrollUser);
+router.post('/enroll-user/:id',enrollUser);
 router.post('/revoke-user',revokeUser);
 
 
