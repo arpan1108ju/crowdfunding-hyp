@@ -7,7 +7,7 @@ import { PORT } from './config.js';
 
 import dummyRoute from "./routes/dummyRoute/dummyRoute.js";
 import adminRoutes from "./routes/adminRoutes/adminRoutes.js";
-import userRoutes from "./routes/userRoutes/userRoutes.js";
+import authRoutes from "./routes/authRoutes/authRoutes.js";
 import campaignRoutes from "./routes/campaignRoutes/campaignRoute.js";
 import tokenRoutes from "./routes/tokenRoutes/tokenRoutes.js";
 
@@ -19,7 +19,7 @@ const app = express();
 app.use(cors())
 app.use(express.json());
 
-app.use('/api/v1/users',userRoutes);
+app.use('/api/v1/auth',authRoutes);
 app.use('/api/v1/campaigns',campaignRoutes);
 
 app.use('/api/v1/dummy',dummyRoute);

@@ -3,7 +3,7 @@ import { mintTokenSchema } from "../../utils/apiSchema.js";
 import { CustomError } from "../../utils/customError.js";
 import { sendError, sendSuccess } from "../../utils/responses.js";
 
-export const minTokenHandler = async (req, res) => {
+export const mintTokenHandler = async (req, res) => {
   try {
     const validation = mintTokenSchema.safeParse(req.body);
 
