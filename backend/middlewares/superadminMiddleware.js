@@ -3,6 +3,7 @@ import { JWT_SECRET } from "../config.js";
 import { CustomError } from "../utils/customError.js";
 import { sendError } from "../utils/responses.js";
 import { Role } from "@prisma/client";
+import { requestContext } from "../utils/requestContext.js";
 
 export const superadminMiddleware = (req, res, next) => {
   const authHeader = req.headers["authorization"];

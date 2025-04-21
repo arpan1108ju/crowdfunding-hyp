@@ -13,27 +13,21 @@ export const connectToGateway = async () => {
 
     const user = await getCurrentUser();
 
-    console.log("user : ",user);
-
     let gateway = await getGateway();
     if(gateway){
         return;
     }
 
     const ccp = JSON.parse(fs.readFileSync(CONNECTION_PROFILE_PATH, 'utf8'));
-    const wallet = await Wallets.newFileSystemWallet(WALLET_PATH);
-    const identity = await wallet.get(currentRole);
+    // 1. Create in-memory wallet and load identity
+    const wallet = await Wallets.newInMemoryWallet();
+    await wallet.put(user.username, user.x509Identity);
 
-    if (!identity) {
-        throw new Error(`${currentRole} identity not found in wallet`);
-    }
-
-    console.log('idn : ',identity);
 
     gateway = new Gateway();
     await gateway.connect(ccp, {
         wallet,
-        identity: currentRole,
+        identity: user.username,
         discovery: { enabled: true, asLocalhost: true },
     });
 

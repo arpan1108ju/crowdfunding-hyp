@@ -37,9 +37,23 @@ const GET_EXCHANGE_RATE = "GetExchangeRate";
 const SET_EXCHANGE_RATE = "SetExchangeRate";
 const SET_ADMIN = "SetAdmin";
 
+// /utils/constants.js or /constants/roles.js
+
+const FabricRoles = Object.freeze({
+  CLIENT: 'client',
+  ADMIN: 'admin',
+  PEER: 'peer',
+  ORDERER: 'orderer',
+});
+
+
+
 const APP_ADMIN = "admin";
 const APP_USER = "appUser";
 export {
+
+  FabricRoles,
+
   SET_ADMIN,
   GET_BALANCE,
   GET_EXCHANGE_RATE,
