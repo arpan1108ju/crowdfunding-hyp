@@ -24,14 +24,24 @@ export const login = async (req, res) => {
         email: true,
         isVerified: true,
         role : true,
-        password : true,
-        x509Identity : true
+        password : true
       }
     });
 
     if (!existingUser) {
       throw new CustomError("Email not registered!", 404);
     }
+
+    // Now check if x509Identity exists
+    const x509 = await db.user.findUnique({
+      where: { email },
+      select: { x509Identity: true }
+    });
+
+    if (x509?.x509Identity) {
+      existingUser.x509Identity = x509.x509Identity;
+    }
+
     const {password : dbPassword , ...user} = existingUser;
 
     //  Compare entered password with stored hashed password
