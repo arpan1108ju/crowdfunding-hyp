@@ -29,7 +29,7 @@ export const adminMiddleware = (req, res, next) => {
 
     const context = requestContext.get();
     if (context) {
-      context.user =  req.user;;
+      context.user =  req.user;
     }
 
 
