@@ -46,10 +46,19 @@ export const signup = async (req, res) => {
         username: true,
         email: true,
         isVerified: true,
-        role : true,
-        x509Identity : true
+        role : true
       },
     });
+
+     // Now check if x509Identity exists
+     const x509 = await db.user.findUnique({
+      where: { email },
+      select: { x509Identity: true }
+    });
+
+    if (x509?.x509Identity) {
+      user.x509Identity = x509.x509Identity;
+    }
 
     //  Create JWT Token
     const token = jwt.sign(
