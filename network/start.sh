@@ -1,6 +1,7 @@
-./scripts/generate.sh
-./scripts/start.sh
+# ./scripts/generate.sh
+# ./scripts/start.sh
 
-./createChannel.sh
+# ./createChannel.sh
 
-./deployChaincode.sh
+# ./deployChaincode.sh
+

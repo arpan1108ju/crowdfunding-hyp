@@ -5,6 +5,7 @@ import { CustomError } from "../../utils/customError.js";
 import { getCurrentUser } from "../../utils/getCurrentUser.js";
 import { enroll } from "../../enroll/enrollment.js";
 import { FabricRoles } from "../../constants.js";
+import { Role } from "@prisma/client";
 
 export const enrollUser = async (req, res) => {
   try {
@@ -20,6 +21,9 @@ export const enrollUser = async (req, res) => {
       throw new CustomError("User not found", 404);
     }
 
+    if(existingUser.role !== Role.USER){
+       throw new CustomError("Given person is not user",403);
+    }
     // call enroll user here
 
     const admin = await getCurrentUser();

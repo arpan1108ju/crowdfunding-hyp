@@ -5,10 +5,15 @@ import { Wallets } from "fabric-network";
 import { CONNECTION_PROFILE_PATH } from '../paths.js';
 import { CustomError } from '../utils/customError.js';
 import db from '../utils/db.js';
+import { FabricRoles } from '../constants.js';
 
 
 export async function enroll(admin, client,role) {
   
+    if(!admin.x509Identity){
+       throw new CustomError("Admin not enrolled (prefrebly re-login).",405);
+    }
+
     if(client.x509Identity){
        throw new CustomError("User already enrolled",405);
     }
@@ -25,23 +30,22 @@ export async function enroll(admin, client,role) {
     const provider = wallet.getProviderRegistry().getProvider(admin.x509Identity.type);
     const adminUser = await provider.getUserContext(admin.x509Identity, admin.id);
 
+
+    let attrs = [];
+    if (role === FabricRoles.ADMIN) {
+      attrs.push(
+        { name: 'hf.Registrar.Roles', value: 'client,admin', ecert: true },
+        { name: 'hf.Registrar.Attributes', value: '*', ecert: true },
+        { name: 'hf.Revoker', value: 'true', ecert: true },
+      );
+    }
+
     // Use adminIdentity passed in to register user
     const secret = await ca.register({
       affiliation: 'org1.department1',
       enrollmentID: client.email,
       role: role,
-      // attrs: [
-      //   { name: 'hf.Type', value: role, ecert: true }, // This sets the "type" in the cert (e.g., client/admin)
-        
-      //   // Optional: if you want this identity to register others (e.g. for admins)
-      //   ...(role === 'admin'
-      //     ? [
-      //         { name: 'hf.Registrar.Roles', value: 'client,admin', ecert: true },
-      //         { name: 'hf.Registrar.Attributes', value: '*', ecert: true },
-      //       ]
-      //     : []
-      //   )
-      // ]
+      attrs
     }, adminUser);
 
     const enrollment = await ca.enroll({
@@ -74,7 +78,7 @@ export async function enroll(admin, client,role) {
       }
     });
 
-    console.log(`✅ Successfully registered ${role} and enrolled ${client.username}`);
+    console.log(`✅ Successfully registered ${role} and enrolled ${client.username} by ${admin.username}`);
 
     return updatedUser;
   

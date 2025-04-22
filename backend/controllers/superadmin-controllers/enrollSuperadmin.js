@@ -8,6 +8,7 @@ import { sendError, sendSuccess } from "../../utils/responses.js";
 import FabricCAServices from 'fabric-ca-client';
 import fs from 'fs';
 import { getCurrentUser } from "../../utils/getCurrentUser.js";
+import { SUPERADMIN, SUPERADMIN_PASSWORD } from "../../constants.js";
 
 
 export const enrollSuperAdminHandler = async (req, res) => {
@@ -20,7 +21,7 @@ export const enrollSuperAdminHandler = async (req, res) => {
     })
     const updatedSuperAdmin = await enrollSuperAdmin(superadmin);
     
-    sendSuccess(res,updatedSuperAdmin, '✅ Successfully enrolled super-admin');
+    sendSuccess(res,updatedSuperAdmin, 'Successfully enrolled super-admin');
   } catch (error) {
     // Catch and handle CustomError
     sendError(res, error.details || error.message, error.message, error.statusCode || 500);
@@ -44,8 +45,8 @@ async function enrollSuperAdmin(superadmin) {
         const ca = new FabricCAServices(caURL);
 
         const enrollment = await ca.enroll({
-            enrollmentID: 'admin',
-            enrollmentSecret: 'adminpw',
+            enrollmentID: SUPERADMIN,
+            enrollmentSecret: SUPERADMIN_PASSWORD,
         });
         // Create and store identity
         const x509Identity = {

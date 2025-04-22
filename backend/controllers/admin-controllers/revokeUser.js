@@ -1,24 +1,38 @@
 import { sendSuccess, sendError } from "../../utils/responses.js";
-import { CustomError } from "../../utils/customError.js";
 import db from "../../utils/db.js";
+import { CustomError } from "../../utils/customError.js";
+
+import { getCurrentUser } from "../../utils/getCurrentUser.js";
+import { FabricRoles } from "../../constants.js";
+import { Role } from "@prisma/client";
+import { revoke } from "../../enroll/revocation.js";
 
 export const revokeUser = async (req, res) => {
   try {
+
     const { id } = req.params;
 
-    // Check if user exists
-    const user = await db.user.findUnique({ where: { id } });
-    if (!user) {
+    // Step 1: Check if user exists
+    const existingUser = await db.user.findUnique({
+      where: { id },
+    });
+
+    if (!existingUser) {
       throw new CustomError("User not found", 404);
     }
 
-    // Delete the user
-    await db.user.delete({
-      where: { id }
-    });
+    if(existingUser.role !== Role.USER){
+       throw new CustomError("Given person is not user",403);
+    }
+    // call enroll user here
 
-    sendSuccess(res, {}, "User revoked (deleted) successfully!");
+    const admin = await getCurrentUser();
+
+    const updatedUser = await revoke(admin,existingUser,FabricRoles.CLIENT);
+    // Step 3: Send success response
+    sendSuccess(res, updatedUser, "Revoked user successfully");
   } catch (error) {
-    sendError(res, error.details || error.message, error.message, error.statusCode || 500);
+    sendError(res, error.details || error.message , error.message, error.statusCode || 500);
   }
 };
+

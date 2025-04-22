@@ -1,0 +1,12 @@
+./scripts/start-docker-ca
+
+./scripts/create-cert-with-ca
+
+./scripts/generateOnly
+
+./scripts/start-without-ca
+
+./createC
+./deplyC
+
+

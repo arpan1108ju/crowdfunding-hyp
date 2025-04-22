@@ -39,8 +39,11 @@
 5. error handling --> err returned by contract
 6. condition checking --> in contract (updateContract/dontate/cancel/withdraw)
 
-
-
+7. get all payments of a campaign 
+8. get all exchange rate
+9. mintToken via admin to some user
+10. get balance of a user 
+11. get payments of a user
 
 
 

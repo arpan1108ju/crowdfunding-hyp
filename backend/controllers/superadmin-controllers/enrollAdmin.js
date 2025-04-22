@@ -17,15 +17,19 @@ export const enrollAdminHandler = async (req, res) => {
         }
     })
 
+    if(!existingAdmin){
+        throw new CustomError("Given admin not found",404);
+    }
+
     const superadmin = await getCurrentUser();
 
-    if(existingAdmin.role !== Role.ADMIN && existingAdmin.role !== Role.SUPERADMIN){
+    if(existingAdmin.role !== Role.ADMIN){
         throw new CustomError("Given user is not admin",403);
     }
 
     const updatedAdmin = await enroll(superadmin,existingAdmin,FabricRoles.ADMIN);
     
-    sendSuccess(res,updatedAdmin, '✅ Successfully enrolled admin');
+    sendSuccess(res,updatedAdmin, 'Successfully enrolled admin');
   } catch (error) {
     // Catch and handle CustomError
     sendError(res, error.details || error.message, error.message, error.statusCode || 500);

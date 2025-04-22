@@ -50,7 +50,14 @@ const FabricRoles = Object.freeze({
 
 const APP_ADMIN = "admin";
 const APP_USER = "appUser";
+
+const SUPERADMIN = "admin";
+const SUPERADMIN_PASSWORD = "adminpw";
+
 export {
+
+  SUPERADMIN,
+  SUPERADMIN_PASSWORD,
 
   FabricRoles,
 
