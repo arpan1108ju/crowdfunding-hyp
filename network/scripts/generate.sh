@@ -43,6 +43,8 @@ configtxgen -profile OrdererGenesis \
     -channelID $SYS_CHANNEL  \
     -outputBlock ./channel-artifacts/genesis.block
 
+
+
 # # Generate channel configuration block
 configtxgen -profile BasicChannel \
     -configPath . \
