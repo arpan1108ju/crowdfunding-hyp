@@ -1,5 +1,14 @@
-# crypto-config/*
+crypto-config/*
+!crypto-config/.gitkeep
+
 channel-artifacts/*
+!channel-artifacts/.gitkeep
+
 chaincode-package/*
-# crypto-config-ca/*
-# fabric-ca/*
+!chaincode-package/.gitkeep
+
+crypto-config-ca/*
+!crypto-config-ca/.gitkeep
+
+fabric-ca/*
+!fabric-ca/.gitkeep
