@@ -1,0 +1,5 @@
+# crypto-config/
+channel-artifacts/
+chaincode-package/
+# crypto-config-ca/
+# fabric-ca/
