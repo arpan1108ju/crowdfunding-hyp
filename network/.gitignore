@@ -2,3 +2,4 @@ crypto-config/
 channel-artifacts/
 chaincode-package/
 fabric-ca/
+crypto-config-ca/
