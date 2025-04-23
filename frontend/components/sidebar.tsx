@@ -13,7 +13,7 @@ import { useAuth } from "@/components/providers/app-provider"
 export function Sidebar() {
   const pathname = usePathname()
   // const { user } = useAuth()
-  const { user, loading } = useAuth()
+  const { user } = useAuth()
   const [open, setOpen] = useState(false)
   const [mounted, setMounted] = useState(false)
 
@@ -21,7 +21,7 @@ export function Sidebar() {
     setMounted(true)
   }, [])
 
-  if (!mounted || loading) return null
+  // if (!mounted || loading) return null
  console.log(user)
   const isAdmin = user?.role === "admin"
   const isSuperAdmin = user?.role === "superadmin"
