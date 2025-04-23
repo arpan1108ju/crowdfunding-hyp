@@ -20,7 +20,7 @@ export const enrollSuperAdminHandler = async (req, res) => {
         }
     })
     const updatedSuperAdmin = await enrollSuperAdmin(superadmin);
-    
+
     sendSuccess(res,updatedSuperAdmin, 'Successfully enrolled super-admin');
   } catch (error) {
     // Catch and handle CustomError
@@ -29,25 +29,22 @@ export const enrollSuperAdminHandler = async (req, res) => {
 };
 
 
-
-
 async function enrollSuperAdmin(superadmin) {
 
-        if(superadmin.x509Identity){
-            throw new CustomError("Super Admin already enrolled",405);
-        }
+        // if(superadmin.x509Identity){
+        //     throw new CustomError("Super Admin already enrolled",405);
+        // }
 
         const ccp = JSON.parse(fs.readFileSync(CONNECTION_PROFILE_PATH, 'utf8'));
-        const caURL = ccp.certificateAuthorities['ca.org1.example.com'].url;
-        if (!caURL.startsWith('https://')) {
-            throw new CustomError('Error: The CA URL must start with https://');
-        }
-        const ca = new FabricCAServices(caURL);
-
+        const caInfo = ccp.certificateAuthorities['ca.org1.example.com'];
+        const caTLSCACerts = fs.readFileSync(caInfo.tlsCACerts.path);
+        const ca = new FabricCAServices(caInfo.url,{trustedRoots : caTLSCACerts,verify : false},caInfo.caName);
+        
         const enrollment = await ca.enroll({
             enrollmentID: SUPERADMIN,
             enrollmentSecret: SUPERADMIN_PASSWORD,
         });
+
         // Create and store identity
         const x509Identity = {
             credentials: {
@@ -75,7 +72,7 @@ async function enrollSuperAdmin(superadmin) {
             }
         });
         
-        console.log('✅ Successfully enrolled admin');
+        console.log('✅ Successfully enrolled superadmin');
 
         return updatedSuperAdmin;
 

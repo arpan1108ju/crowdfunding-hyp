@@ -1,6 +1,6 @@
 ## run from /network directory 
 
-sudo chmod -R 0755 ./crypto-config
+# sudo chmod -R 0755 ./crypto-config
 
 
 #!/bin/bash
@@ -20,14 +20,14 @@ delete_if_exists() {
 }
 
 # Use the function
-delete_if_exists "./crypto-config"
 delete_if_exists "./channel-artifacts"
 
-mkdir crypto-config channel-artifacts
+mkdir channel-artifacts
 
+echo "============= copying to crypto-config =============="
 cp -r crypto-config-ca/* crypto-config/
-
-
+echo "============= copy done ============="
+.
 #Generate Crypto artifactes for organizations
 # cryptogen generate --config=./config/crypto-config.yaml --output=./crypto-config/
 

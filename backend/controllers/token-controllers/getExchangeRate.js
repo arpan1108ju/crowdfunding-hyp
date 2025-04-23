@@ -16,7 +16,7 @@ export const getExchangeRateHandler = async (req, res) => {
     const currencyData = validation.data;
     const exchangeRate = await getExchangeRate({ currency : currencyData });
 
-    sendSuccess(res, {exchangeRate}, "fetched balance successfully");
+    sendSuccess(res, {exchangeRate}, "fetched exchange rate successfully");
   } catch (error) {
     // Catch and handle CustomError
     sendError(

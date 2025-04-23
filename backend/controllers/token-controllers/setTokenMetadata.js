@@ -15,7 +15,7 @@ export const setTokenMetadataHandler = async (req, res) => {
 
     const result = await setTokenMetadata({ name, symbol });
 
-    sendSuccess(res, {result}, "set token metadata successful!");
+    sendSuccess(res, {result}, "set token metadata successfully");
   } catch (error) {
     // Catch and handle CustomError
     sendError(

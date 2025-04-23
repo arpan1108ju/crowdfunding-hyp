@@ -35,7 +35,6 @@ const GET_TOKEN_METADATA = "GetTokenMetadata";
 const SET_TOKEN_METADATA = "SetTokenMetadata";
 const GET_EXCHANGE_RATE = "GetExchangeRate";
 const SET_EXCHANGE_RATE = "SetExchangeRate";
-const SET_ADMIN = "SetAdmin";
 
 // /utils/constants.js or /constants/roles.js
 
@@ -51,8 +50,8 @@ const FabricRoles = Object.freeze({
 const APP_ADMIN = "admin";
 const APP_USER = "appUser";
 
-const SUPERADMIN = "admin";
-const SUPERADMIN_PASSWORD = "adminpw";
+const SUPERADMIN = 'admin';
+const SUPERADMIN_PASSWORD = 'adminpw';
 
 export {
 
@@ -61,7 +60,6 @@ export {
 
   FabricRoles,
 
-  SET_ADMIN,
   GET_BALANCE,
   GET_EXCHANGE_RATE,
   GET_TOKEN_METADATA,

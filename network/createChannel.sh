@@ -4,7 +4,7 @@ export PEER0_ORG1_CA=${PWD}/crypto-config/peerOrganizations/org1.example.com/pee
 export PEER0_ORG2_CA=${PWD}/crypto-config/peerOrganizations/org2.example.com/peers/peer0.org2.example.com/tls/ca.crt
 export FABRIC_CFG_PATH=${PWD}/config/
 
-export CHANNEL_NAME=mychannel
+export CHANNEL_NAME="mychannel"
 
 # setGlobalsForOrderer(){
 #     export CORE_PEER_LOCALMSPID="OrdererMSP"
@@ -31,11 +31,7 @@ setGlobalsForPeer0Org2(){
 
 
 createChannel(){
-    if [ -f "./channel-artifacts/${CHANNEL_NAME}.block" ]; then
-        rm ./channel-artifacts/${CHANNEL_NAME}.block
-        echo "================= removed ./channel-artifacts/${CHANNEL_NAME}.block ======================="
-    fi
-
+  
     # echo "=============== setting globals for peer0Org1 ================="
     setGlobalsForPeer0Org1
     
@@ -85,16 +81,43 @@ removeChannel(){
 }
 
 
+deleteChannel(){
+    echo "### Deleting channel and cleaning up artifacts for '$CHANNEL_NAME' ###"
+
+    # Set globals for Org1 and Org2 to leave the channel
+    setGlobalsForPeer0Org1
+    peer channel leave
+    
+    setGlobalsForPeer0Org2
+    peer channel leave
+    
+    # Remove local block and anchor peer tx files
+    rm -f ./channel-artifacts/${CHANNEL_NAME}.block
+    rm -f ./channel-artifacts/${CHANNEL_NAME}.tx
+    echo "✅ Deleted channel-artifacts related to '${CHANNEL_NAME}'"
+
+    # Optional: If using Docker Compose, can remove volumes or restart
+    # docker-compose down -v
+}
+
+
+
+
+
 checkChannel(){
+    setGlobalsForPeer0Org1
+    peer channel list
+    
     setGlobalsForPeer0Org2
     # peer channel getinfo -c $CHANNEL_NAME
-
     peer channel list
 }
-# checkChannel
 
 # removeOldCrypto
 
 createChannel
 joinChannel
 updateAnchorPeers
+checkChannel
+
+# deleteChannel

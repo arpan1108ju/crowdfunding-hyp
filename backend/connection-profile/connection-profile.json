@@ -75,8 +75,11 @@
   "certificateAuthorities": {
     "ca.org1.example.com": {
       "url": "https://localhost:7054",
-      "caName": "ca-org1",
+      "caName": "ca.org1.example.com",
       "tlsCACerts": {
+        "path": "/mnt/d/Projects-D/Projects/dapp-hyperledger/network/crypto-config/peerOrganizations/org1.example.com/tlsca/tlsca.org1.example.com-cert.pem"
+      },
+      "caCerts": {
         "path": "/mnt/d/Projects-D/Projects/dapp-hyperledger/network/crypto-config/peerOrganizations/org1.example.com/ca/ca.org1.example.com-cert.pem"
       },
       "httpOptions": {
@@ -85,8 +88,11 @@
     },
     "ca.org2.example.com": {
       "url": "https://localhost:8054",
-      "caName": "ca-org2",
+      "caName": "ca.org2.example.com",
       "tlsCACerts": {
+        "path": "/mnt/d/Projects-D/Projects/dapp-hyperledger/network/crypto-config/peerOrganizations/org2.example.com/tlsca/tlsca.org2.example.com-cert.pem"
+      },
+      "caCerts": {
         "path": "/mnt/d/Projects-D/Projects/dapp-hyperledger/network/crypto-config/peerOrganizations/org2.example.com/ca/ca.org2.example.com-cert.pem"
       },
       "httpOptions": {

@@ -5,7 +5,7 @@ import { sendError } from "../utils/responses.js";
 import { Role } from "@prisma/client";
 import { requestContext } from "../utils/requestContext.js";
 
-export const adminMiddleware = (req, res, next) => {
+export const adminAndSuperadminMiddleware = (req, res, next) => {
   const authHeader = req.headers["authorization"];
   const token = authHeader && authHeader.split(" ")[1]; // Get token after "Bearer"
 
@@ -17,21 +17,18 @@ export const adminMiddleware = (req, res, next) => {
     const decoded = jwt.verify(token, JWT_SECRET);
     req.user = decoded; // attach user info to request
 
-
     if (!decoded.isVerified) {
       throw new CustomError("Not verifed", 403);
     }
 
-    if (decoded.role !== Role.ADMIN) {
+    if (decoded.role !== Role.SUPERADMIN && decoded.role !== Role.ADMIN) {
       throw new CustomError("Not authorized", 403);
     }
-
 
     const context = requestContext.get();
     if (context) {
       context.user =  req.user;
     }
-
 
     next();
   } catch (error) {

@@ -4,6 +4,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"strings"
+	"crypto/x509"
+	"encoding/pem"
 
 	"github.com/hyperledger/fabric-contract-api-go/contractapi"
 )
@@ -20,7 +23,7 @@ const ERROR_BALANCE = 0
 const BalancePrefix = "balance_"
 const RatePrefix = "rate_"
 const CampaignPrefix = "campaign_"
-
+const PaymentPrefix = "payment_"
 
 type SmartContract struct {
 	contractapi.Contract
@@ -88,6 +91,43 @@ type ResponseMessage struct {
 }
 
 
+type FabricIdentity struct {
+	Type        string                 `json:"type"`
+	MspID       string                 `json:"mspId"`
+	Credentials map[string]interface{} 	`json:"credentials"`
+}
+
+// GetClientIDFromX509 takes a Fabric identity structure and returns the standard client ID
+func GetClientIDFromX509(identity FabricIdentity) (string, error) {
+	// 1. Verify we have an X.509 identity
+	if identity.Type != "X.509" {
+		return "", fmt.Errorf("identity type must be X.509")
+	}
+
+	// 2. Extract certificate from credentials
+	certPEM, ok := identity.Credentials["certificate"].(string)
+	if !ok {
+		return "", fmt.Errorf("certificate not found in credentials")
+	}
+
+	// 3. Parse the certificate
+	block, _ := pem.Decode([]byte(certPEM))
+	if block == nil {
+		return "", fmt.Errorf("failed to decode PEM block containing certificate")
+	}
+
+	cert, err := x509.ParseCertificate(block.Bytes)
+	if err != nil {
+		return "", fmt.Errorf("failed to parse certificate: %v", err)
+	}
+
+	// 4. Format in standard Fabric way
+	subject := cert.Subject.String()
+	issuer := cert.Issuer.String()
+	clientID := fmt.Sprintf("x509::%s::%s", subject, issuer)
+
+	return clientID, nil
+}
 
 
 // Init initializes the chaincode
@@ -135,30 +175,25 @@ func (s *SmartContract) GetTokenMetadata(ctx contractapi.TransactionContextInter
 }
 
 
+
+
+
 func (s *SmartContract) isAdmin(ctx contractapi.TransactionContextInterface) (bool, error) {
-	clientID, err := ctx.GetClientIdentity().GetID()
+	// Get the value of the 'hf.Registrar.Roles' attribute
+	role, found, err := ctx.GetClientIdentity().GetAttributeValue("hf.Registrar.Roles")
 	if err != nil {
-		return false, err
+		return false, fmt.Errorf("failed to get hf.Registrar.Roles attribute: %v", err)
 	}
-	adminID, err := ctx.GetStub().GetState(ADMIN)
-	if err != nil || adminID == nil {
-		return false, nil
-	}
-	return string(adminID) == clientID, nil
-}
-
-func (s *SmartContract) SetAdmin(ctx contractapi.TransactionContextInterface) (*ResponseMessage,error) {
-	clientID, err := ctx.GetClientIdentity().GetID()
-	if err != nil {
-		return nil,err
-	}
-	err = ctx.GetStub().PutState(ADMIN, []byte(clientID))
-	if err != nil {
-		return nil, err
+	if !found {
+		return false, nil // Attribute not present
 	}
 
-	return &ResponseMessage{Message: "set admin successfully"}, nil
+	// Check if "admin" is included in the attribute value
+	if role == "admin" || strings.Contains(role, "admin") {
+		return true, nil
+	}
 
+	return false, nil
 }
 
 
@@ -213,6 +248,43 @@ func (s *SmartContract) GetExchangeRate(ctx contractapi.TransactionContextInterf
 	return &exchangeRate, nil
 }
 
+// GetAllExchangeRates returns all exchange rates from world state
+func (s *SmartContract) GetAllExchangeRates(ctx contractapi.TransactionContextInterface) ([]*ExchangeRate, error) {
+    // 1. Get iterator for all exchange rates using the rate prefix
+    resultsIterator, err := ctx.GetStub().GetStateByPartialCompositeKey(RatePrefix, []string{})
+    if err != nil {
+        return nil, fmt.Errorf("failed to get exchange rate iterator: %v", err)
+    }
+    defer resultsIterator.Close()
+
+    var exchangeRates []*ExchangeRate
+    
+    // 2. Iterate through all exchange rates
+    for resultsIterator.HasNext() {
+        queryResponse, err := resultsIterator.Next()
+        if err != nil {
+            return nil, fmt.Errorf("failed to get next exchange rate: %v", err)
+        }
+
+        var rate ExchangeRate
+        err = json.Unmarshal(queryResponse.Value, &rate)
+        if err != nil {
+            // Log but continue to next rate instead of failing
+            log.Printf("Failed to unmarshal exchange rate %s: %v", queryResponse.Key, err)
+            continue
+        }
+
+        exchangeRates = append(exchangeRates, &rate)
+    }
+
+    // 3. Return empty slice instead of nil if no rates found
+    if exchangeRates == nil {
+        exchangeRates = make([]*ExchangeRate, 0)
+    }
+
+    log.Printf("Found %d exchange rates", len(exchangeRates))
+    return exchangeRates, nil
+}
 
 
 
@@ -340,6 +412,13 @@ func (s *SmartContract) UpdateTokenBalance(ctx contractapi.TransactionContextInt
 
 // CreateCampaign adds a new campaign to the ledger
 func (s *SmartContract) CreateCampaign(ctx contractapi.TransactionContextInterface,id, title, description, campaignType string, target, deadline uint64, image string, timestamp uint64) (*ResponseMessage, error) {
+	
+	isAdmin, err := s.isAdmin(ctx)
+	if err != nil || !isAdmin {
+		return nil,fmt.Errorf("unauthorized: only admin can create campaign")
+	}
+	
+	
 	exists, err := s.CampaignExists(ctx, id)
 	if err != nil {
 		return nil, err
@@ -396,8 +475,17 @@ func (s *SmartContract) CreateCampaign(ctx contractapi.TransactionContextInterfa
 	return &ResponseMessage{Message: "campaign created successfully"}, nil
 }
 
+
 // UpdateCampaign allows campaign owner to update editable fields before deadline and before donations
 func (s *SmartContract) UpdateCampaign(ctx contractapi.TransactionContextInterface,id, title, description, campaignType string, target ,deadline uint64, image string, timestamp uint64) (*ResponseMessage, error) {
+	
+	isAdmin, err := s.isAdmin(ctx)
+	if err != nil || !isAdmin {
+		return nil,fmt.Errorf("unauthorized: only admin can update campaign")
+	}
+	
+	
+	
 	campaign, err := s.ReadCampaign(ctx, id)
 	if err != nil {
 		return nil , err
@@ -540,6 +628,14 @@ func (s *SmartContract) DonateToCampaign(ctx contractapi.TransactionContextInter
 
 // Withdraw allows the campaign owner to withdraw funds after deadline
 func (s *SmartContract) Withdraw(ctx contractapi.TransactionContextInterface, id string, timestamp uint64) (*ResponseMessage, error) {
+	
+	isAdmin, err := s.isAdmin(ctx)
+	if err != nil || !isAdmin {
+		return nil,fmt.Errorf("unauthorized: only admin can withdraw campaign")
+	}
+	
+	
+	
 	campaign, err := s.ReadCampaign(ctx, id)
 	if err != nil {
 		return nil,err
@@ -604,6 +700,14 @@ func (s *SmartContract) Withdraw(ctx contractapi.TransactionContextInterface, id
 
 // CancelCampaign cancels the campaign and refunds donors
 func (s *SmartContract) CancelCampaign(ctx contractapi.TransactionContextInterface,id string, timestamp uint64) (*ResponseMessage,error) {
+	
+	isAdmin, err := s.isAdmin(ctx)
+	if err != nil || !isAdmin {
+		return nil,fmt.Errorf("unauthorized: only admin can cancel campaign")
+	}
+	
+	
+	
 	campaign, err := s.ReadCampaign(ctx, id)
 	if err != nil {
 		return nil,err
@@ -666,44 +770,38 @@ func (s *SmartContract) CancelCampaign(ctx contractapi.TransactionContextInterfa
 	return &ResponseMessage{Message: "campaign canceled and refunds processed"}, nil
 
 }
+// DeleteCampaign deletes a campaign if it exists and is either withdrawn or canceled
+func (s *SmartContract) DeleteCampaign(ctx contractapi.TransactionContextInterface, id string) (*ResponseMessage, error) {
+    // 1. Admin check
+    isAdmin, err := s.isAdmin(ctx)
+    if err != nil || !isAdmin {
+        return nil, fmt.Errorf("unauthorized: only admin can delete campaign")
+    }
 
-// DeleteCampaign deletes a campaign if it exists, is not withdrawn, and belongs to the caller
-func (s *SmartContract) DeleteCampaign(ctx contractapi.TransactionContextInterface, 
-	id string) (*ResponseMessage,error) {
-	campaign, err := s.ReadCampaign(ctx, id)
-	if err != nil {
-		return nil,err
-	}
+    // 2. Get campaign
+    campaign, err := s.ReadCampaign(ctx, id)
+    if err != nil {
+        return nil, err
+    }
 
-	clientID, err := ctx.GetClientIdentity().GetID()
-	if err != nil {
-		return nil,fmt.Errorf("failed to get client identity: %v", err)
-	}
+    // 3. Verify campaign state
+    if !campaign.Withdrawn && !campaign.Canceled {
+        return nil, fmt.Errorf("only withdrawn or canceled campaigns can be deleted")
+    }
 
-	if campaign.Owner != clientID {
-		return nil,fmt.Errorf("only the campaign owner can delete the campaign")
-	}
+    // 4. Delete campaign
+    campaignKey, err := ctx.GetStub().CreateCompositeKey(CampaignPrefix, []string{id})
+    if err != nil {
+        return nil, fmt.Errorf("failed to create composite key for %s: %v", campaignKey, err)
+    }
 
-	if campaign.Withdrawn {
-		return nil,fmt.Errorf("cannot delete a campaign that has already been withdrawn")
-	}
+    err = ctx.GetStub().DelState(campaignKey)
+    if err != nil {
+        return nil, fmt.Errorf("failed to delete campaign: %v", err)
+    }
 
-	if campaign.Canceled {
-		return nil,fmt.Errorf("campaign is already canceled; deletion not allowed")
-	}
-
-	campaignKey, err := ctx.GetStub().CreateCompositeKey(CampaignPrefix, []string{id})
-	if err != nil {
-		return  nil,fmt.Errorf("failed to create composite key for %s: %v", campaignKey, err)
-	}
-
-	err = ctx.GetStub().DelState(campaignKey)
-	if err != nil {
-		return nil,fmt.Errorf("failed to delete campaign: %v", err)
-	}
-
-	log.Printf("Successfully deleted campaign: %s", id)
-	return &ResponseMessage{Message: "campaign deleted successfully"}, nil
+    log.Printf("Successfully deleted campaign: %s", id)
+    return &ResponseMessage{Message: "campaign deleted successfully"}, nil
 }
 
 // ReadCampaign returns the campaign stored in the ledger with given ID
@@ -768,6 +866,54 @@ func (s *SmartContract) GetAllCampaigns(ctx contractapi.TransactionContextInterf
 
 }
 
+// GetUserCampaigns returns all campaigns owned by the calling user
+func (s *SmartContract) GetUserCampaigns(ctx contractapi.TransactionContextInterface) ([]*Campaign, error) {
+    // 1. Get client identity first (before any other operations)
+    clientID, err := ctx.GetClientIdentity().GetID()
+    if err != nil {
+        return nil, fmt.Errorf("failed to get client identity: %v", err)
+    }
+
+    // 2. Get iterator for all campaigns
+    resultsIterator, err := ctx.GetStub().GetStateByPartialCompositeKey(CampaignPrefix, []string{})
+    if err != nil {
+        return nil, fmt.Errorf("failed to get campaign iterator: %v", err)
+    }
+    defer resultsIterator.Close()
+
+    var userCampaigns []*Campaign
+    
+    // 3. Iterate through all campaigns
+    for resultsIterator.HasNext() {
+        queryResponse, err := resultsIterator.Next()
+        if err != nil {
+            return nil, fmt.Errorf("failed to get next campaign: %v", err)
+        }
+
+        var campaign Campaign
+        err = json.Unmarshal(queryResponse.Value, &campaign)
+        if err != nil {
+            // Log but continue to next campaign instead of failing
+            log.Printf("Failed to unmarshal campaign %s: %v", queryResponse.Key, err)
+            continue
+        }
+
+        // 4. Only include campaigns owned by the caller
+        if campaign.Owner == clientID {
+            userCampaigns = append(userCampaigns, &campaign)
+        }
+    }
+
+    // 5. Return empty slice instead of nil if no campaigns found
+    if userCampaigns == nil {
+        userCampaigns = make([]*Campaign, 0)
+    }
+
+    log.Printf("Found %d campaigns for user %s", len(userCampaigns), clientID)
+    return userCampaigns, nil
+}
+
+
 // GetUserPayments retrieves all payment records for the calling user
 func (s *SmartContract) GetUserPayments(ctx contractapi.TransactionContextInterface) ([]*PaymentDetail, error) {
 	userID, err := ctx.GetClientIdentity().GetID()
@@ -775,7 +921,7 @@ func (s *SmartContract) GetUserPayments(ctx contractapi.TransactionContextInterf
 		return nil, fmt.Errorf("failed to get client identity: %v", err)
 	}
 
-	iterator, err := ctx.GetStub().GetStateByPartialCompositeKey("payment", []string{userID})
+	iterator, err := ctx.GetStub().GetStateByPartialCompositeKey(PaymentPrefix, []string{userID})
 	if err != nil {
 		return nil, fmt.Errorf("failed to get payment history for user %s: %v", userID, err)
 	}
@@ -808,7 +954,7 @@ func (s *SmartContract) GetUserPayments(ctx contractapi.TransactionContextInterf
 
 // appendPayment appends a payment detail to a composite key list
 func (s *SmartContract) appendPayment(ctx contractapi.TransactionContextInterface, user string, payment PaymentDetail) error {
-	paymentKey, err := ctx.GetStub().CreateCompositeKey("payment", []string{user, fmt.Sprint(payment.Timestamp)})
+	paymentKey, err := ctx.GetStub().CreateCompositeKey(PaymentPrefix, []string{user, fmt.Sprint(payment.Timestamp)})
 	if err != nil {
 		return err
 	}

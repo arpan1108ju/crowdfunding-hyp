@@ -29,6 +29,7 @@ function addOrg(orgName, orgDomain, port, caPort) {
   const peerHost = `peer0.${orgDomain}`;
   const peerTLS = path.join(BASE_PATH, "peerOrganizations", orgDomain, "peers", peerHost, "tls", "ca.crt");
   const caCert = path.join(BASE_PATH, "peerOrganizations", orgDomain, "ca", `ca.${orgDomain}-cert.pem`);
+  const tlsCert = path.join(BASE_PATH, "peerOrganizations", orgDomain, "tlsca", `tlsca.${orgDomain}-cert.pem`);
 
   profile.organizations[orgName] = {
     mspid: orgMSP,
@@ -47,8 +48,9 @@ function addOrg(orgName, orgDomain, port, caPort) {
 
   profile.certificateAuthorities[`ca.${orgDomain}`] = {
     url: `https://localhost:${caPort}`,
-    caName: `ca-${orgName.toLowerCase()}`,
-    tlsCACerts: { path: caCert },
+    caName: `ca.${orgName.toLowerCase()}.example.com`,
+    tlsCACerts: { path: tlsCert },
+    caCerts : {path : caCert},
     httpOptions: {
       verify: false
     }

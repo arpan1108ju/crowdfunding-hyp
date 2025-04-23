@@ -1,11 +1,9 @@
-./scripts/start-docker-ca
-
+./scripts/start-docker-ca  --> generates fabric-ca
 ./scripts/create-cert-with-ca
 
 ./scripts/generateOnly
 
 ./scripts/start-without-ca
-
 ./createC
 ./deplyC
 

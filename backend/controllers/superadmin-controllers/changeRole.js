@@ -7,7 +7,7 @@ import { sendError, sendSuccess } from "../../utils/responses.js";
 export const changeRole = async (req, res) => {
     try {
 
-        const {id} = req.params;
+        const { id } = req.params;
 
         const validation = changeRoleSchema.safeParse(req.body);
     

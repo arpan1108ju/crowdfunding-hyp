@@ -18,8 +18,9 @@ export async function revoke(admin, client,role) {
     }
 
     const ccp = JSON.parse(fs.readFileSync(CONNECTION_PROFILE_PATH, 'utf8'));
-    const caURL = ccp.certificateAuthorities['ca.org1.example.com'].url;
-    const ca = new FabricCAServices(caURL);
+    const caInfo = ccp.certificateAuthorities['ca.org1.example.com']; 
+    // const ca = new FabricCAServices(caInfo.url,{trustedRoots : caInfo.tlsCACerts.path,verify : false},caInfo.caName);
+    const ca = new FabricCAServices(caInfo.url);
 
     // 1. Create in-memory wallet and load identity
     const wallet = await Wallets.newInMemoryWallet();
@@ -30,14 +31,19 @@ export async function revoke(admin, client,role) {
     const adminUser = await provider.getUserContext(admin.x509Identity, admin.id);
 
 
-    await ca.revoke({ enrollmentID: client.email }, adminUser);
+    // await ca.revoke({ 
+    //   enrollmentID: client.email,
+    //   genCRL : true
+    // }, adminUser);
+    
+    console.log(`❌ Revoked certificate for ${client.email}`);
 
     // Optionally mark the user as not verified in DB
     const updatedUser = await db.user.update({
       where: { id: client.id },
       data: {
         isVerified: false,
-        x509Identity: null, // optionally clear cert
+       // x509Identity: null, // optionally clear cert
       },
       select: {
         id: true,

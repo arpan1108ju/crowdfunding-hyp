@@ -99,8 +99,8 @@ createcertificatesForOrg1() {
 
   # # --------------------------------------------------------------------------------------------------
 
-  # mkdir -p crypto-config-ca/peerOrganizations/org1.example.com/users
-  # mkdir -p crypto-config-ca/peerOrganizations/org1.example.com/users/User1@org1.example.com
+  mkdir -p crypto-config-ca/peerOrganizations/org1.example.com/users
+  mkdir -p crypto-config-ca/peerOrganizations/org1.example.com/users/User1@org1.example.com
 
   echo
   echo "## Generate the user msp"
@@ -115,6 +115,9 @@ createcertificatesForOrg1() {
   fabric-ca-client enroll -u https://org1admin:org1adminpw@localhost:7054 --caname ca.org1.example.com -M ${PWD}/crypto-config-ca/peerOrganizations/org1.example.com/users/Admin@org1.example.com/msp --tls.certfiles ${PWD}/fabric-ca/org1/tls-cert.pem
 
   cp ${PWD}/crypto-config-ca/peerOrganizations/org1.example.com/msp/config.yaml ${PWD}/crypto-config-ca/peerOrganizations/org1.example.com/users/Admin@org1.example.com/msp/config.yaml
+  
+  
+  cp ${PWD}/crypto-config-ca/peerOrganizations/org1.example.com/msp/keystore/* ${PWD}/crypto-config-ca/peerOrganizations/org1.example.com/ca/
 
 }
 
@@ -124,7 +127,7 @@ createCertificateForOrg2() {
   echo
   echo "Enroll the CA admin"
   echo
-  mkdir -p /crypto-config-ca/peerOrganizations/org2.example.com/
+  mkdir -p crypto-config-ca/peerOrganizations/org2.example.com/
 
   export FABRIC_CA_CLIENT_HOME=${PWD}/crypto-config-ca/peerOrganizations/org2.example.com/
 
@@ -232,8 +235,8 @@ createCertificateForOrg2() {
   # cp ${PWD}/crypto-config-ca/peerOrganizations/org2.example.com/peers/peer1.org2.example.com/tls/keystore/* ${PWD}/crypto-config-ca/peerOrganizations/org2.example.com/peers/peer1.org2.example.com/tls/server.key
   # # -----------------------------------------------------------------------------------
 
-  # mkdir -p crypto-config-ca/peerOrganizations/org2.example.com/users
-  # mkdir -p crypto-config-ca/peerOrganizations/org2.example.com/users/User1@org2.example.com
+  mkdir -p crypto-config-ca/peerOrganizations/org2.example.com/users
+  mkdir -p crypto-config-ca/peerOrganizations/org2.example.com/users/User1@org2.example.com
 
   echo
   echo "## Generate the user msp"
@@ -252,6 +255,7 @@ createCertificateForOrg2() {
    
 
   cp ${PWD}/crypto-config-ca/peerOrganizations/org2.example.com/msp/config.yaml ${PWD}/crypto-config-ca/peerOrganizations/org2.example.com/users/Admin@org2.example.com/msp/config.yaml
+  cp ${PWD}/crypto-config-ca/peerOrganizations/org2.example.com/msp/keystore/* ${PWD}/crypto-config-ca/peerOrganizations/org2.example.com/ca/
 
 }
 
@@ -419,7 +423,10 @@ createCretificateForOrderer() {
   fabric-ca-client enroll -u https://ordererAdmin:ordererAdminpw@localhost:9054 --caname ca-orderer -M ${PWD}/crypto-config-ca/ordererOrganizations/example.com/users/Admin@example.com/msp --tls.certfiles ${PWD}/fabric-ca/ordererOrg/tls-cert.pem
    
 
+  mkdir ${PWD}/crypto-config-ca/ordererOrganizations/example.com/ca
+
   cp ${PWD}/crypto-config-ca/ordererOrganizations/example.com/msp/config.yaml ${PWD}/crypto-config-ca/ordererOrganizations/example.com/users/Admin@example.com/msp/config.yaml
+  cp ${PWD}/crypto-config-ca/ordererOrganizations/example.com/msp/keystore/* ${PWD}/crypto-config-ca/ordererOrganizations/example.com/ca/
 
 }
 
@@ -431,6 +438,5 @@ createcertificatesForOrg1
 createCertificateForOrg2
 createCretificateForOrderer
 
-cp -r crypto-config-ca/* crypto-config/
 
 
