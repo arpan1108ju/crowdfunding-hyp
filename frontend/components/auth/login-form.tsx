@@ -12,8 +12,9 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
 import { useToast } from "@/components/ui/use-toast"
-import { loginUser } from "@/lib/auth"
+
 import { useAuth } from "@/hooks/use-auth"
+import { AuthCredentials } from "@/lib/services/auth-service"
 
 const formSchema = z.object({
   email: z.string().email({ message: "Please enter a valid email address" }),
@@ -39,11 +40,17 @@ export function LoginForm() {
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true)
     try {
-      const user = await loginUser(values.email, values.password)
 
-      //changes here
-      localStorage.setItem("userId", user.id)
-      {console.log(values.email,values.password)}
+      
+      const credentials: AuthCredentials = {
+        email: values.email,
+        password: values.password
+      };
+
+      const user = await login(credentials);
+
+     
+      
       toast({
         title: "Success",
         description: "You have been logged in successfully",

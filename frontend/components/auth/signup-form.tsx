@@ -12,7 +12,8 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
 import { useToast } from "@/components/ui/use-toast"
-import { signupUser } from "@/lib/auth"
+import { useAuth } from "@/hooks/use-auth"
+import { AuthCredentials } from "@/lib/services/auth-service"
 
 const formSchema = z
   .object({
@@ -30,6 +31,8 @@ export function SignupForm() {
   const { toast } = useToast()
   const [isLoading, setIsLoading] = useState(false)
 
+  const { signup } = useAuth();
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -42,7 +45,25 @@ export function SignupForm() {
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true)
     try {
-      await signupUser(values.email, values.password)
+
+      if(values.password !== values.confirmPassword){
+        
+        toast({
+          title: "Error",
+          description: "Passwords do not match",
+          variant: "destructive",
+        })
+        setIsLoading(false)
+        return
+      }
+
+      const credentials: AuthCredentials = {
+        email: values.email,
+        password: values.password
+      };
+
+      const user = await signup(credentials);
+
       toast({
         title: "Success",
         description: "Your account has been created successfully",

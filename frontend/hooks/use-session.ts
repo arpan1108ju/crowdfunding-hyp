@@ -5,6 +5,8 @@ import type { UserSession } from '@/lib/services/auth-service';
 
 export function useSession() {
   const [session, setSession] = useState<UserSession | null>(null);
+  const [loading, setLoading] = useState(true)
+
 
   useEffect(() => {
     const raw = localStorage.getItem('auth-session');
@@ -12,6 +14,8 @@ export function useSession() {
       setSession(raw ? JSON.parse(raw) : null);
     } catch {
       setSession(null);
+    } finally {
+        setLoading(false);
     }
   }, []);
 
@@ -25,5 +29,5 @@ export function useSession() {
     setSession(null);
   };
 
-  return { session, save, clear };
+  return { session, save, clear, loading };
 }

@@ -5,7 +5,8 @@ import * as AuthService from '@/lib/services/auth-service';
 import type { AuthCredentials } from '@/lib/services/auth-service';
 
 export function useAuth() {
-  const { session, save, clear } = useSession();
+  const { session, save, clear,loading } = useSession();
+  
 
   const login = async (creds: AuthCredentials) => {
     const user = await AuthService.login(creds);
@@ -19,9 +20,9 @@ export function useAuth() {
     return user;
   };
 
-  const logout = () => {
+  const logout = async () => {
     clear();
   };
 
-  return { session, login, signup, logout };
+  return { session, login, signup, logout,loading };
 }

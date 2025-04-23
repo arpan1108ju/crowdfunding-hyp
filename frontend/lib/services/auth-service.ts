@@ -3,7 +3,10 @@
 export type AuthCredentials = {
     email: string;
     password: string;
+    username?: string;
 };
+
+
   
 interface X509Identity {
     type: string;
