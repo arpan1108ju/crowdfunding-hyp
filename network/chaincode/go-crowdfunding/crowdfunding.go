@@ -98,7 +98,7 @@ type FabricIdentity struct {
 }
 
 // GetClientIDFromX509 takes a Fabric identity structure and returns the standard client ID
-func GetClientIDFromX509(identity FabricIdentity) (string, error) {
+func (s *SmartContract) GetClientIDFromX509(ctx contractapi.TransactionContextInterface,identity FabricIdentity) (string, error) {
 	// 1. Verify we have an X.509 identity
 	if identity.Type != "X.509" {
 		return "", fmt.Errorf("identity type must be X.509")

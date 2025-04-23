@@ -9,12 +9,13 @@ import { deleteCampaignHandler } from "../../controllers/campaign-controllers/de
 import { updateCampaignHandler } from "../../controllers/campaign-controllers/updateCampaign.js";
 import {authMiddleware} from "../../middlewares/authMiddleware.js"
 import { adminMiddleware } from "../../middlewares/adminMiddleware.js";
+import { getUserCampaignsHandler } from "../../controllers/campaign-controllers/getUserCampaigns.js";
 
 const router = express.Router();
 
 router.get('/',authMiddleware,getAllCampaignsHandler);
+router.get('/admin',adminMiddleware,getUserCampaignsHandler);
 router.get('/:id',authMiddleware,getCampaignHandler);
-
 router.post('/',adminMiddleware,createCampaignHandler);
 
 router.post('/:id/donate',authMiddleware,donateCampaignHandler);
