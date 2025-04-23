@@ -36,6 +36,11 @@ const SET_TOKEN_METADATA = "SetTokenMetadata";
 const GET_EXCHANGE_RATE = "GetExchangeRate";
 const SET_EXCHANGE_RATE = "SetExchangeRate";
 
+const GET_CLIENT_ID_FROM_X509 ="GetClientIDFromX509";
+const GET_ALL_EXCHANGE_RATE="GetAllExchangeRates";
+const GET_USER_CAMPAIGNS="GetUserCampaigns";
+
+
 // /utils/constants.js or /constants/roles.js
 
 const FabricRoles = Object.freeze({
@@ -54,6 +59,10 @@ const SUPERADMIN = 'admin';
 const SUPERADMIN_PASSWORD = 'adminpw';
 
 export {
+
+  GET_CLIENT_ID_FROM_X509,
+  GET_USER_CAMPAIGNS,
+  GET_ALL_EXCHANGE_RATE,
 
   SUPERADMIN,
   SUPERADMIN_PASSWORD,

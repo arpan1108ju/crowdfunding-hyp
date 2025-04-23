@@ -43,7 +43,7 @@ presetup() {
 
 export CHANNEL_NAME="mychannel"
 export CC_RUNTIME_LANGUAGE="golang"
-export VERSION="1"
+export VERSION="2"
 export CC_SRC_PATH=${PWD}/chaincode/go-crowdfunding
 export CC_NAME="crowdfundingGO"
 
@@ -315,6 +315,15 @@ GetAllCampaigns() {
         -c '{"function": "GetAllCampaigns", "Args":[]}' | jq .
 }
 
+GetUserCampaigns() {
+    echo "============= Get user campaigns ============="
+
+    setGlobalsForPeer0Org1
+
+    peer chaincode query -C $CHANNEL_NAME -n ${CC_NAME} \
+        -c '{"function": "GetAllCampaigns", "Args":[]}' | jq .
+}
+
 GetTokenMetadata() {
     echo "============= Read token metadata ============="
 
@@ -423,6 +432,8 @@ chaincodeInvokeInit
 # ReadCampaign 
 # sleep 2
 # GetAllCampaigns 
+
+# GetUserCampaigns
 
 # GetTokenMetadata
 # sleep 2

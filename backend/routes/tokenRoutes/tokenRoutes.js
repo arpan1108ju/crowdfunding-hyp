@@ -9,6 +9,8 @@ import { getUserPaymentsHandler } from "../../controllers/token-controllers/getU
 
 import { adminMiddleware } from "../../middlewares/adminMiddleware.js";
 import { authMiddleware } from "../../middlewares/authMiddleware.js";
+import { getAllExchangeRateHandler } from "../../controllers/token-controllers/getAllExchangeRate.js";
+import { getClientIdFromX509Handler } from "../../controllers/token-controllers/getClientIdFromX509.js";
 
 
 const router = express.Router();
@@ -18,6 +20,8 @@ router.get("/exchange-rate", authMiddleware, getExchangeRateHandler);
 router.get("/metadata", authMiddleware, getTokenMetadataHandler);
 router.get("/payments", authMiddleware, getUserPaymentsHandler);
 
+router.get("/exchange-rates",authMiddleware,getAllExchangeRateHandler);
+router.get("/client-id",adminMiddleware,getClientIdFromX509Handler);
 
 router.post("/exchange-rate", adminMiddleware, setExchangeRateHandler);
 router.post("/metadata", adminMiddleware, setTokenMetadataHandler);

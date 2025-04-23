@@ -61,3 +61,30 @@ export const mintTokenSchema = z.object({
    currency : currencySchema,
    amountPaid : z.number().positive({message : "amount paid must be positive"})
 })
+
+
+/*************************************** */
+
+const PrivateKeySchema = z.string().refine(
+  (val) => val.startsWith("-----BEGIN PRIVATE KEY-----") && 
+          val.includes("-----END PRIVATE KEY-----"),
+  "Invalid private key format"
+);
+
+const CertificateSchema = z.string().refine(
+  (val) => val.startsWith("-----BEGIN CERTIFICATE-----") && 
+          val.includes("-----END CERTIFICATE-----"),
+  "Invalid certificate format"
+);
+
+const CredentialsSchema = z.object({
+  privateKey: PrivateKeySchema,
+  certificate: CertificateSchema,
+}).strict(); // No extra fields allowed
+
+export const x509Schema = z.object({
+  type: z.literal("X.509"), // Must be exactly "X.509"
+  mspId: z.string().min(1).regex(/^Org\d+MSP$/, "Invalid MSP ID format"),
+  credentials: CredentialsSchema,
+}).strict();
+
