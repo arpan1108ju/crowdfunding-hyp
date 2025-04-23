@@ -19,42 +19,64 @@ export async function getCampaigns() {
 }
 
 export async function getCampaign(id: string) {
-  // In a real app, you would fetch from the database
-  const campaign = CAMPAIGNS_DB.find((c) => c.id === id)
+  try {
+    const response = await fetch(`/api/v1/campaigns/${id}`);
 
-  if (!campaign) {
-    throw new Error("Campaign not found")
+    if (!response.ok) {
+      throw new Error(`Failed to fetch campaign with ID ${id}`);
+    }
+
+    const campaign = await response.json();
+    return campaign;
+  } catch (error) {
+    console.error("Error fetching campaign:", error);
+    throw new Error("Campaign not found");
   }
-
-  return campaign
 }
+
 
 export async function createCampaign(campaign: Campaign) {
-  // In a real app, you would store in the database
-  const newCampaign = {
-    id: (CAMPAIGNS_DB.length + 1).toString(),
-    title: campaign.title,
-    description: campaign.description,
-    target: campaign.target,
-    raised: 0,
-    backers: 0,
-    daysLeft: 30,
-    image: campaign.image
+  try {
+    const response = await fetch('/api/v1/campaigns', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(campaign),
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to create campaign");
+    }
+
+    const newCampaign = await response.json();
+    return newCampaign;
+  } catch (error) {
+    console.error("Error creating campaign:", error);
+    throw new Error("Campaign creation failed");
   }
-  CAMPAIGNS_DB.push(newCampaign)
-  return newCampaign
 }
+
 
 export async function donateToCampaign(campaignId: string, amount: number, userId: string) {
-  // In a real app, you would update the database
-  const campaign = CAMPAIGNS_DB.find((c) => c.id === campaignId)
+  try {
+    const response = await fetch(`/api/v1/campaigns/${campaignId}/donate`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ amount, userId }),
+    });
 
-  if (!campaign) {
-    throw new Error("Campaign not found")
+    if (!response.ok) {
+      throw new Error("Failed to donate to campaign");
+    }
+
+    const updatedCampaign = await response.json();
+    return updatedCampaign;
+  } catch (error) {
+    console.error("Error donating to campaign:", error);
+    throw new Error("Donation failed");
   }
-
-  campaign.raised += amount
-  campaign.backers += 1
-
-  return campaign
 }
+
