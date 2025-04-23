@@ -35,6 +35,10 @@ const GET_TOKEN_METADATA = "GetTokenMetadata";
 const SET_TOKEN_METADATA = "SetTokenMetadata";
 const GET_EXCHANGE_RATE = "GetExchangeRate";
 const SET_EXCHANGE_RATE = "SetExchangeRate";
+const GET_CLIENT_ID_FROM_X509 ="GetClientIDFromX509"
+const GET_ALL_EXCHANGE_RATE="GetAllExchangeRates"
+const GET_USER_CAMPAIGNS="GetUserCampaigns"
+
 
 // /utils/constants.js or /constants/roles.js
 
