@@ -9,16 +9,20 @@ import { isValidRole } from "@/lib/constants"
 import { toast } from "sonner"
 import { useSuperadminService } from "@/hooks/use-superadmin-service"
 
+
+
+
 export function RoleManagement({session}) {
 
   const [users, setUsers] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const { changeUserRole,fetchAllUsers,fetchUserById } = useSuperadminService();
+  
 
-
-  useEffect(() => {
+  useEffect(async () => {
      
-    
+    const result = await fetchAllUsers();
+    setUsers(result);
 
   },[session]);
 

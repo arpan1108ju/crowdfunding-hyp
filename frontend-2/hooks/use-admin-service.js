@@ -1,7 +1,7 @@
 'use client';
 
-import { useAuth } from '@/hooks/useAuth';
-import * as adminService from '@/services/adminService';
+import { useAuth } from '@/hooks/use-auth';
+import * as adminService from '@/lib/services/admin-services';
 
 export const useAdminService = () => {
   const { token } = useAuth();

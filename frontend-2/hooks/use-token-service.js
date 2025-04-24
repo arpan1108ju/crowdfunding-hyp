@@ -1,7 +1,7 @@
 'use client';
 
-import { useAuth } from '@/hooks/useAuth';
-import * as tokenService from '@/services/tokenService';
+import { useAuth } from '@/hooks/use-auth';
+import * as tokenService from '@/lib/services/token-services';
 
 export const useTokenService = () => {
   const { token } = useAuth();

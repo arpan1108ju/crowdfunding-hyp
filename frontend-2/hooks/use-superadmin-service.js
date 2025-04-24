@@ -1,8 +1,8 @@
 'use client';
 
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/hooks/use-auth';
 import { fetchAllUsers, fetchUserById } from '@/lib/services/admin-services';
-import * as superadminService from '@/services/superadminService';
+import * as superadminService from '@/lib/services/super-admin-services';
 
 export const useSuperadminService = () => {
   const { token } = useAuth();

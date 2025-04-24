@@ -1,7 +1,7 @@
 'use client';
 
-import { useAuth } from '@/hooks/useAuth';
-import * as campaignService from '@/services/campaignService';
+import { useAuth } from '@/hooks/use-auth';
+import * as campaignService from '@/lib/services/campaign-service';
 
 export const useCampaignService = () => {
   const { token } = useAuth();
