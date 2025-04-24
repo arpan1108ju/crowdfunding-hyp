@@ -1,17 +1,13 @@
-'use client';
+import React from "react";
+import { CampaignList } from "@/components/campaign-list";
 
-import { Button } from "@/components/ui/button";
-
-
-
-export default function Home() {
-  
-
+function Home() {
   return (
-    <div className="flex flex-col items-center justify-items-center p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <div className="w-full max-w-full break-words">
-        <Button className="whitespace-normal text-wrap"> My butt </Button>
-      </div>
+    <div className="container mx-auto py-6">
+      <h1 className="text-3xl font-bold mb-6">All Campaigns</h1>
+      <CampaignList />
     </div>
   );
 }
+
+export default Home;
