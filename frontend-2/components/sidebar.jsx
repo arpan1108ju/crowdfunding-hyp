@@ -148,7 +148,7 @@ const isAdmin = session?.role === "admin" || isSuperAdmin;
           <div className="flex h-full flex-col">
             <div className="flex h-16 items-center border-b px-4">
               <Link href="/" className="flex items-center gap-2" onClick={() => setOpen(false)}>
-                <span className="text-xl font-bold">Sidebar</span>
+                <span className="text-xl font-bold">Actions</span>
               </Link>
               <Button variant="ghost" size="icon" className="ml-auto" onClick={() => setOpen(false)}>
                 <X className="h-5 w-5" />
@@ -187,7 +187,7 @@ const isAdmin = session?.role === "admin" || isSuperAdmin;
           <div className="flex h-16 items-center border-b px-4 justify-between">
             {!collapsed && (
               <Link href="/" className="flex items-center gap-2">
-                <span className="text-xl font-bold">Sidebar</span>
+                <span className="text-xl font-bold">Actions</span>
               </Link>
             )}
             <TooltipProvider delayDuration={0}>
@@ -203,7 +203,7 @@ const isAdmin = session?.role === "admin" || isSuperAdmin;
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent side="right" className="ml-1">
-                  {collapsed ? 'Expand' : 'Collapse'} sidebar
+                  {collapsed ? 'Expand' : 'Collapse'} Actions
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>

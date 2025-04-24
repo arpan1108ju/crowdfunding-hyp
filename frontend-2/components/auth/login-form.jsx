@@ -56,7 +56,7 @@ export function LoginForm() {
      }
 
      toast.success("Success",{
-       description: "Your account has been created successfully"
+       description: "Logged in successfully"
      })
      
      router.push("/")

@@ -20,6 +20,7 @@ import { useAuth } from "@/hooks/use-auth"
 import { ROLE } from "@/lib/constants"
 
 import ThemeToggle from "@/components/theme-toggle";
+import { toast } from "sonner"
 
 export default function Navbar() {
 
@@ -78,7 +79,7 @@ export default function Navbar() {
         <div className="flex h-16 items-center px-4">
           <div className="flex items-center gap-2 md:w-64">
             <Link href="/" className="flex items-center gap-2">
-              <span className="text-xl font-bold">CampaignPlatform</span>
+              <span className="text-xl font-bold">FundFab</span>
             </Link>
           </div>
           <div className="flex flex-1 items-center gap-4 md:gap-8">
@@ -181,7 +182,7 @@ export default function Navbar() {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent className="w-56" align="end" forceMount>
                   <div className="flex flex-col space-y-1 p-2">
-                    <p className="text-sm font-medium leading-none">Hi, {session.email}</p>
+                    <p className="text-sm font-medium leading-none">Hi, {session.username}</p>
                     <p className="text-xs leading-none text-muted-foreground">{session.role}</p>
                   </div>
                   <DropdownMenuSeparator />
@@ -198,6 +199,9 @@ export default function Navbar() {
                       e.preventDefault()
                       await logout()
                       window.location.href = "/login"
+                      toast.success("Success",{
+                        description : "Logged out successfully"
+                      })
                     }}
                   >
                     Log out

@@ -75,7 +75,7 @@ export default function SuperAdminPage() {
           <AdminManagement />
         </TabsContent>
         <TabsContent value="roles" className="mt-4">
-          <RoleManagement />
+          <RoleManagement session={session} />
         </TabsContent>
       </Tabs>
     </div>

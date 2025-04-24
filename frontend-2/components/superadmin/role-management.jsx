@@ -1,25 +1,37 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { User, Shield, UserCog } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { isValidRole } from "@/lib/constants"
 import { toast } from "sonner"
+import { useSuperadminService } from "@/hooks/use-superadmin-service"
 
-export function RoleManagement() {
+export function RoleManagement({session}) {
 
-  const [searchTerm, setSearchTerm] = useState("")
+  const [users, setUsers] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const { changeUserRole,fetchAllUsers,fetchUserById } = useSuperadminService();
+
+
+  useEffect(() => {
+     
+    
+
+  },[session]);
+
 
   // Mock data - would come from API in real app
-  const [users, setUsers] = useState([
-    { id: "1", email: "user1@example.com", role: "user" },
-    { id: "2", email: "user2@example.com", role: "user" },
-    { id: "3", email: "admin1@example.com", role: "admin" },
-    { id: "4", email: "admin2@example.com", role: "admin" },
-    { id: "5", email: "superadmin@example.com", role: "superadmin" },
-  ])
+  // const [users, setUsers] = useState([
+  //   { id: "1", email: "user1@example.com", role: "user" },
+  //   { id: "2", email: "user2@example.com", role: "user" },
+  //   { id: "3", email: "admin1@example.com", role: "admin" },
+  //   { id: "4", email: "admin2@example.com", role: "admin" },
+  //   { id: "5", email: "superadmin@example.com", role: "superadmin" },
+  // ])
+
 
   const filteredUsers = users.filter((user) => user.email.toLowerCase().includes(searchTerm.toLowerCase()))
 
@@ -53,6 +65,9 @@ export function RoleManagement() {
       });
     }
   }
+
+
+  
 
   return (
     <div className="space-y-4">
