@@ -1,17 +1,16 @@
-'use client';
+"use client"
 
-import { Button } from "@/components/ui/button";
+import React from "react";
+// import { CampaignList } from "@/components/campaign-list";
+import Campaigns from "./campaign/page";
 
-
-
-export default function Home() {
-  
-
+function Home() {
+  // const {session} = useAuth();
   return (
-    <div className="flex flex-col items-center justify-items-center p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <div className="w-full max-w-full break-words">
-        <Button className="whitespace-normal text-wrap"> My butt </Button>
-      </div>
-    </div>
+    <>
+      <div> Home </div>
+    </>
   );
 }
+
+export default Home;

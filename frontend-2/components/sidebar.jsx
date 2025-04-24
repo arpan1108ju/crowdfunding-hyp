@@ -34,8 +34,8 @@ const isAdmin = session?.role === "admin" || isSuperAdmin;
       {
         label: "Dashboard",
         icon: LayoutDashboard,
-        href: "/",
-        active: pathname === "/",
+        href: "/campaign",
+        active: pathname === "/campaign",
       },
     ]
 
