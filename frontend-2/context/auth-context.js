@@ -1,0 +1,56 @@
+'use client';
+
+import React, { createContext, useContext } from 'react';
+import { useSession } from '@/hooks/use-session'; // adjust import based on where your hook is
+import * as AuthService from '@/lib/services/auth-service';
+
+const AuthContext = createContext();
+
+export function AuthProvider({ children }) {
+  const { session, save, clear, loading } = useSession();
+
+  const checkAndSendResponse = (response) => {
+    if (response.success && 'data' in response) {
+      const authResponse = response;
+      save({
+        username: authResponse.data.user.username,
+        email: authResponse.data.user.email,
+        isVerified: authResponse.data.user.isVerified,
+        x509identity: authResponse.data.user.x509identity,
+        role: authResponse.data.user.role,
+        token: authResponse.data.token,
+      });
+      return response;
+    }
+
+    return response;
+  };
+
+  const login = async (creds) => {
+    const response = await AuthService.login(creds);
+    return checkAndSendResponse(response);
+  };
+
+  const signup = async (creds) => {
+    const response = await AuthService.signup(creds);
+    return checkAndSendResponse(response);
+  };
+
+  const logout = async () => {
+    clear();
+  };
+
+  const value = {
+    session,
+    login,
+    signup,
+    logout,
+    loading,
+  };
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+}
+
+export function useAuthContext() {
+  return useContext(AuthContext);
+}

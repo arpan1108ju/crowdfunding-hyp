@@ -1,7 +1,15 @@
 const API_URL = `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/admin`;
 
-export async function fetchAllUsers(token) {
-  const response = await fetch(`${API_URL}/users?verified=false`, {
+export async function fetchAllUsers(token,verified) {
+
+  let url = `${API_URL}/users`;
+  if(verified === true || verified === false){
+    url = `${API_URL}/users?verified=${verified}`;
+  }
+
+  console.log('token : ',token);
+
+  const response = await fetch(url, {
     method: 'GET',
     headers: {
       Authorization: `Bearer ${token}`,

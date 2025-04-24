@@ -3,7 +3,7 @@
   
   export const login = async (credentials) => {
     try {
-      const res = await fetch(`${API_BASE_URL}/login`, {
+      const res = await fetch(`${API_URL}/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(credentials),
@@ -14,6 +14,7 @@
          return err;
       }
       const response  = await res.json();
+      console.log('login : ',response);
       return response;
     } catch (error) {
       return {
@@ -25,7 +26,7 @@
   
   export const signup = async (credentials) => {
     try {
-      const res = await fetch(`${API_BASE_URL}/signup`, {
+      const res = await fetch(`${API_URL}/signup`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(credentials),
