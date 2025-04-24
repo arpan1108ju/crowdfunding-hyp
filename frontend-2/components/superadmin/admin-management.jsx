@@ -15,23 +15,19 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
-import { useToast } from "@/components/ui/use-toast"
 
-type AdminType = {
-  id: string
-  email: string
-  status: "active" | "inactive"
-  campaigns: number
-}
+import { toast } from "sonner"
+
+
 
 export function AdminManagement() {
-  const { toast } = useToast()
+
   const [searchTerm, setSearchTerm] = useState("")
   const [isEnrolling, setIsEnrolling] = useState(false)
   const [newAdminEmail, setNewAdminEmail] = useState("")
 
   // Mock data - would come from API in real app
-  const [admins, setAdmins] = useState<AdminType[]>([
+  const [admins, setAdmins] = useState([
     { id: "1", email: "admin1@example.com", status: "active", campaigns: 3 },
     { id: "2", email: "admin2@example.com", status: "active", campaigns: 2 },
     { id: "3", email: "admin3@example.com", status: "inactive", campaigns: 0 },
@@ -43,7 +39,7 @@ export function AdminManagement() {
     setIsEnrolling(true)
     // Simulate API call
     setTimeout(() => {
-      const newAdmin: AdminType = {
+      const newAdmin = {
         id: (admins.length + 1).toString(),
         email: newAdminEmail,
         status: "active",
@@ -52,14 +48,14 @@ export function AdminManagement() {
       setAdmins([...admins, newAdmin])
       setNewAdminEmail("")
       setIsEnrolling(false)
-      toast({
-        title: "Success",
+
+      toast.success("Success",{
         description: "Admin has been enrolled successfully",
       })
     }, 1000)
   }
 
-  const toggleAdminStatus = (adminId: string) => {
+  const toggleAdminStatus = (adminId) => {
     setAdmins(
       admins.map((admin) => {
         if (admin.id === adminId) {
@@ -72,8 +68,7 @@ export function AdminManagement() {
       }),
     )
 
-    toast({
-      title: "Success",
+    toast.success("Success",{
       description: "Admin status has been updated",
     })
   }

@@ -60,7 +60,7 @@ export function LoginForm() {
      })
      
      router.push("/")
-
+     router.refresh()
 
     } catch (error) {
 

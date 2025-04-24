@@ -12,48 +12,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 import { UserManagement } from "@/components/admin/user-management"
 import { PaymentDetails } from "@/components/admin/payment-details"
+import { AdminSkeleton } from "@/components/admin/loading-skeleton";
 
-function AdminSkeleton() {
-  return (
-    <div className="container mx-auto py-6">
-      {/* Title Skeleton */}
-      <div className="h-9 w-48 bg-muted rounded-md mb-6 animate-pulse" />
-
-      {/* Cards Grid Skeleton */}
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {[1, 2, 3].map((i) => (
-          <Card key={i} className="border border-muted">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <div className="h-4 w-24 bg-muted rounded animate-pulse" />
-              <div className="h-4 w-4 bg-muted rounded animate-pulse" />
-            </CardHeader>
-            <CardContent>
-              <div className="h-8 w-20 bg-muted rounded mb-1 animate-pulse" />
-              <div className="h-3 w-32 bg-muted rounded animate-pulse" />
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      {/* Tabs Skeleton */}
-      <div className="mt-6">
-        <div className="border-b border-muted flex gap-2">
-          <div className="h-10 w-32 bg-muted rounded animate-pulse" />
-          <div className="h-10 w-32 bg-muted rounded animate-pulse" />
-        </div>
-        <div className="mt-4">
-          <div className="h-[400px] bg-muted rounded animate-pulse" />
-        </div>
-      </div>
-    </div>
-  );
-}
 
 export default function AdminPage() {
   const router = useRouter();
   const { session, loading } = useAuth();
-
-  
 
   
   useEffect(() => {
