@@ -1,5 +1,3 @@
-
-
 "use client"
 
 import { useState, useEffect } from "react"
@@ -19,13 +17,9 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { useAuth } from "@/hooks/use-auth"
+import { ROLE } from "@/lib/constants"
 
-  
 import ThemeToggle from "@/components/theme-toggle";
-
-
-
-
 
 export default function Navbar() {
 
@@ -125,15 +119,52 @@ export default function Navbar() {
             <nav className="hidden gap-6 md:flex">
               <Link
                 href="/"
-                className={`text-sm font-medium ${
-                  pathname === "/" ? "text-foreground" : "text-muted-foreground"
-                } transition-colors hover:text-foreground`}
+                className={`text-sm font-medium transition-colors hover:text-foreground hover:bg-accent px-3 py-2 rounded-md ${
+                  pathname === "/" 
+                    ? "text-foreground bg-accent" 
+                    : "text-muted-foreground"
+                }`}
               >
                 Home
               </Link>
-              <Link href="/about" className="text-sm font-medium hover:underline">
+              <Link
+                href="/about"
+                className={`text-sm font-medium transition-colors hover:text-foreground hover:bg-accent px-3 py-2 rounded-md ${
+                  pathname === "/about" 
+                    ? "text-foreground bg-accent" 
+                    : "text-muted-foreground"
+                }`}
+              >
                 About
               </Link>
+              
+              {/* Admin Link - visible to both ADMIN and SUPERADMIN */}
+              {session?.role && (session.role === ROLE.ADMIN || session.role === ROLE.SUPERADMIN) && (
+                <Link
+                  href="/admin"
+                  className={`text-sm font-medium transition-colors hover:text-foreground hover:bg-accent px-3 py-2 rounded-md ${
+                    pathname === "/admin" 
+                      ? "text-foreground bg-accent" 
+                      : "text-muted-foreground"
+                  }`}
+                >
+                  Admin
+                </Link>
+              )}
+
+              {/* SuperAdmin Link - visible only to SUPERADMIN */}
+              {session?.role === ROLE.SUPERADMIN && (
+                <Link
+                  href="/superadmin"
+                  className={`text-sm font-medium transition-colors hover:text-foreground hover:bg-accent px-3 py-2 rounded-md ${
+                    pathname === "/superadmin" 
+                      ? "text-foreground bg-accent" 
+                      : "text-muted-foreground"
+                  }`}
+                >
+                  Super Admin
+                </Link>
+              )}
             </nav>
           </div>
           <div className="flex items-center gap-4">
