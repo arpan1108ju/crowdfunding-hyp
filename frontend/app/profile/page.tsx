@@ -3,7 +3,6 @@ import { CreditCard, User } from "lucide-react"
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
-import { getCurrentUser } from "@/lib/auth"
 
 export default async function ProfilePage() {
 

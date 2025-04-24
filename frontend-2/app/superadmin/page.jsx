@@ -1,4 +1,6 @@
-import { notFound, redirect } from "next/navigation"
+'use client';
+
+import { notFound, redirect ,useRouter } from "next/navigation"
 import { Shield, UserCog } from "lucide-react"
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -8,16 +10,33 @@ import { AdminManagement } from "@/components/superadmin/admin-management"
 import { RoleManagement } from "@/components/superadmin/role-management"
 import { useAuth } from "@/hooks/use-auth"
 
-export default async function SuperAdminPage() {
-  const {session } = useAuth();
+import { SuperAdminSkeleton } from "@/components/superadmin/loading-skeleton"
+import { useEffect } from "react";
+import { ROLE } from "@/lib/constants";
 
+export default function SuperAdminPage() {
+  const router = useRouter();
+  const { session, loading } = useAuth();
 
-  if (!session) {
-    redirect("/login")
+  useEffect(() => {
+    if (!loading && !session) {
+      router.push("/login");
+      return;
+    }
+  }, [session, router, loading]);
+
+  if (loading) {
+    return <SuperAdminSkeleton />;
   }
 
-  if (session.role !== "superadmin") {
-    notFound()
+  // Check for unauthorized access
+  if (!session) {
+    return null; // Show nothing while redirecting to login
+  }
+
+  // Show NotFound for non-admin users
+  if (session.role !== ROLE.SUPERADMIN) {
+    notFound();
   }
 
   return (

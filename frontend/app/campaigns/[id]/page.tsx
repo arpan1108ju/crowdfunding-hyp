@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
 import { Separator } from "@/components/ui/separator"
 import { getCampaign } from "@/lib/services/campaign-service"
+
 import { DonateForm } from "@/components/donate-form"
 import { AdminActions } from "@/components/admin-actions"
 import { CountdownTimer } from "@/components/remaining-timer"
@@ -17,6 +18,7 @@ export default async function CampaignPage({
   params: { id: string }
 }) {
     const {session} = useAuth();
+  // const { session } = useAuth();
 
   try {
     const campaign = await getCampaign(params.id)

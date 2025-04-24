@@ -5,33 +5,40 @@ import { useRouter } from "next/navigation";
 import { Users, CreditCard } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { ROLE } from "@/lib/constants";
+import { notFound } from "next/navigation";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 import { UserManagement } from "@/components/admin/user-management"
 import { PaymentDetails } from "@/components/admin/payment-details"
+import { AdminSkeleton } from "@/components/admin/loading-skeleton";
+
 
 export default function AdminPage() {
   const router = useRouter();
-  const { session } = useAuth();
+  const { session, loading } = useAuth();
+
   
   useEffect(() => {
-    
-    console.log("in admin : ",session);
-
-    if (!session) {
+    if (!loading && !session) {
       router.push("/login");
       return;
     }
+  }, [session, router, loading]);
 
-    if (session.role !== ROLE.ADMIN && session.role !== ROLE.SUPERADMIN) {
-      router.push("/");
-    }
-  }, [session, router]);
+  if (loading) {
+    return <AdminSkeleton />;
+  }
 
-  if (!session || (session.role !== ROLE.ADMIN && session.role !== ROLE.SUPERADMIN)) {
-    return null; // or a loading state
+  // Check for unauthorized access
+  if (!session) {
+    return null; // Show nothing while redirecting to login
+  }
+
+  // Show NotFound for non-admin users
+  if (session.role !== ROLE.ADMIN && session.role !== ROLE.SUPERADMIN) {
+    notFound();
   }
 
   return (

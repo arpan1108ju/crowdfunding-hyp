@@ -3,11 +3,15 @@ import { Users, CreditCard } from "lucide-react"
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { getCurrentUser } from "@/lib/auth"
+
 import { UserManagement } from "@/components/admin/user-management"
 import { PaymentDetails } from "@/components/admin/payment-details"
+import { useAuth } from "@/hooks/use-auth"
 
 export default async function AdminPage() {
+
+  const {session} = useAuth();
+
   const user = await getCurrentUser()
 
   if (!user) {

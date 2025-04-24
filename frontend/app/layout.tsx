@@ -2,7 +2,6 @@ import type React from "react"
 import { Inter } from "next/font/google"
 import { ThemeProvider } from "@/components/theme-provider"
 import { Toaster } from "@/components/ui/toaster"
-import { AppProvider } from "@/components/providers/app-provider"
 import { Navbar } from "@/components/navbar"
 import { Sidebar } from "@/components/sidebar"
 
@@ -25,16 +24,15 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body className={inter.className}>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
-          <AppProvider>
             <div className="flex h-screen">
               <Sidebar />
               <div className="flex flex-col flex-1 overflow-hidden">
                 <Navbar />
+                <Toaster />
                 <main className="flex-1 overflow-auto p-4">{children}</main>
               </div>
             </div>
             <Toaster />
-          </AppProvider>
         </ThemeProvider>
       </body>
     </html>

@@ -80,7 +80,7 @@ export function SignupForm() {
       })
       
       router.push("/")
-
+      router.refresh()
 
     } catch (error) {
 
