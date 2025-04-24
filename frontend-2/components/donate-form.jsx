@@ -25,7 +25,6 @@ const formSchema = z.object({
 
 export function DonateForm({ campaignId }) {
   const router = useRouter()
-  // const { toast } = useToast()
   const { user } = useAuth()
   const [isLoading, setIsLoading] = useState(false)
 

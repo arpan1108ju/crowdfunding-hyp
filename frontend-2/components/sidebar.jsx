@@ -18,7 +18,6 @@ import { useAuth } from "@/hooks/use-auth"
 
 export function Sidebar() {
   const pathname = usePathname()
-  // const { user } = useAuth()
   const { session } = useAuth()
   const [open, setOpen] = useState(false)
   const [mounted, setMounted] = useState(false)
