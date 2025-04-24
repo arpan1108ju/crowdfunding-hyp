@@ -33,7 +33,7 @@
 //     throw new Error("Campaign not found");
 //   }
 // }
-
+//   const EXTENDED_BACKEND_URL= `${}/api/v1`;
 
 // export async function createCampaign(campaign: Campaign) {
 //   try {

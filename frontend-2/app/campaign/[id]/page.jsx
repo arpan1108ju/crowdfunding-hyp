@@ -6,7 +6,7 @@ import { Users, Calendar, ArrowLeft } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
 import { Separator } from "@/components/ui/separator"
-// import { DonateForm } from "@/components/donate-form"
+import { DonateForm } from "@/components/donate-form"
 // import { AdminActions } from "@/components/admin-actions"
 // import { CountdownTimer } from "@/components/remaining-timer"
 
