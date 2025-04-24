@@ -51,7 +51,7 @@ export default function RootLayout({ children }) {
               </main>
             </div>
           </div>
-          <Toaster richColors position="top-center" />
+          <Toaster richColors position="top-center" closeButton theme="system" duration={2000} />
         </ThemeProvider>
         </AuthProvider>
       </body>

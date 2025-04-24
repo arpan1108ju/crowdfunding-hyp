@@ -4,7 +4,9 @@ import { useAuth } from '@/hooks/use-auth';
 import * as tokenService from '@/lib/services/token-services';
 
 export const useTokenService = () => {
-  const { token } = useAuth();
+  const {session } = useAuth();
+  const token = session.token;
+
 
   return {
     getBalance: () => tokenService.getBalance(token),
