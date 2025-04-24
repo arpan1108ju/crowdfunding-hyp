@@ -11,12 +11,14 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
-import { useToast } from "@/components/ui/use-toast"
+
 import { useAuth } from "@/hooks/use-auth"
 import { AuthCredentials } from "@/lib/services/auth-service"
+import { useToast } from "@/hooks/use-toast"
 
 const formSchema = z
   .object({
+    username : z.string().min(3, { message: "Username must be at least 3 characters" }),
     email: z.string().email({ message: "Please enter a valid email address" }),
     password: z.string().min(6, { message: "Password must be at least 6 characters" }),
     confirmPassword: z.string().min(6, { message: "Password must be at least 6 characters" }),
@@ -28,7 +30,9 @@ const formSchema = z
 
 export function SignupForm() {
   const router = useRouter()
-  const { toast } = useToast()
+  
+  const { toast } = useToast();
+
   const [isLoading, setIsLoading] = useState(false)
 
   const { signup } = useAuth();
@@ -36,6 +40,7 @@ export function SignupForm() {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
+      username : "",
       email: "",
       password: "",
       confirmPassword: "",
@@ -58,22 +63,29 @@ export function SignupForm() {
       }
 
       const credentials: AuthCredentials = {
+        username : values.username,
         email: values.email,
         password: values.password
       };
 
-      const user = await signup(credentials);
+      const response = await signup(credentials);
+
+      if(response.success === false){
+         throw new Error(response.message);
+      }
 
       toast({
         title: "Success",
         description: "Your account has been created successfully",
+        variant : "default"
+        
       })
       router.push("/")
       router.refresh()
-    } catch (error) {
+    } catch (error: any) {
       toast({
         title: "Error",
-        description: "Something went wrong. Please try again.",
+        description: error?.message || "Something went wrong. Please try again.",
         variant: "destructive",
       })
     } finally {
@@ -85,6 +97,24 @@ export function SignupForm() {
     <div className="grid gap-6">
       <form onSubmit={form.handleSubmit(onSubmit)}>
         <div className="grid gap-4">
+
+        <div className="grid gap-2">
+          <Label htmlFor="username">Username</Label>
+          <Input
+            id="username"
+            placeholder="yourusername"
+            type="text"
+            autoCapitalize="none"
+            autoComplete="username"
+            autoCorrect="off"
+            disabled={isLoading}
+            {...form.register("username")}
+          />
+          {form.formState.errors.username && (
+            <p className="text-sm text-red-500">{form.formState.errors.username.message}</p>
+          )}
+        </div>
+
           <div className="grid gap-2">
             <Label htmlFor="email">Email</Label>
             <Input

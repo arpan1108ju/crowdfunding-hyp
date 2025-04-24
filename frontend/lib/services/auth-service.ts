@@ -18,44 +18,85 @@ interface X509Identity {
 }
   
   export type UserSession = {
-    userId: string;
+    username?: string;
+    email?: string;
+    token?: string;
+    role?: string;
+    isVerified?: boolean;
+    x509identity?: X509Identity;
+  };
+
+
+  interface User {
     username: string;
     email: string;
-    token: string;
     role: string;
     isVerified: boolean;
-    x509identity: X509Identity;
-  };
+    x509identity?: X509Identity;
+  }
+
+  interface Data { 
+    user : User;
+    token : string;
+  } 
+
+  export type AuthResponse = {
+     success : boolean;
+     message : string;
+     data : Data;
+  }
+
+
+  export type Message = {
+     success : boolean;
+     message : string;
+  }
   
-  const API_BASE_URL = 'http://localhost:3000/api/v1/auth';
+  const API_BASE_URL = 'http://localhost:5000/api/v1/auth';
   
-  export const login = async (credentials: AuthCredentials): Promise<UserSession> => {
-    const res = await fetch(`${API_BASE_URL}/login`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(credentials),
-    });
-  
-    if (!res.ok) {
-      const err = await res.json();
-      throw new Error(err.message || 'Login failed');
+  export const login = async (credentials: AuthCredentials): Promise<AuthResponse | Message> => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(credentials),
+      });
+
+      if(res.status !== 200){
+         const err : Message = await res.json();
+         return err;
+      }
+      const response : AuthResponse = await res.json();
+      return response;
+    } catch (error) {
+      return {
+        success: false,
+        message: 'Network error or invalid server response'
+      };
     }
-  
-    return await res.json(); // Return session, let client store it
   };
   
-  export const signup = async (credentials: AuthCredentials): Promise<UserSession> => {
-    const res = await fetch(`${API_BASE_URL}/signup`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(credentials),
-    });
+  export const signup = async (credentials: AuthCredentials): Promise<AuthResponse | Message> => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/signup`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(credentials),
+      });
   
-    if (!res.ok) {
-      const err = await res.json();
-      throw new Error(err.message || 'Signup failed');
+      if(res.status !== 200){
+        const err : Message = await res.json();
+        return err;
+     }
+
+      const response : AuthResponse = await res.json();
+      return response;
+    } catch (error) {
+      return {
+        success: false,
+        message: 'Network error or invalid server response'
+      };
     }
-  
-    return await res.json(); // Return session, let client store it
   };
+
   

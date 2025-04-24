@@ -8,12 +8,12 @@ import { LayoutDashboard, CreditCard, Users, Settings, PlusCircle, Menu, X } fro
 import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
-import { useAuth } from "@/components/providers/app-provider"
+import { useAuth } from "@/hooks/use-auth"
 
 export function Sidebar() {
   const pathname = usePathname()
   // const { user } = useAuth()
-  const { user } = useAuth()
+  const { session } = useAuth()
   const [open, setOpen] = useState(false)
   const [mounted, setMounted] = useState(false)
 
@@ -22,9 +22,9 @@ export function Sidebar() {
   }, [])
 
   // if (!mounted || loading) return null
- console.log(user)
-  const isAdmin = user?.role === "admin"
-  const isSuperAdmin = user?.role === "superadmin"
+//  console.log(session)
+  const isAdmin = session?.role === "admin"
+  const isSuperAdmin = session?.role === "superadmin"
 
   const routes = (() => {
     const base = [
@@ -36,7 +36,7 @@ export function Sidebar() {
       },
     ]
 
-    if (!user) {
+    if (!session) {
       return base
     }
 

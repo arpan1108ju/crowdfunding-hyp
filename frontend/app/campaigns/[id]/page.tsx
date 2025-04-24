@@ -5,10 +5,11 @@ import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
 import { Separator } from "@/components/ui/separator"
 import { getCampaign } from "@/lib/services/campaign-service"
-import { getCurrentUser } from "@/lib/auth"
+
 import { DonateForm } from "@/components/donate-form"
 import { AdminActions } from "@/components/admin-actions"
 import { CountdownTimer } from "@/components/remaining-timer"
+import { useAuth } from "@/hooks/use-auth"
 
 
 export default async function CampaignPage({
@@ -16,11 +17,11 @@ export default async function CampaignPage({
 }: {
   params: { id: string }
 }) {
-  const user = await getCurrentUser()
+  const { session } = useAuth();
 
   try {
     const campaign = await getCampaign(params.id)
-    const isAdmin = user?.role === "admin" || user?.role === "superadmin"
+    const isAdmin = session?.role === "admin" || session?.role === "superadmin"
     const percentRaised = Math.round((campaign.raised / campaign.target) * 100)
 
     return (

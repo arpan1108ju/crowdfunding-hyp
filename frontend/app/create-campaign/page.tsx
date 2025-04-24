@@ -12,7 +12,7 @@ export default function CreateCampaignPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log({ title, description, goal, endDate });
+    // console.log({ title, description, goal, endDate });
     // TODO: Send data to backend
     alert('Campaign Created!');
     router.push('/profile'); // redirect after creation

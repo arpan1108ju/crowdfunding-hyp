@@ -3,18 +3,20 @@ import { Shield, UserCog } from "lucide-react"
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { getCurrentUser } from "@/lib/auth"
+
 import { AdminManagement } from "@/components/superadmin/admin-management"
 import { RoleManagement } from "@/components/superadmin/role-management"
+import { useAuth } from "@/hooks/use-auth"
 
 export default async function SuperAdminPage() {
-  const user = await getCurrentUser()
+  const {session } = useAuth();
 
-  if (!user) {
+
+  if (!session) {
     redirect("/login")
   }
 
-  if (user.role !== "superadmin") {
+  if (session.role !== "superadmin") {
     notFound()
   }
 

@@ -7,8 +7,9 @@ import { Users, Calendar } from "lucide-react"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
-import { useAuth } from "@/components/providers/app-provider"
+
 import { getCampaigns } from "@/lib/services/campaign-service"
+import { useAuth } from "@/hooks/use-auth"
 
 type Campaign = {
   id: string
@@ -22,7 +23,7 @@ type Campaign = {
 }
 
 export function CampaignList() {
-  const { user } = useAuth()
+  const { session } = useAuth()
   const [campaigns, setCampaigns] = useState<Campaign[]>([])
   const [loading, setLoading] = useState(true)
 
