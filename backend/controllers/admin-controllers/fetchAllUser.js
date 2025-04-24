@@ -30,6 +30,7 @@ export const fetchAllUser = async (req, res) => {
         select : {
           id : true,
           email : true,
+          role : true,
           isVerified : true
         }
        })
@@ -40,6 +41,7 @@ export const fetchAllUser = async (req, res) => {
         select: {
           id: true,
           email: true,
+          role : true,
           isVerified: true,
         }
       });

@@ -7,7 +7,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 import { AdminManagement } from "@/components/superadmin/admin-management"
-import { RoleManagement } from "@/components/superadmin/role-management"
 import { useAuth } from "@/hooks/use-auth"
 
 import { SuperAdminSkeleton } from "@/components/superadmin/loading-skeleton"
@@ -68,14 +67,10 @@ export default function SuperAdminPage() {
 
       <Tabs defaultValue="admins" className="mt-6">
         <TabsList>
-          <TabsTrigger value="admins">Admin Management</TabsTrigger>
-          <TabsTrigger value="roles">Role Management</TabsTrigger>
+          <TabsTrigger value="admins">User Management</TabsTrigger>
         </TabsList>
         <TabsContent value="admins" className="mt-4">
           <AdminManagement />
-        </TabsContent>
-        <TabsContent value="roles" className="mt-4">
-          <RoleManagement session={session} />
         </TabsContent>
       </Tabs>
     </div>
