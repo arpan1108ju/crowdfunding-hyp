@@ -1,82 +1,98 @@
-// "use server"
 
-// import { CAMPAIGNS_DB } from "../data/dummy-data";
-// import { Campaign } from "../types/types";
+const API_URL = 'http://localhost:5000/api/v1/campaigns';
 
+export async function getAllCampaigns(token) {
+  const response = await fetch(`${API_URL}`, {
+    method: 'GET',
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+  return response.json();
+}
 
-// export async function getCampaigns() {
-//   // In a real app, you would fetch from the database
-//   return CAMPAIGNS_DB.map((campaign) => ({
-//     id: campaign.id,
-//     title: campaign.title,
-//     description: campaign.description,
-//     target: campaign.target,
-//     raised: campaign.raised,
-//     backers: campaign.backers,
-//     daysLeft: campaign.daysLeft,
-//     image: campaign.image,
-//   }))
-// }
+export async function getUserCampaigns(token) {
+  const response = await fetch(`${API_URL}/admin`, {
+    method: 'GET',
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+  return response.json();
+}
 
-// export async function getCampaign(id: string) {
-//   try {
-//     const response = await fetch(`/api/v1/campaigns/${id}`);
+export async function getCampaignById(token, campaignId) {
+  const response = await fetch(`${API_URL}/${campaignId}`, {
+    method: 'GET',
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+  return response.json();
+}
 
-//     if (!response.ok) {
-//       throw new Error(`Failed to fetch campaign with ID ${id}`);
-//     }
+export async function createCampaign(token, campaignData) {
+  const response = await fetch(`${API_URL}`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(campaignData),
+  });
+  return response.json();
+}
 
-//     const campaign = await response.json();
-//     return campaign;
-//   } catch (error) {
-//     console.error("Error fetching campaign:", error);
-//     throw new Error("Campaign not found");
-//   }
-// }
-//   const EXTENDED_BACKEND_URL= `${}/api/v1`;
+export async function donateToCampaign(token, campaignId, amount) {
+  const response = await fetch(`${API_URL}/${campaignId}/donate`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ amount }),
+  });
+  return response.json();
+}
 
-// export async function createCampaign(campaign: Campaign) {
-//   try {
-//     const response = await fetch('/api/v1/campaigns', {
-//       method: 'POST',
-//       headers: {
-//         'Content-Type': 'application/json',
-//       },
-//       body: JSON.stringify(campaign),
-//     });
+export async function withdrawFromCampaign(token, campaignId) {
+  const response = await fetch(`${API_URL}/${campaignId}/withdraw`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+  return response.json();
+}
 
-//     if (!response.ok) {
-//       throw new Error("Failed to create campaign");
-//     }
+export async function cancelCampaign(token, campaignId) {
+  const response = await fetch(`${API_URL}/${campaignId}/cancel`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+  return response.json();
+}
 
-//     const newCampaign = await response.json();
-//     return newCampaign;
-//   } catch (error) {
-//     console.error("Error creating campaign:", error);
-//     throw new Error("Campaign creation failed");
-//   }
-// }
+export async function updateCampaign(token, campaignId, updates) {
+  const response = await fetch(`${API_URL}/${campaignId}`, {
+    method: 'PATCH',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(updates),
+  });
+  return response.json();
+}
 
-
-// export async function donateToCampaign(campaignId: string, amount: number, userId: string) {
-//   try {
-//     const response = await fetch(`/api/v1/campaigns/${campaignId}/donate`, {
-//       method: 'POST',
-//       headers: {
-//         'Content-Type': 'application/json',
-//       },
-//       body: JSON.stringify({ amount, userId }),
-//     });
-
-//     if (!response.ok) {
-//       throw new Error("Failed to donate to campaign");
-//     }
-
-//     const updatedCampaign = await response.json();
-//     return updatedCampaign;
-//   } catch (error) {
-//     console.error("Error donating to campaign:", error);
-//     throw new Error("Donation failed");
-//   }
-// }
-
+export async function deleteCampaign(token, campaignId) {
+  const response = await fetch(`${API_URL}/${campaignId}`, {
+    method: 'DELETE',
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+  return response.json();
+}
