@@ -27,9 +27,6 @@ export function Sidebar() {
   useEffect(() => {
     setMounted(true)
   }, [])
-
-  // if (!mounted || loading) return null
-//  console.log(session)
 const isSuperAdmin = session?.role === "superadmin"
 const isAdmin = session?.role === "admin" || isSuperAdmin;
 
