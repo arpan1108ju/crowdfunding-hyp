@@ -5,7 +5,7 @@ import { User, Shield, UserCog } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { isValidRole } from "@/lib/constants"
+import { isValidRole, ROLE } from "@/lib/constants"
 import { toast } from "sonner"
 import { useSuperadminService } from "@/hooks/use-superadmin-service"
 
@@ -14,27 +14,27 @@ import { useSuperadminService } from "@/hooks/use-superadmin-service"
 
 export function RoleManagement({session}) {
 
-  const [users, setUsers] = useState([]);
+  // const [users, setUsers] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const { changeUserRole,fetchAllUsers,fetchUserById } = useSuperadminService();
   
 
-  useEffect(async () => {
+  useEffect( () => {
      
-    const result = await fetchAllUsers();
-    setUsers(result);
+    // const result = await fetchAllUsers();
+    // setUsers(result);
 
   },[session]);
 
 
   // Mock data - would come from API in real app
-  // const [users, setUsers] = useState([
-  //   { id: "1", email: "user1@example.com", role: "user" },
-  //   { id: "2", email: "user2@example.com", role: "user" },
-  //   { id: "3", email: "admin1@example.com", role: "admin" },
-  //   { id: "4", email: "admin2@example.com", role: "admin" },
-  //   { id: "5", email: "superadmin@example.com", role: "superadmin" },
-  // ])
+  const [users, setUsers] = useState([
+    { id: "1", email: "user1@example.com", role: ROLE.USER },
+    { id: "2", email: "user2@example.com", role: ROLE.USER },
+    { id: "3", email: "admin1@example.com", role: ROLE.ADMIN},
+    { id: "4", email: "admin2@example.com", role: ROLE.ADMIN },
+    { id: "5", email: "superadmin@example.com", role:ROLE.SUPERADMIN },
+  ])
 
 
   const filteredUsers = users.filter((user) => user.email.toLowerCase().includes(searchTerm.toLowerCase()))
@@ -119,9 +119,9 @@ export function RoleManagement({session}) {
                         <SelectValue placeholder="Select role" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="user">User</SelectItem>
-                        <SelectItem value="admin">Admin</SelectItem>
-                        <SelectItem value="superadmin">Super Admin</SelectItem>
+                        <SelectItem value={ROLE.USER}>{ROLE.USER}</SelectItem>
+                        <SelectItem value={ROLE.ADMIN}>{ROLE.ADMIN}</SelectItem>
+                        <SelectItem value={ROLE.SUPERADMIN}>{ROLE.SUPERADMIN}</SelectItem>
                       </SelectContent>
                     </Select>
                   </TableCell>

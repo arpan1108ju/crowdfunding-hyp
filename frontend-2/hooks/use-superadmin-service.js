@@ -5,7 +5,9 @@ import { fetchAllUsers, fetchUserById } from '@/lib/services/admin-services';
 import * as superadminService from '@/lib/services/super-admin-services';
 
 export const useSuperadminService = () => {
-  const { token } = useAuth();
+  const {session } = useAuth();
+  const token = session.token;
+
 
   return {
     fetchAllUsers: () => fetchAllUsers(token),

@@ -14,6 +14,7 @@
          return err;
       }
       const response  = await res.json();
+      console.log('login : ',response);
       return response;
     } catch (error) {
       return {

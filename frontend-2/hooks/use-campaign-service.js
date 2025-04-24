@@ -4,7 +4,9 @@ import { useAuth } from '@/hooks/use-auth';
 import * as campaignService from '@/lib/services/campaign-service';
 
 export const useCampaignService = () => {
-  const { token } = useAuth();
+  const {session } = useAuth();
+  const token = session.token;
+
 
   return {
     getAllCampaigns: () => campaignService.getAllCampaigns(token),
