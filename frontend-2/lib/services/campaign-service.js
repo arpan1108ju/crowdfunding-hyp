@@ -1,5 +1,5 @@
 
-const API_URL = `${env.NEXT_PUBLIC_BACKEND_URL}/api/v1/campaigns`;
+const API_URL = `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/campaigns`;
 
 export async function getAllCampaigns(token) {
   const response = await fetch(`${API_URL}`, {

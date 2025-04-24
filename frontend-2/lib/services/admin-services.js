@@ -1,4 +1,4 @@
-const API_URL = `${env.NEXT_PUBLIC_BACKEND_URL}/api/v1/admin`;
+const API_URL = `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/admin`;
 
 export async function fetchAllUsers(token) {
   const response = await fetch(`${API_URL}/users?verified=false`, {
