@@ -1,4 +1,4 @@
-const API_URL = 'http://localhost:5000/api/v1/token';
+const API_URL = `${env.NEXT_PUBLIC_BACKEND_URL}/api/v1/token`;
 
 export async function getBalance(token) {
   const response = await fetch(`${API_URL}/balance`, {
