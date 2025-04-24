@@ -7,8 +7,8 @@ import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
 import { Separator } from "@/components/ui/separator"
 import { DonateForm } from "@/components/donate-form"
-// import { AdminActions } from "@/components/admin-actions"
-// import { CountdownTimer } from "@/components/remaining-timer"
+import { AdminActions } from "@/components/admin-actions"
+import { CountdownTimer } from "@/components/remaining-timer"
 
 export default function CampaignPage({ params }) {
   const [campaign, setCampaign] = useState(null)

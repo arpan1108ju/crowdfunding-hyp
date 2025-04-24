@@ -18,7 +18,6 @@ export default async function CampaignPage({
   params: { id: string }
 }) {
     const {session} = useAuth();
-  // const { session } = useAuth();
 
   try {
     const campaign = await getCampaign(params.id)

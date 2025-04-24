@@ -28,16 +28,13 @@ export function AdminActions({ campaignId }) {
     setIsWithdrawing(true)
     try {
       await new Promise((resolve) => setTimeout(resolve, 1000))
-      toast({
-        title: "Success",
-        description: "Funds have been withdrawn successfully",
+      toast.success("Success",{
+        description: "Funds have been withdrawn successfully!!"
       })
       router.refresh()
     } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to withdraw funds",
-        variant: "destructive",
+      toast.error("Error",{
+        description :  error?.message || "Failed to withdraw funds!!",
       })
     } finally {
       setIsWithdrawing(false)
@@ -48,16 +45,13 @@ export function AdminActions({ campaignId }) {
     setIsCancelling(true)
     try {
       await new Promise((resolve) => setTimeout(resolve, 1000))
-      toast({
-        title: "Success",
-        description: "Campaign has been cancelled successfully",
+      toast.success("Success",{
+        description: "Campaign has been cancelled successfully!!"
       })
       router.push("/")
     } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to cancel campaign",
-        variant: "destructive",
+      toast.error("Error",{
+        description :  error?.message || "Failed to cancel campaign!!",
       })
     } finally {
       setIsCancelling(false)
@@ -68,16 +62,13 @@ export function AdminActions({ campaignId }) {
     setIsDeleting(true)
     try {
       await new Promise((resolve) => setTimeout(resolve, 1000))
-      toast({
-        title: "Success",
-        description: "Campaign has been deleted successfully",
+      toast.success("Success",{
+        description: "Campaign has been deleted successfully!!"
       })
       router.push("/")
     } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to delete campaign",
-        variant: "destructive",
+      toast.error("Error",{
+        description :  error?.message || "Failed to delete campaign!!",
       })
     } finally {
       setIsDeleting(false)

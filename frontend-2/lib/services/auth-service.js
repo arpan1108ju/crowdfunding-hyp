@@ -1,5 +1,5 @@
 
-  const API_BASE_URL = 'http://localhost:5000/api/v1/auth';
+  const API_URL = `${env.NEXT_PUBLIC_BACKEND_URL}/api/v1/auth`;
   
   export const login = async (credentials) => {
     try {
