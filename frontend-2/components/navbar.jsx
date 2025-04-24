@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Search, User, Moon, Sun } from "lucide-react"
+import { Search, User, Moon, Sun, LogOut } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -79,7 +79,7 @@ export default function Navbar() {
         <div className="flex h-16 items-center px-4">
           <div className="flex items-center gap-2 md:w-64">
             <Link href="/" className="flex items-center gap-2">
-              <span className="text-xl font-bold">FundFab</span>
+              <span className="text-3xl font-bold">FundFab</span>
             </Link>
           </div>
           <div className="flex flex-1 items-center gap-4 md:gap-8">
@@ -183,7 +183,7 @@ export default function Navbar() {
                 <DropdownMenuContent className="w-56" align="end" forceMount>
                   <div className="flex flex-col space-y-1 p-2">
                     <p className="text-sm font-medium leading-none">Hi, {session.username}</p>
-                    <p className="text-xs leading-none text-muted-foreground">{session.role}</p>
+                    <p className="text-xs leading-none pt-2 text-muted-foreground">{session.role}</p>
                   </div>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem asChild>
@@ -204,6 +204,7 @@ export default function Navbar() {
                       })
                     }}
                   >
+                    <LogOut className="mr-2 h-4 w-4" />
                     Log out
                   </DropdownMenuItem>
                 </DropdownMenuContent>

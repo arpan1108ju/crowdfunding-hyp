@@ -76,7 +76,7 @@ export function EnrollRevokeManagement({fetchAll,enroll,revoke,fetchSingle,isCal
 
   const filteredUsers = users.filter((user) => {
     const matchesSearch = user.email.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesRole = roleFilter === "all" || user.role.toLowerCase() === roleFilter
+    const matchesRole = roleFilter === "all" || user.role.toLowerCase() === roleFilter.toLowerCase();
     const matchesStatus = statusFilter === "all" || 
       (statusFilter === "verified" && user.isVerified) ||
       (statusFilter === "not_verified" && !user.isVerified)
@@ -170,9 +170,9 @@ export function EnrollRevokeManagement({fetchAll,enroll,revoke,fetchSingle,isCal
 
   const roleOptions = [
     { value: "all", label: "All Roles" },
-    { value: "user", label: "User" },
-    { value: "admin", label: "Admin" },
-    { value: "superadmin", label: "Super Admin" },
+    { value: ROLE.USER, label: ROLE.USER },
+    { value: ROLE.ADMIN, label: ROLE.ADMIN },
+    { value: ROLE.SUPERADMIN, label: ROLE.SUPERADMIN },
   ]
 
   const statusOptions = [
@@ -310,8 +310,10 @@ export function EnrollRevokeManagement({fetchAll,enroll,revoke,fetchSingle,isCal
                     <TableCell>{user.email}</TableCell>
                     <TableCell>
                       <div className="flex items-center">
-                        {user.role === ROLE.ADMIN || user.role === ROLE.SUPERADMIN ? (
+                        {user.role === ROLE.ADMIN ? (
                           <Shield className="mr-2 h-4 w-4 text-blue-500" />
+                        ) : user.role === ROLE.SUPERADMIN ? (
+                          <Shield className="mr-2 h-4 w-4 text-purple-600" />
                         ) : (
                           <User className="mr-2 h-4 w-4 text-gray-500" />
                         )}

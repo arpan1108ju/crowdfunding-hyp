@@ -7,7 +7,7 @@ export async function fetchAllUsers(token,verified) {
     url = `${API_URL}/users?verified=${verified}`;
   }
 
-  console.log('token : ',token);
+  // console.log('token : ',token);
 
   const response = await fetch(url, {
     method: 'GET',

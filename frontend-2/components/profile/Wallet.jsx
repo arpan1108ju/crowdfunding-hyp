@@ -30,15 +30,61 @@ export function Wallet() {
 
   const isAdmin = session?.role === ROLE.ADMIN || session?.role === ROLE.SUPERADMIN;
 
+  const fetchBalance = async () => {
+
+    try {
+      const response = await getBalance();
+      if(!response.success){
+        throw new Error(response.message);
+      }
+      setBalance(response.data);   
+    } catch (error) {
+      toast.error("Failed to fetch balance", {
+        description: error.message
+      });
+    }
+  }
+
+  const fetchTokenMetadata = async () => {
+    try {
+      const response = await getTokenMetadata();  
+      if(!response.success){
+        throw new Error(response.message);
+      }
+      setMetadata(response.data);
+    } catch (error) {
+      toast.error("Failed to fetch token metadata", {
+        description: error.message
+      });
+    }
+  }
+
+  const fetchExchangeRates = async () => {
+    try {
+      const response = await getAllExchangeRates();
+      if(!response.success){
+        throw new Error(response.message);
+      }
+      setRates(response.data);
+    } catch (error) {
+      toast.error("Failed to fetch exchange rates", {
+        description: error.message
+      });
+    }
+  }
+
   const handleMintToken = async () => {
-    if (!mintAmount || isNaN(mintAmount)) {
+    if (!mintAmount || isNaN(mintAmount) || parseFloat(mintAmount) <= 0) {
       toast.error("Please enter a valid amount");
       return;
     }
 
     setIsLoading(true);
     try {
-      await mintToken(parseFloat(mintAmount));
+      const response = await mintToken(parseFloat(mintAmount));
+      if(!response.success){
+        throw new Error(response.message);
+      }
       const newBalance = await getBalance();
       setBalance(newBalance);
       toast.success("Tokens minted successfully");
@@ -51,6 +97,12 @@ export function Wallet() {
       setIsLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchBalance();
+    fetchTokenMetadata();
+    fetchExchangeRates();
+  }, []);
 
   return (
     <Card>
