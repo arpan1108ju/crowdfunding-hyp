@@ -16,7 +16,7 @@ export default function CampaignPage({ params }) {
   const fetchCampaign = async () => {
     try {
       // const result = await getCampaignById(params.id);
-      let result = {success: true, data: initialCampaigns[0]}
+      // let result = {success: true, data: initialCampaigns[0]}
       if (!result.success) {
         throw new Error(result.message);
       }
