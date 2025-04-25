@@ -32,6 +32,12 @@ import { CAMPAIGN_ACTION, ROLE } from "@/lib/constants";
 import { toast } from "sonner";
 import { Separator } from "@/components/ui/separator";
 import { useCampaignService } from "@/hooks/use-campaign-service";
+import { dispatchBalanceUpdated } from "@/lib/events";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
+import { campaignTypes } from "@/lib/data/dummy-data";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 
 export function SingleCampaign({ campaign }) {
@@ -39,7 +45,7 @@ export function SingleCampaign({ campaign }) {
   const { session } = useAuth();
   const { getTokenMetadata , getBalance } = useTokenService();
 
-  const { donateToCampaign,withdrawFromCampaign,cancelCampaign,deleteCampaign } = useCampaignService();
+  const { donateToCampaign,withdrawFromCampaign,cancelCampaign,deleteCampaign, updateCampaign } = useCampaignService();
 
   const [isLoading, setIsLoading] = useState(false);
   const [tokenMetadata, setTokenMetadata] = useState(null);
@@ -50,13 +56,25 @@ export function SingleCampaign({ campaign }) {
     type: null, // 'donate', 'withdraw', 'cancel', 'delete'
     data: null
   });
+  const [editDialogState, setEditDialogState] = useState({
+    isOpen: false,
+    data: {
+      title: "",
+      description: "",
+      campaignType: "",
+      customType: "",
+      goal: 0,
+      deadline: 0,
+      image: ""
+    }
+  });
 
-  const isAdmin = session?.role === ROLE.ADMIN || session?.role === ROLE.SUPERADMIN;
-  // const isOwner = session?.id === campaign.owner;
+  const isAdmin = session?.role === ROLE.ADMIN;
+  // const isOwner = session?.id === campaign?.owner;
   const isOwner = isAdmin;
-  const canWithdraw = isOwner && !campaign.withdrawn && !campaign.canceled;
-  const canCancel = isOwner && !campaign.withdrawn && !campaign.canceled;
-  const canDonate = !campaign.withdrawn && !campaign.canceled && Date.now() < campaign.deadline;
+  const canWithdraw = isOwner && !campaign?.withdrawn && !campaign?.canceled;
+  const canCancel = isOwner && !campaign?.withdrawn && !campaign?.canceled;
+  const canDonate = !campaign?.withdrawn && !campaign?.canceled && Date.now() < campaign?.deadline;
 
   const fetchTokenMetadata = async () => {
     try {
@@ -87,19 +105,19 @@ export function SingleCampaign({ campaign }) {
   };
 
   useEffect(() => {
-    console.log('id : ',campaign.id);
+    console.log('id : ',campaign?.id);
     fetchTokenMetadata();
   }, []);
 
   const getCampaignStatus = () => {
     const now = Date.now();
-    if (campaign.canceled) {
+    if (campaign?.canceled) {
       return { label: "Canceled", variant: "destructive" };
     }
-    if (campaign.withdrawn) {
+    if (campaign?.withdrawn) {
       return { label: "Withdrawn", variant: "secondary" };
     }
-    if (now > campaign.deadline) {
+    if (now > campaign?.deadline) {
       return { label: "Completed", variant: "default" };
     }
     return { label: "Ongoing", variant: "success" };
@@ -107,7 +125,7 @@ export function SingleCampaign({ campaign }) {
 
   const getTimeRemaining = () => {
     const now = Date.now();
-    const timeLeft = campaign.deadline - now;
+    const timeLeft = campaign?.deadline - now;
 
     if (timeLeft <= 0) return "Ended";
 
@@ -141,37 +159,48 @@ export function SingleCampaign({ campaign }) {
           if (!donationAmount || donationAmount <= 0) {
             throw new Error('Please enter a valid donation amount');
           }
-          response = await donateToCampaign(campaign.id, donationAmount);
+          
+          // Check if user has sufficient balance
+          if (balance < donationAmount) {
+            throw new Error(`Insufficient balance. You have ${balance} ${tokenMetadata?.symbol} available.`);
+          }
+          
+          response = await donateToCampaign(campaign?.id, donationAmount);
           if (!response.success) {
             throw new Error(response.message);
           }
+          dispatchBalanceUpdated();
           toast.success('Donation successful');
           break;
 
         case CAMPAIGN_ACTION.WITHDRAW:
-          response = await withdrawFromCampaign(campaign.id);
+          response = await withdrawFromCampaign(campaign?.id);
           if (!response.success) {
             throw new Error(response.message);
           }
+          dispatchBalanceUpdated();
           toast.success('Funds withdrawn successfully');
           break;
 
         case CAMPAIGN_ACTION.CANCEL:
-          response = await cancelCampaign(campaign.id);
+          response = await cancelCampaign(campaign?.id);
           if (!response.success) {
             throw new Error(response.message);
           }
+          dispatchBalanceUpdated();
           toast.success('Campaign canceled successfully');
           break;
 
         case CAMPAIGN_ACTION.DELETE:
-          response = await deleteCampaign(campaign.id);
+          response = await deleteCampaign(campaign?.id);
           if (!response.success) {
             throw new Error(response.message);
           }
           toast.success('Campaign deleted successfully');
           break;
       }
+
+      router.push(`/campaign/${campaign?.id}`);
       router.refresh();
     } catch (error) {
       toast.error(`Failed to ${dialogState.type.toLowerCase()} campaign`, {
@@ -181,6 +210,55 @@ export function SingleCampaign({ campaign }) {
       setIsLoading(false);
       setDialogState({ isOpen: false, type: null, data: null });
       setDonationAmount(0);
+    }
+  };
+
+  const handleEdit = () => {
+    setEditDialogState({
+      isOpen: true,
+      data: {
+        title: campaign?.title,
+        description: campaign?.description,
+        campaignType: campaignTypes.includes(campaign?.campaignType) ? campaign?.campaignType : 'Other',
+        customType: campaignTypes.includes(campaign?.campaignType) ? '' : campaign?.campaignType,
+        goal: campaign?.target,
+        deadline: campaign?.deadline,
+        image: campaign?.image
+      }
+    });
+  };
+
+  const handleSelectChange = (value) => {
+    setEditDialogState(prev => ({
+      ...prev,
+      data: {
+        ...prev.data,
+        campaignType: value,
+        customType: value === 'Other' ? prev.data.customType : ''
+      }
+    }));
+  };
+
+  const handleUpdateCampaign = async () => {
+    setIsLoading(true);
+    try {
+      const campaignData = {
+        ...editDialogState.data,
+        campaignType: editDialogState.data.campaignType === 'Other' ? editDialogState.data.customType : editDialogState.data.campaignType
+      };
+      const response = await updateCampaign(campaign?.id, campaignData);
+      if (!response.success) {
+        throw new Error(response.message);
+      }
+      toast.success('Campaign updated successfully');
+      router.refresh();
+      setEditDialogState({ isOpen: false, data: null });
+    } catch (error) {
+      toast.error('Failed to update campaign', {
+        description: error.message
+      });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -202,8 +280,8 @@ export function SingleCampaign({ campaign }) {
         <div className="space-y-6">
           <div className="relative">
             <img
-              src={campaign.image}
-              alt={campaign.title}
+              src={campaign?.image}
+              alt={campaign?.title}
               className="w-full aspect-video object-cover rounded-lg"
             />
             <div className="absolute top-4 right-4">
@@ -214,9 +292,9 @@ export function SingleCampaign({ campaign }) {
           <div className="space-y-4">
             <h3 className="text-lg font-semibold">Donors</h3>
             <ScrollArea className="h-[300px] rounded-md border p-4">
-              {campaign.donators?.length > 0 ? (
+              {campaign?.donators?.length > 0 ? (
                 <div className="space-y-4">
-                  {campaign.donators.map((donor, index) => (
+                  {campaign?.donators.map((donor, index) => (
                     <div key={index} className="flex items-center justify-between">
                       <span className="font-medium">{donor.name}</span>
                       <span>{donor.amount} {tokenMetadata?.symbol}</span>
@@ -234,16 +312,16 @@ export function SingleCampaign({ campaign }) {
         <div className="space-y-6">
           <div className="flex items-start justify-between">
             <div>
-              <h1 className="text-3xl font-bold">{campaign.title}</h1>
+              <h1 className="text-3xl font-bold">{campaign?.title}</h1>
               <span className="text-muted-foreground px-2 py-1">
                 Category : <Badge variant="outline" className="text-sm mt-2 pb-1 bg-muted">
-                    {campaign.campaignType}
+                    {campaign?.campaignType}
                   </Badge>
               </span>
             </div>
             {isAdmin && (
               <div className="flex gap-2">
-                <Button variant="outline" size="icon">
+                <Button variant="outline" size="icon" onClick={handleEdit}>
                   <Edit className="h-4 w-4" />
                 </Button>
                 <Button 
@@ -260,23 +338,23 @@ export function SingleCampaign({ campaign }) {
           <div className="space-y-2">
             <div className="flex justify-between text-sm">
               <span className="text-lg font-medium">
-                {campaign.amountCollected.toLocaleString()} {tokenMetadata?.symbol} raised of {campaign.target.toLocaleString()} {tokenMetadata?.symbol}
+                {campaign?.amountCollected.toLocaleString()} {tokenMetadata?.symbol} raised of {campaign?.target.toLocaleString()} {tokenMetadata?.symbol}
               </span>
               <span className="text-lg font-medium">
-                {Math.round((campaign.amountCollected / campaign.target) * 100)}%
+                {Math.round((campaign?.amountCollected / campaign?.target) * 100)}%
               </span>
             </div>
-            <Progress value={(campaign.amountCollected / campaign.target) * 100} className="h-2" />
+            <Progress value={(campaign?.amountCollected / campaign?.target) * 100} className="h-2" />
           </div>
 
           <div className="grid grid-cols-3 gap-4 text-sm text-muted-foreground">
             <div className="flex items-center">
               <Users className="mr-2 h-4 w-4" />
-              {campaign.donators?.length || 0} backers
+              {campaign?.donators?.length || 0} backers
             </div>
             <div className="flex items-center">
               <Calendar className="mr-2 h-4 w-4" />
-              {formatDate(campaign.deadline)}
+              {formatDate(campaign?.deadline)}
             </div>
             <div className="flex items-center">
               <Clock className="mr-2 h-4 w-4" />
@@ -289,7 +367,7 @@ export function SingleCampaign({ campaign }) {
           <div className="space-y-4">
             <h2 className="text-xl font-semibold">About this campaign</h2>
             <p className="text-muted-foreground whitespace-pre-wrap">
-              {campaign.description}
+              {campaign?.description}
             </p>
           </div>
 
@@ -345,8 +423,19 @@ export function SingleCampaign({ campaign }) {
                'Delete Campaign'}
             </DialogTitle>
             <DialogDescription>
-              {dialogState.type === CAMPAIGN_ACTION.DONATE ? 'Enter the amount you want to donate.' :
-               dialogState.type === CAMPAIGN_ACTION.WITHDRAW ? 'Are you sure you want to withdraw all funds? This action cannot be undone.' :
+              {dialogState.type === CAMPAIGN_ACTION.DONATE ? (
+                balance < donationAmount ? (
+                  <p className="text-red-500">
+                    Insufficient balance. You have {balance} {tokenMetadata?.symbol} available.
+                  </p>
+                ) : donationAmount > (campaign?.target - campaign?.amountCollected) ? (
+                  <p className="text-red-500">
+                    Donation amount exceeds remaining target. Remaining amount: {campaign?.target - campaign?.amountCollected} {tokenMetadata?.symbol}
+                  </p>
+                ) : (
+                  'Enter the amount you want to donate.'
+                )
+              ) : dialogState.type === CAMPAIGN_ACTION.WITHDRAW ? 'Are you sure you want to withdraw all funds? This action cannot be undone.' :
                dialogState.type === CAMPAIGN_ACTION.CANCEL ? 'Are you sure you want to cancel this campaign? This will stop all future donations.' :
                'Are you sure you want to delete this campaign? This action cannot be undone.'}
             </DialogDescription>
@@ -365,6 +454,9 @@ export function SingleCampaign({ campaign }) {
               <p className="text-sm text-muted-foreground mt-2">
                 Available balance: {balance !== null ? balance : 'Loading...'} {tokenMetadata?.symbol}
               </p>
+              <p className="text-sm text-muted-foreground mt-1">
+                Remaining target: {campaign?.target - campaign?.amountCollected} {tokenMetadata?.symbol}
+              </p>
             </div>
           )}
           <DialogFooter>
@@ -378,13 +470,153 @@ export function SingleCampaign({ campaign }) {
             <Button
               variant={dialogState.type === CAMPAIGN_ACTION.DELETE || dialogState.type === CAMPAIGN_ACTION.CANCEL ? 'destructive' : 'default'}
               onClick={handleConfirmAction}
-              disabled={isLoading}
+              disabled={isLoading || 
+                (dialogState.type === CAMPAIGN_ACTION.DONATE && 
+                  (balance < donationAmount || donationAmount > (campaign?.target - campaign?.amountCollected)))}
             >
               {isLoading ? "Processing..." : 
                dialogState.type === CAMPAIGN_ACTION.DONATE ? 'Donate' :
                dialogState.type === CAMPAIGN_ACTION.WITHDRAW ? 'Withdraw' :
                dialogState.type === CAMPAIGN_ACTION.CANCEL ? 'Cancel Campaign' :
                'Delete Campaign'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Campaign Dialog */}
+      <Dialog open={editDialogState.isOpen} onOpenChange={(open) => !open && setEditDialogState({ isOpen: false, data: null })}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Edit Campaign</DialogTitle>
+            <DialogDescription>
+              Update your campaign details below.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="title">Title</Label>
+              <Input
+                id="title"
+                value={editDialogState.data.title}
+                onChange={(e) => setEditDialogState(prev => ({
+                  ...prev,
+                  data: { ...prev.data, title: e.target.value }
+                }))}
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="description">Description</Label>
+              <Textarea
+                id="description"
+                value={editDialogState.data.description}
+                onChange={(e) => setEditDialogState(prev => ({
+                  ...prev,
+                  data: { ...prev.data, description: e.target.value }
+                }))}
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="campaignType">Campaign Type</Label>
+              <Select value={editDialogState.data.campaignType} onValueChange={handleSelectChange}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select campaign type" />
+                </SelectTrigger>
+                <SelectContent>
+                  {campaignTypes.map((type) => (
+                    <SelectItem key={type} value={type}>{type}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {editDialogState.data.campaignType === 'Other' && (
+                <Input
+                  id="customType"
+                  value={editDialogState.data.customType}
+                  onChange={(e) => setEditDialogState(prev => ({
+                    ...prev,
+                    data: { ...prev.data, customType: e.target.value }
+                  }))}
+                  placeholder="Specify campaign type"
+                  className="mt-2"
+                />
+              )}
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="goal">Goal Amount</Label>
+              <Input
+                id="goal"
+                type="number"
+                value={editDialogState.data.goal}
+                onChange={(e) => setEditDialogState(prev => ({
+                  ...prev,
+                  data: { ...prev.data, goal: Number(e.target.value) }
+                }))}
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="deadline">Deadline</Label>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Input
+                    id="deadline-date"
+                    type="date"
+                    value={new Date(editDialogState.data.deadline).toISOString().split('T')[0]}
+                    onChange={(e) => {
+                      const time = new Date(editDialogState.data.deadline).toISOString().split('T')[1].slice(0, 5);
+                      setEditDialogState(prev => ({
+                        ...prev,
+                        data: {
+                          ...prev.data,
+                          deadline: new Date(`${e.target.value}T${time}`).getTime()
+                        }
+                      }));
+                    }}
+                  />
+                </div>
+                <div>
+                  <Input
+                    id="deadline-time"
+                    type="time"
+                    value={new Date(editDialogState.data.deadline).toISOString().split('T')[1].slice(0, 5)}
+                    onChange={(e) => {
+                      const date = new Date(editDialogState.data.deadline).toISOString().split('T')[0];
+                      setEditDialogState(prev => ({
+                        ...prev,
+                        data: {
+                          ...prev.data,
+                          deadline: new Date(`${date}T${e.target.value}`).getTime()
+                        }
+                      }));
+                    }}
+                  />
+                </div>
+              </div>
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="image">Image URL</Label>
+              <Input
+                id="image"
+                value={editDialogState.data.image}
+                onChange={(e) => setEditDialogState(prev => ({
+                  ...prev,
+                  data: { ...prev.data, image: e.target.value }
+                }))}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setEditDialogState({ isOpen: false, data: null })}
+              disabled={isLoading || (editDialogState.data.campaignType === 'Other' && !editDialogState.data.customType)}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleUpdateCampaign}
+              disabled={isLoading || (editDialogState.data.campaignType === 'Other' && !editDialogState.data.customType)}
+            >
+              {isLoading ? "Updating..." : "Update Campaign"}
             </Button>
           </DialogFooter>
         </DialogContent>

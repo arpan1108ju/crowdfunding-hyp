@@ -95,3 +95,13 @@ export const initialCampaigns = [
     canceled: false,
   },
 ];
+
+export const campaignTypes = [
+  'Technology',
+  'Education',
+  'Healthcare',
+  'Environment',
+  'Art',
+  'Sports',
+  'Other'
+];

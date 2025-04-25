@@ -104,11 +104,11 @@ export function EnrollRevokeManagement({fetchAll,enroll,revoke,fetchSingle,isCal
       }))
       
       toast.success("Success", {
-        description: "User has been enrolled successfully"
+        description: `${userDetails.email} has been enrolled successfully`
       })
     } catch (error) {
       toast.error("Error", {
-        description: error.message || "Failed to enroll user"
+        description: error.message || `Failed to enroll ${userDetails.email}`
       })
     } finally {
       setIsProcessing(false)

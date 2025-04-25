@@ -16,16 +16,9 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useCampaignService } from '@/hooks/use-campaign-service';
+import { campaignTypes } from '@/lib/data/dummy-data';
 
-const campaignTypes = [
-  'Technology',
-  'Education',
-  'Healthcare',
-  'Environment',
-  'Art',
-  'Sports',
-  'Other'
-];
+
 
 export default function CreateCampaignPage() {
   const router = useRouter();
