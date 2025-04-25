@@ -8,7 +8,12 @@ export const donateCampaignHandler = async (req, res) => {
     const validation = donateCampaignSchema.safeParse(req.body);
 
     if (!validation.success) {
-      throw new CustomError("Invalid data", 400, validation.error.errors);
+      throw new CustomError(
+        validation.error.issues
+          .map((e) => `${e.path.join(".")}: ${e.message}`)
+          .join(" | "),
+        400
+      );
     }
 
     const { amount } = validation.data;
@@ -17,14 +22,19 @@ export const donateCampaignHandler = async (req, res) => {
 
     const donationObj = {
       id,
-      amount : amount.toString(),
-      timestamp : Date.now().toString()
-    }
+      amount: amount.toString(),
+      timestamp: Date.now().toString(),
+    };
 
     const responseMessage = await donateToCampaign(donationObj);
 
-    sendSuccess(res,donationObj,responseMessage);
+    sendSuccess(res, donationObj, responseMessage);
   } catch (error) {
-    sendError(res, error.details || error.message, error.message, error.statusCode || 500);
+    sendError(
+      res,
+      error.details || error.message,
+      error.message,
+      error.statusCode || 500
+    );
   }
 };

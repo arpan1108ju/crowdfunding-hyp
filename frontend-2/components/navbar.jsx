@@ -209,7 +209,6 @@ export default function Navbar() {
           </div>
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2">
-              <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <div className="flex items-center gap-1 px-3 py-1.5 bg-accent rounded-md">
@@ -233,9 +232,7 @@ export default function Navbar() {
                     </TooltipContent>
                   )}
                 </Tooltip>
-              </TooltipProvider>
 
-              <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button
@@ -255,7 +252,7 @@ export default function Navbar() {
                     </TooltipContent>
                   )}
                 </Tooltip>
-              </TooltipProvider>
+
             </div>
           <ThemeToggle />
             {session ? (

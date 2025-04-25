@@ -8,14 +8,19 @@ export const setTokenMetadataHandler = async (req, res) => {
     const validation = setTokenMetadataSchema.safeParse(req.body);
 
     if (!validation.success) {
-      throw new CustomError("Invalid data", 400, validation.error.errors);
+      throw new CustomError(
+        validation.error.issues
+          .map((e) => `${e.path.join(".")}: ${e.message}`)
+          .join(" | "),
+        400
+      );
     }
 
     const { name, symbol } = validation.data;
 
     const result = await setTokenMetadata({ name, symbol });
 
-    sendSuccess(res, {result}, "set token metadata successfully");
+    sendSuccess(res, { result }, "set token metadata successfully");
   } catch (error) {
     // Catch and handle CustomError
     sendError(

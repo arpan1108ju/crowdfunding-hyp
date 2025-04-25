@@ -3,16 +3,19 @@ import db from "../../utils/db.js";
 import { CustomError } from "../../utils/customError.js";
 import { verifiedSchema } from "../../utils/apiSchema.js";
 
-
-
 export const fetchAllUser = async (req, res) => {
   try {
     const { verified } = req.query;
 
     const validation = verifiedSchema.safeParse(verified);
-        
+
     if (!validation.success) {
-          throw new CustomError("Invalid data", 400, validation.error.errors);
+      throw new CustomError(
+        validation.error.issues
+          .map((e) => `${e.path.join(".")}: ${e.message}`)
+          .join(" | "),
+        400
+      );
     }
 
     // if (verified === undefined || verified === "true" || verified === "false") {
@@ -20,34 +23,31 @@ export const fetchAllUser = async (req, res) => {
     // }
 
     let isVerified = null;
-    if(verified === "true") isVerified = true;
-    else if(verified === "false") isVerified = false;
+    if (verified === "true") isVerified = true;
+    else if (verified === "false") isVerified = false;
 
     let users;
 
-    if(isVerified === null){
-       users = await db.user.findMany({
-        select : {
-          id : true,
-          email : true,
-          role : true,
-          isVerified : true
-        }
-       })
-    }
-    else {
+    if (isVerified === null) {
+      users = await db.user.findMany({
+        select: {
+          id: true,
+          email: true,
+          role: true,
+          isVerified: true,
+        },
+      });
+    } else {
       users = await db.user.findMany({
         where: { isVerified },
         select: {
           id: true,
           email: true,
-          role : true,
+          role: true,
           isVerified: true,
-        }
+        },
       });
     }
-
-
 
     sendSuccess(res, users, "Users fetched successfully!");
   } catch (error) {

@@ -12,7 +12,12 @@ export const login = async (req, res) => {
     const validation = loginSchema.safeParse(req.body);
 
     if (!validation.success) {
-      throw new CustomError("Invalid data", 400, validation.error.errors);
+      throw new CustomError(
+        validation.error.issues
+          .map((e) => `${e.path.join(".")}: ${e.message}`)
+          .join(" | "),
+        400
+      );
     }
 
     const { email, password } = validation.data;
@@ -20,13 +25,13 @@ export const login = async (req, res) => {
     //  Find user by email
     const existingUser = await db.user.findUnique({
       where: { email },
-      select : {
+      select: {
         username: true,
         email: true,
         isVerified: true,
-        role : true,
-        password : true
-      }
+        role: true,
+        password: true,
+      },
     });
 
     if (!existingUser) {
@@ -36,14 +41,14 @@ export const login = async (req, res) => {
     // Now check if x509Identity exists
     const x509 = await db.user.findUnique({
       where: { email },
-      select: { x509Identity: true }
+      select: { x509Identity: true },
     });
 
     if (x509?.x509Identity) {
       existingUser.x509Identity = x509.x509Identity;
     }
 
-    const {password : dbPassword , ...user} = existingUser;
+    const { password: dbPassword, ...user } = existingUser;
 
     //  Compare entered password with stored hashed password
     const isPasswordValid = await bcrypt.compare(password, dbPassword);
@@ -51,7 +56,6 @@ export const login = async (req, res) => {
     if (!isPasswordValid) {
       throw new CustomError("Invalid password!", 401);
     }
-
 
     //  Create JWT Token
     const token = jwt.sign(
@@ -63,11 +67,11 @@ export const login = async (req, res) => {
     res.cookie(AUTH_TOKEN_NAME, token, {
       httpOnly: true,
       secure: false,
-      sameSite: 'lax',
+      sameSite: "lax",
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     });
 
-    sendSuccess(res, {user}, "Login successful!");
+    sendSuccess(res, { user }, "Login successful!");
   } catch (error) {
     sendError(res, error.details || {}, error.message, error.statusCode || 500);
   }

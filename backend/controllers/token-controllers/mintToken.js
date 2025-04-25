@@ -8,14 +8,19 @@ export const mintTokenHandler = async (req, res) => {
     const validation = mintTokenSchema.safeParse(req.body);
 
     if (!validation.success) {
-      throw new CustomError("Invalid data", 400, validation.error.errors);
+      throw new CustomError(
+        validation.error.issues
+          .map((e) => `${e.path.join(".")}: ${e.message}`)
+          .join(" | "),
+        400
+      );
     }
 
     const { currency, amountPaid } = validation.data;
 
     const result = await mintToken({ currency, amountPaid });
 
-    sendSuccess(res, {result}, "minting token successful!");
+    sendSuccess(res, { result }, "minting token successful!");
   } catch (error) {
     // Catch and handle CustomError
     sendError(

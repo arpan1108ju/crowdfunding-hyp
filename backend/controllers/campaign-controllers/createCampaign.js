@@ -1,7 +1,7 @@
 import { sendSuccess, sendError } from "../../utils/responses.js";
 import { createCampaign } from "../../methods/invoke/createCampaign.js";
 import { createCampaignSchema } from "../../utils/apiSchema.js";
-import { v4 as uuidv4 } from 'uuid';
+import { v4 as uuidv4 } from "uuid";
 import { CustomError } from "../../utils/customError.js";
 
 export const createCampaignHandler = async (req, res) => {
@@ -9,10 +9,16 @@ export const createCampaignHandler = async (req, res) => {
     const validation = createCampaignSchema.safeParse(req.body);
 
     if (!validation.success) {
-      throw new CustomError("Invalid data", 400, validation.error.errors);
+      throw new CustomError(
+        validation.error.issues
+          .map((e) => `${e.path.join(".")}: ${e.message}`)
+          .join(" | "),
+        400
+      );
     }
 
-    const { title, description, campaignType, target, deadline, image } = validation.data;
+    const { title, description, campaignType, target, deadline, image } =
+      validation.data;
 
     const id = uuidv4();
 
@@ -21,16 +27,21 @@ export const createCampaignHandler = async (req, res) => {
       title,
       description,
       campaignType,
-      target : target.toString(),
-      deadline : deadline.toString(),
+      target: target.toString(),
+      deadline: deadline.toString(),
       image,
-      createdAt : Date.now().toString()
-    }
+      createdAt: Date.now().toString(),
+    };
 
     const responseMessage = await createCampaign(campaignObj);
 
-    sendSuccess(res,campaignObj,responseMessage);
+    sendSuccess(res, campaignObj, responseMessage);
   } catch (error) {
-    sendError(res, error.details || error.message, error.message, error.statusCode || 500);
+    sendError(
+      res,
+      error.details || error.message,
+      error.message,
+      error.statusCode || 500
+    );
   }
 };

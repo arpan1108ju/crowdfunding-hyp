@@ -8,14 +8,24 @@ export const func = async (req, res) => {
     const validation = signupSchema.safeParse(req.body);
 
     if (!validation.success) {
-      throw new CustomError("Invalid data", 400, validation.error.errors);
+      throw new CustomError(
+        validation.error.issues
+          .map((e) => `${e.path.join(".")}: ${e.message}`)
+          .join(" | "),
+        400
+      );
     }
 
     const {} = validation.data;
-    
+
     sendSuccess(res, { message: "successful!" });
   } catch (error) {
     // Catch and handle CustomError
-    sendError(res, error.details || error.message, error.message, error.statusCode || 500);
+    sendError(
+      res,
+      error.details || error.message,
+      error.message,
+      error.statusCode || 500
+    );
   }
 };
