@@ -28,27 +28,68 @@ export function CampaignList() {
   const [campaigns, setCampaigns] = useState(initialCampaigns);
   // const [campaigns, setCampaigns] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const router = useRouter();
+
+  const getCampaignStatus = (campaign) => {
+    const now = Date.now();
+    const deadline = campaign.deadline;
+
+    if (campaign.canceled) {
+      return { label: "Canceled", variant: "destructive" };
+    }
+    if (campaign.withdrawn) {
+      return { label: "Withdrawn", variant: "secondary" };
+    }
+    if (now > deadline) {
+      return { label: "Completed", variant: "default" };
+    }
+    return { label: "Ongoing", variant: "success" };
+  };
+
+  const getTimeRemaining = (deadline) => {
+    const now = Date.now();
+    const timeLeft = deadline - now;
+
+    if (timeLeft <= 0) return "Ended";
+
+    const days = Math.floor(timeLeft / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((timeLeft % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+
+    return `${days}d ${hours}h left`;
+  };
+
+  const formatDate = (timestamp) => {
+    return new Date(timestamp).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
+  };
+
+  async function loadCampaigns() {
+    try {
+      const result = await getAllCampaigns();
+      if(!result.success){
+        throw new Error(result.message);
+      }
+      setCampaigns(result.data);
+    } catch (error) {
+      toast.error("Error", {
+        description : error.message
+      });
+    } finally {
+      setLoading(false);
+      setIsRefreshing(false);
+    }
+  }
+
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    await loadCampaigns();
+  };
 
   useEffect(() => {
-    async function loadCampaigns() {
-      try {
-        const result = await getAllCampaigns(); // use directly here
-        console.log("Fetched campaigns:", result.data);
-  
-        if (Array.isArray(result.data)) {
-          setCampaigns(result.data);
-        } else {
-          console.error("Campaign data is not an array:", result);
-          setCampaigns([]);
-        }
-      } catch (error) {
-        console.error("Failed to load campaigns:", result.message);
-        setCampaigns([]);
-      } finally {
-        setLoading(false);
-      }
-    }
-  
     loadCampaigns();
   }, []);
 
@@ -100,48 +141,69 @@ export function CampaignList() {
   }
 
   return (
-    <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-      {campaigns.map((campaign) => (
-        <Card key={campaign.id} className="overflow-hidden">
-          <div className="relative h-48 w-full">
-            <img
-              src={campaign.image || "/placeholder.svg"}
-              alt={campaign.title}
-              className="h-full w-full object-cover"
-            />
-          </div>
-          <CardHeader>
-            <CardTitle>{campaign.title}</CardTitle>
-            <CardDescription>{campaign.description}</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <div className="flex justify-between text-sm">
-                <span>
-                  ${campaign.raised.toLocaleString()} raised of ${campaign.target.toLocaleString()}
-                </span>
-                <span>{Math.round((campaign.raised / campaign.target) * 100)}%</span>
-              </div>
-              <Progress value={(campaign.raised / campaign.target) * 100} />
-            </div>
-            <div className="flex justify-between">
-              <div className="flex items-center text-sm text-muted-foreground">
-                <Users className="mr-1 h-4 w-4" />
-                {campaign.backers} backers
-              </div>
-              <div className="flex items-center text-sm text-muted-foreground">
-                <Calendar className="mr-1 h-4 w-4" />
-                {campaign.daysLeft} days left
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h2 className="text-2xl font-bold">Campaigns</h2>
+        <Button onClick={handleRefresh} variant="outline" disabled={isRefreshing}>
+          <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+        </Button>
+      </div>
+
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+        {campaigns.map((campaign) => (
+          <Card 
+            key={campaign.id} 
+            className="overflow-hidden cursor-pointer transition-all hover:shadow-lg"
+            onClick={() => router.push(`/campaign/${campaign.id}`)}
+          >
+            <div className="relative h-48 w-full">
+              <img
+                src={campaign.image || "/placeholder.svg"}
+                alt={campaign.title}
+                className="h-full w-full object-cover"
+              />
+              <div className="absolute top-2 right-2">
+                <Badge variant={getCampaignStatus(campaign).variant}>
+                  {getCampaignStatus(campaign).label}
+                </Badge>
               </div>
             </div>
-          </CardContent>
-          <CardFooter>
-            <Button asChild className="w-full">
-              <Link href={`/campaigns/${campaign.id}`}>View Campaign</Link>
-            </Button>
-          </CardFooter>
-        </Card>
-      ))}
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle className="line-clamp-1">{campaign.title}</CardTitle>
+              </div>
+              <CardDescription className="line-clamp-2">{campaign.description}</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span>
+                    ${campaign.amountCollected.toLocaleString()} raised of ${campaign.target.toLocaleString()}
+                  </span>
+                  <span>{Math.round((campaign.amountCollected / campaign.target) * 100)}%</span>
+                </div>
+                <Progress value={(campaign.amountCollected / campaign.target) * 100} />
+              </div>
+              <div className="flex flex-col space-y-2 text-sm text-muted-foreground">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center">
+                    <Calendar className="mr-1 h-4 w-4" />
+                    {formatDate(campaign.deadline)}
+                  </div>
+                  <div className="flex items-center">
+                    <Clock className="mr-1 h-4 w-4" />
+                    {getTimeRemaining(campaign.deadline)}
+                  </div>
+                </div>
+                <div className="flex items-center">
+                  <Users className="mr-1 h-4 w-4" />
+                  {campaign.donators?.length || 0} backers
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
     </div>
   );
 }
