@@ -19,14 +19,13 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 
 import { useCampaignService } from "@/hooks/use-campaign-service";
-import { initialCampaigns } from "@/lib/data/dummy-data";
+
 
 import {toast} from "sonner";
 
 export function CampaignList({isAdminCampaigns = false}) {
   const { getAllCampaigns , getUserCampaigns } = useCampaignService();
-  const [campaigns, setCampaigns] = useState(initialCampaigns);
-  // const [campaigns, setCampaigns] = useState([]);
+  const [campaigns, setCampaigns] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const router = useRouter();
@@ -79,6 +78,8 @@ export function CampaignList({isAdminCampaigns = false}) {
       if(!result.success){
         throw new Error(result.message);
       }
+
+      console.log('result : ',result.data);
       setCampaigns(result.data);
     } catch (error) {
       toast.error("Error", {
