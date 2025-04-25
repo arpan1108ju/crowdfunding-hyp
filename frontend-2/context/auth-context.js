@@ -36,7 +36,9 @@ export function AuthProvider({ children }) {
   };
 
   const logout = async () => {
+    const response = await AuthService.logout();
     clear();
+    return response;
   };
 
   const value = {

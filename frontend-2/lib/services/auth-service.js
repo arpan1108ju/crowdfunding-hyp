@@ -27,7 +27,7 @@
     }
   };
   
-  export const signup = async (credentials) => {
+export const signup = async (credentials) => {
     try {
       const res = await fetch(`${API_URL}/signup`, {
         method: 'POST',
@@ -40,6 +40,30 @@
         const err = await res.json();
         return err;
      }
+
+      const response  = await res.json();
+      return response;
+    } catch (error) {
+      return {
+        success: false,
+        message: 'Network error or invalid server response'
+      };
+    }
+  };
+
+  
+export const logout = async () => {
+    try {
+      const res = await fetch(`${API_URL}/logout`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials : 'include',
+      });
+  
+      if(res.status !== 200){
+        const err = await res.json();
+        return err;
+      }
 
       const response  = await res.json();
       return response;

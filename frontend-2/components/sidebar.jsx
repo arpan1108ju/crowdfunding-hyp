@@ -11,7 +11,6 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import {
   Tooltip,
   TooltipContent,
-  TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 import { useAuth } from "@/hooks/use-auth"
@@ -80,14 +79,14 @@ export function Sidebar() {
     }
 
     if (isSuperAdmin) {
-      return [...base, profile, campaigns, createCampaign, adminPanel, superAdminPanel]
+      return [...base, profile, campaigns, superAdminPanel]
     }
 
     if (isAdmin) {
       return [...base, profile, campaigns, createCampaign, adminPanel]
     }
 
-    return [...base, profile]
+    return [...base, profile , campaigns]
   })()
 
   useEffect(() => {
@@ -102,7 +101,6 @@ export function Sidebar() {
   const NavItem = ({ route }) => {
     if (collapsed) {
       return (
-        <TooltipProvider delayDuration={0}>
           <Tooltip>
             <TooltipTrigger asChild>
               <Button 
@@ -119,7 +117,6 @@ export function Sidebar() {
               {route.label}
             </TooltipContent>
           </Tooltip>
-        </TooltipProvider>
       )
     }
 
@@ -183,7 +180,6 @@ export function Sidebar() {
                 <span className="text-xl font-bold">Actions</span>
               </Link>
             )}
-            <TooltipProvider delayDuration={0}>
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button 
@@ -199,7 +195,6 @@ export function Sidebar() {
                   {collapsed ? 'Expand' : 'Collapse'} Actions
                 </TooltipContent>
               </Tooltip>
-            </TooltipProvider>
           </div>
           <ScrollArea className="flex-1">
             <div className="flex flex-col gap-2 p-4">

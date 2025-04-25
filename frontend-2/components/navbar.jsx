@@ -22,7 +22,7 @@ import { useTokenService } from "@/hooks/use-token-service"
 
 import ThemeToggle from "@/components/theme-toggle";
 import { toast } from "sonner"
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 
 
 
@@ -95,9 +95,13 @@ export default function Navbar() {
   }
 
   useEffect(() => {
-    setMounted(true)
-    fetchBalance();
-    fetchTokenMetadata();
+
+    setMounted(true);
+
+    if(session?.isVerified){
+      fetchBalance();
+      fetchTokenMetadata();
+    }
   }, [])
 
   if (!mounted) {
@@ -178,8 +182,8 @@ export default function Navbar() {
                 About
               </Link>
               
-              {/* Admin Link - visible to both ADMIN and SUPERADMIN */}
-              {session?.role && (session.role === ROLE.ADMIN || session.role === ROLE.SUPERADMIN) && (
+              {/* Admin Link - visible to only ADMIN  */}
+              {session?.role === ROLE.ADMIN && (
                 <Link
                   href="/admin"
                   className={`text-sm font-medium transition-colors hover:text-foreground hover:bg-accent px-3 py-2 rounded-md ${
@@ -209,7 +213,6 @@ export default function Navbar() {
           </div>
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2">
-              <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <div className="flex items-center gap-1 px-3 py-1.5 bg-accent rounded-md">
@@ -233,21 +236,20 @@ export default function Navbar() {
                     </TooltipContent>
                   )}
                 </Tooltip>
-              </TooltipProvider>
-
-              <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      disabled={!session?.isVerified}
-                      asChild
-                    >
-                      <Link href="/profile">
-                        <PlusCircle className="h-4 w-4" />
-                      </Link>
+                    <span>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        disabled={!session?.isVerified}
+                        asChild
+                      >
+                        <Link href="/profile">
+                          <PlusCircle className="h-4 w-4" />
+                        </Link>
                     </Button>
+                    </span>
                   </TooltipTrigger>
                   {session && !session.isVerified && (
                     <TooltipContent>
@@ -255,9 +257,16 @@ export default function Navbar() {
                     </TooltipContent>
                   )}
                 </Tooltip>
-              </TooltipProvider>
             </div>
-          <ThemeToggle />
+          <Tooltip>
+                <TooltipTrigger asChild>
+                      <ThemeToggle /> 
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Change Theme</p>
+                </TooltipContent>
+
+          </Tooltip>
             {session ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>

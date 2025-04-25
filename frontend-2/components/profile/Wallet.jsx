@@ -1,9 +1,8 @@
 'use client';
 
 import { useEffect, useState } from "react";
-import { CreditCard, Currency, RefreshCw } from "lucide-react";
+import { CreditCard, RefreshCw } from "lucide-react";
 import { useTokenService } from "@/hooks/use-token-service";
-import { useAuth } from "@/hooks/use-auth";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "sonner";
 import { initialExchangeRates, initialTokenMetadata } from "@/lib/data/dummy-data";
 import { Badge } from "@/components/ui/badge";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 
 
@@ -93,13 +93,14 @@ export function Wallet() {
   };
 
   const handleMintToken = async () => {
-    if (!mintAmount || isNaN(mintAmount) || mintAmount <= 0) {
+    if (!mintAmount || mintAmount <= 0) {
       toast.error("Please enter a valid amount");
       return;
     }
 
     setIsLoading(true);
     try {
+      
       const response = await mintToken(selectedCurrency,mintAmount);
       if(!response.success){
         throw new Error(response.message);
@@ -117,7 +118,7 @@ export function Wallet() {
   };
 
   const getExpectedTokens = () => {
-    if (!mintAmount || isNaN(mintAmount) || mintAmount <= 0) return 0;
+    if (!mintAmount || mintAmount <= 0) return 0;
     const rate = rates.find(r => r.currency === selectedCurrency)?.rateToToken || 0;
     return (mintAmount * rate).toFixed(2);
   };
@@ -204,17 +205,29 @@ export function Wallet() {
                   type="number"
                   placeholder="Amount"
                   value={mintAmount}
-                  onChange={(e) => setMintAmount(e.target.value)}
+                  onChange={(e) => setMintAmount(Number(e.target.value))}
                   className="flex-1"
                 />
-                <Button 
-                  onClick={handleMintToken}
-                  disabled={isLoading}
-                >
-                  {isLoading ? "Minting..." : "Mint"}
-                </Button>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span>
+                    <Button 
+                      onClick={handleMintToken}
+                      disabled={isLoading || mintAmount <= 0 || selectedCurrency === ""}
+                    >
+                      {isLoading ? "Minting..." : "Mint"}
+                    </Button>
+                    </span>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    {isLoading ? "Processing your mint request..." : 
+                     mintAmount <= 0 ? "Please enter a valid amount" :
+                     selectedCurrency === "" ? "Please select a currency" :
+                     "Click to mint tokens"}
+                  </TooltipContent>
+                </Tooltip>
               </div>
-              {mintAmount && (
+              {mintAmount > 0 && (
                 <p className="text-sm text-muted-foreground">
                   You will receive approximately {getExpectedTokens()} {metadata?.symbol}
                 </p>

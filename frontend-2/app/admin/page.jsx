@@ -37,7 +37,7 @@ export default function AdminPage() {
   }
 
   // Show NotFound for non-admin users
-  if (session.role !== ROLE.ADMIN && session.role !== ROLE.SUPERADMIN) {
+  if (session.role !== ROLE.ADMIN) {
     notFound();
   }
 

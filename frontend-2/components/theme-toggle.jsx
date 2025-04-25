@@ -11,7 +11,7 @@ export default function ThemeToggle() {
 
   useEffect(() => setMounted(true), []);
 
-  if (!mounted) return <div className="w-10 h-10" />; // Prevent hydration mismatch
+  if (!mounted) return null; // Prevent hydration mismatch
 
   return (
     <Button
