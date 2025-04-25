@@ -25,9 +25,9 @@ export function CampaignList() {
   useEffect(() => {
     async function loadCampaigns() {
       try {
-        const result = await getAllCampaigns(); // use directly here
+        const result = await getAllCampaigns();
         console.log("Fetched campaigns:", result.data);
-  
+
         if (Array.isArray(result.data)) {
           setCampaigns(result.data);
         } else {
@@ -35,17 +35,15 @@ export function CampaignList() {
           setCampaigns([]);
         }
       } catch (error) {
-        console.error("Failed to load campaigns:", result.message);
+        console.error("Failed to load campaigns:", error);
         setCampaigns([]);
       } finally {
         setLoading(false);
       }
     }
-  
+
     loadCampaigns();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // ✅ only run once on mount
-  
+  }, []);
 
   if (loading) {
     return (
@@ -76,47 +74,52 @@ export function CampaignList() {
 
   return (
     <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-      {campaigns.map((campaign) => (
-        <Card key={campaign.id} className="overflow-hidden">
-          <div className="relative h-48 w-full">
-            <img
-              src={campaign.image || "/placeholder.svg"}
-              alt={campaign.title}
-              className="h-full w-full object-cover"
-            />
-          </div>
-          <CardHeader>
-            <CardTitle>{campaign.title}</CardTitle>
-            <CardDescription>{campaign.description}</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <div className="flex justify-between text-sm">
-                <span>
-                  ${campaign.raised.toLocaleString()} raised of ${campaign.target.toLocaleString()}
-                </span>
-                <span>{Math.round((campaign.raised / campaign.target) * 100)}%</span>
-              </div>
-              <Progress value={(campaign.raised / campaign.target) * 100} />
+      {campaigns.map((campaign) => {
+        const percentRaised = Math.round((campaign.amountCollected / campaign.target) * 100);
+        const daysLeft = Math.max(0, Math.ceil((campaign.deadline - Date.now()) / (1000 * 60 * 60 * 24)));
+
+        return (
+          <Card key={campaign.id} className="overflow-hidden">
+            <div className="relative h-48 w-full">
+              <img
+                src={campaign.image || "/placeholder.svg"}
+                alt={campaign.title}
+                className="h-full w-full object-cover"
+              />
             </div>
-            <div className="flex justify-between">
-              <div className="flex items-center text-sm text-muted-foreground">
-                <Users className="mr-1 h-4 w-4" />
-                {campaign.backers} backers
+            <CardHeader>
+              <CardTitle>{campaign.title}</CardTitle>
+              <CardDescription>{campaign.description}</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span>
+                    ${campaign.amountCollected.toLocaleString()} raised of ${campaign.target.toLocaleString()}
+                  </span>
+                  <span>{percentRaised}%</span>
+                </div>
+                <Progress value={percentRaised} />
               </div>
-              <div className="flex items-center text-sm text-muted-foreground">
-                <Calendar className="mr-1 h-4 w-4" />
-                {campaign.daysLeft} days left
+              <div className="flex justify-between">
+                <div className="flex items-center text-sm text-muted-foreground">
+                  <Users className="mr-1 h-4 w-4" />
+                  {campaign.donators?.length || 0} backers
+                </div>
+                <div className="flex items-center text-sm text-muted-foreground">
+                  <Calendar className="mr-1 h-4 w-4" />
+                  {daysLeft} days left
+                </div>
               </div>
-            </div>
-          </CardContent>
-          <CardFooter>
-            <Button asChild className="w-full">
-              <Link href={`/campaigns/${campaign.id}`}>View Campaign</Link>
-            </Button>
-          </CardFooter>
-        </Card>
-      ))}
+            </CardContent>
+            <CardFooter>
+              <Button asChild className="w-full">
+                <Link href={`/campaign/${campaign.id}`}>View Campaign</Link>
+              </Button>
+            </CardFooter>
+          </Card>
+        );
+      })}
     </div>
   );
 }

@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react"
 import { Users, Calendar, ArrowLeft } from "lucide-react"
-
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
 import { Separator } from "@/components/ui/separator"
@@ -40,7 +39,12 @@ export default function CampaignPage({ params }) {
   if (!campaign) return <p>Loading...</p>
 
   const isAdmin = user?.role === "admin" || user?.role === "superadmin"
-  const percentRaised = Math.round((campaign.raised / campaign.target) * 100)
+  const percentRaised = Math.round((campaign.amountCollected / campaign.target) * 100)
+  const daysLeft = Math.max(
+    0,
+    Math.ceil((campaign.deadline - Date.now()) / (1000 * 60 * 60 * 24))
+  )
+  const backers = campaign.donators?.length || 0
 
   return (
     <div className="container mx-auto py-6">
@@ -70,7 +74,7 @@ export default function CampaignPage({ params }) {
           <div className="space-y-2">
             <div className="flex justify-between">
               <span className="text-lg font-medium">
-                ${campaign.raised.toLocaleString()} raised of ${campaign.target.toLocaleString()}
+                ${campaign.amountCollected.toLocaleString()} raised of ${campaign.target.toLocaleString()}
               </span>
               <span className="text-lg font-medium">{percentRaised}%</span>
             </div>
@@ -80,15 +84,15 @@ export default function CampaignPage({ params }) {
           <div className="flex justify-between">
             <div className="flex items-center">
               <Users className="mr-2 h-5 w-5 text-muted-foreground" />
-              <span className="text-lg">{campaign.backers} backers</span>
+              <span className="text-lg">{backers} backers</span>
             </div>
 
             <div className="flex items-center">
               <Calendar className="mr-2 h-5 w-5 text-muted-foreground" />
-              <span className="text-lg">{campaign.daysLeft} days left</span>
+              <span className="text-lg">{daysLeft} days left</span>
             </div>
 
-            <CountdownTimer daysLeft={campaign.daysLeft} />
+            <CountdownTimer daysLeft={daysLeft} />
           </div>
 
           {user ? (
@@ -107,12 +111,7 @@ export default function CampaignPage({ params }) {
 
       <div className="space-y-6">
         <h2 className="text-2xl font-bold">About this campaign</h2>
-        <p className="text-muted-foreground">
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit...
-        </p>
-        <p className="text-muted-foreground">
-          Duis aute irure dolor in reprehenderit in voluptate...
-        </p>
+        <p className="text-muted-foreground">{campaign.description}</p>
       </div>
     </div>
   )
