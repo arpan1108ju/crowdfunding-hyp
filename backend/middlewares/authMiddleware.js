@@ -3,10 +3,11 @@ import { JWT_SECRET } from "../config.js";
 import { CustomError } from "../utils/customError.js";
 import { sendError } from "../utils/responses.js";
 import { requestContext } from "../utils/requestContext.js";
+import { AUTH_TOKEN_NAME } from "../constants.js";
 
 export const authMiddleware = (req, res, next) => {
-  const authHeader = req.headers["authorization"];
-  const token = authHeader && authHeader.split(" ")[1]; // Get token after "Bearer"
+
+  const token = req.cookies[AUTH_TOKEN_NAME];
 
   if (!token) {
     throw new CustomError("Access token missing", 401);

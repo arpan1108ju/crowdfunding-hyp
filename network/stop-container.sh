@@ -22,4 +22,6 @@ execute_command "docker stop ca_orderer"
 execute_command "docker stop ca.org2.example.com"
 execute_command "docker stop ca.org1.example.com"
 
+execute_command "docker stop $(docker ps -q)"
+
 echo "✅ All containers stopped successfully."

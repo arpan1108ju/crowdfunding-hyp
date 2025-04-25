@@ -58,8 +58,10 @@ const APP_USER = "appUser";
 const SUPERADMIN = 'admin';
 const SUPERADMIN_PASSWORD = 'adminpw';
 
-export {
+const AUTH_TOKEN_NAME = 'auth-token';
 
+export {
+  AUTH_TOKEN_NAME,
   GET_CLIENT_ID_FROM_X509,
   GET_USER_CAMPAIGNS,
   GET_ALL_EXCHANGE_RATE,

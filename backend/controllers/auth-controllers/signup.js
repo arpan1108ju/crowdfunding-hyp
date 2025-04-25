@@ -5,6 +5,7 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { sendError, sendSuccess } from "../../utils/responses.js";
 import { SALT_LENGTH, JWT_SECRET, EXP_TIME } from "../../config.js";
+import { AUTH_TOKEN_NAME } from "../../constants.js";
 
 export const signup = async (req, res) => {
   try {
@@ -67,14 +68,15 @@ export const signup = async (req, res) => {
       { expiresIn: EXP_TIME } // token valid for 7 days
     );
 
-    res.cookie('auth-token', token, {
+    res.cookie(AUTH_TOKEN_NAME, token, {
       httpOnly: true,
       secure: false,
       sameSite: 'lax',
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     });
 
     //  Send success response with token
-    sendSuccess(res, { user, token }, "Signup successful!");
+    sendSuccess(res, { user}, "Signup successful!");
   } catch (error) {
     sendError(
       res,
