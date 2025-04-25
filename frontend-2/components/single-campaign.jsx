@@ -196,7 +196,8 @@ export function SingleCampaign({ campaign }) {
           if (!response.success) {
             throw new Error(response.message);
           }
-          toast.success('Campaign deleted successfully');
+          toast.success('Campaign deleted successfully'); 
+          router.push('/campaign');
           break;
       }
 
