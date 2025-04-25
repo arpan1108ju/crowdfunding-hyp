@@ -18,10 +18,10 @@ import {
 } from "@/components/ui/dialog";
 
 export function TokenManagement() {
-  const { getMetadata, setMetadata, getAllExchangeRates, setExchangeRate } = useTokenService();
+  const { getTokenMetadata, setTokenMetadata, getAllExchangeRates, setExchangeRate } = useTokenService();
   
-//   const [metadata, setMetadataState] = useState(null);
-  const [metadata, setMetadataState] = useState(initialTokenMetadata);
+//   const [metadata, setTokenMetadataState] = useState(null);
+  const [metadata, setTokenMetadataState] = useState(initialTokenMetadata);
 //   const [rates, setRates] = useState([]);
   const [rates, setRates] = useState(initialExchangeRates);
   const [isLoading, setIsLoading] = useState(false);
@@ -37,11 +37,11 @@ export function TokenManagement() {
   const fetchMetadata = async () => {
     setIsRefreshingMetadata(true);
     try {
-      const response = await getMetadata();
+      const response = await getTokenMetadata();
       if (!response.success) {
         throw new Error(response.message);
       }
-      setMetadataState(response.data.tokenMetadata);
+      setTokenMetadataState(response.data.tokenMetadata);
       toast.success("Token metadata refreshed");
     } catch (error) {
       toast.error("Failed to fetch token metadata", {
@@ -73,7 +73,7 @@ export function TokenManagement() {
   const handleUpdateMetadata = async () => {
     setIsLoading(true);
     try {
-      const response = await setMetadata(metadata.name, metadata.symbol);
+      const response = await setTokenMetadata(metadata.name, metadata.symbol);
       if (!response.success) {
         throw new Error(response.message);
       }
@@ -150,7 +150,7 @@ export function TokenManagement() {
               <label className="text-sm font-medium">Token Name</label>
               <Input
                 value={metadata?.name}
-                onChange={(e) => setMetadataState(prev => ({ ...prev, name: e.target.value }))}
+                onChange={(e) => setTokenMetadataState(prev => ({ ...prev, name: e.target.value }))}
                 placeholder="Enter token name"
               />
             </div>
@@ -158,7 +158,7 @@ export function TokenManagement() {
               <label className="text-sm font-medium">Token Symbol</label>
               <Input
                 value={metadata?.symbol}
-                onChange={(e) => setMetadataState(prev => ({ ...prev, symbol: e.target.value }))}
+                onChange={(e) => setTokenMetadataState(prev => ({ ...prev, symbol: e.target.value }))}
                 placeholder="Enter token symbol"
               />
             </div>
