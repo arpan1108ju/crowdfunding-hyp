@@ -4,6 +4,15 @@ export const ROLE = {
   SUPERADMIN: "SUPERADMIN",
 };
 
+export const PAYMENT_TYPE = {
+  DONATION: "DONATION",
+  REFUND: "REFUND",
+  WITHDRAWAL: "WITHDRAWAL",
+  CANCEL: "CANCEL",
+};
+
+
+
 /**
  * Check if a given role is valid
  * @param {string} role - The role to validate

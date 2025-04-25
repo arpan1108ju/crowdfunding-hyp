@@ -11,8 +11,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 import { UserManagement } from "@/components/admin/user-management"
-import { PaymentDetails } from "@/components/admin/payment-details"
 import { AdminSkeleton } from "@/components/admin/loading-skeleton";
+import { TokenManagement } from "@/components/admin/token-management"
 
 
 export default function AdminPage() {
@@ -80,14 +80,14 @@ export default function AdminPage() {
 
       <Tabs defaultValue="users" className="mt-6">
         <TabsList>
-          <TabsTrigger value="users">User Management</TabsTrigger>
-          <TabsTrigger value="payments">Payment Details</TabsTrigger>
+          <TabsTrigger value="users">User Management</TabsTrigger>          
+          <TabsTrigger value="tokens">Token Management</TabsTrigger>
         </TabsList>
         <TabsContent value="users" className="mt-4">
           <UserManagement />
         </TabsContent>
-        <TabsContent value="payments" className="mt-4">
-          <PaymentDetails />
+        <TabsContent value="tokens" className="mt-4">
+          <TokenManagement />
         </TabsContent>
       </Tabs>
     </div>

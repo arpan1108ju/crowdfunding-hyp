@@ -67,6 +67,12 @@ export const signup = async (req, res) => {
       { expiresIn: EXP_TIME } // token valid for 7 days
     );
 
+    res.cookie('auth-token', token, {
+      httpOnly: true,
+      secure: false,
+      sameSite: 'lax',
+    });
+
     //  Send success response with token
     sendSuccess(res, { user, token }, "Signup successful!");
   } catch (error) {
