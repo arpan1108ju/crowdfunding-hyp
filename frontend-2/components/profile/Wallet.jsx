@@ -28,8 +28,8 @@ export function Wallet() {
   const [metadata, setMetadata] = useState(null);
   // const [rates, setRates] = useState(initialExchangeRates);
   const [rates, setRates] = useState([]);
-  const [mintAmount, setMintAmount] = useState('');
-  const [selectedCurrency, setSelectedCurrency] = useState();
+  const [mintAmount, setMintAmount] = useState(0);
+  const [selectedCurrency, setSelectedCurrency] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
@@ -93,20 +93,20 @@ export function Wallet() {
   };
 
   const handleMintToken = async () => {
-    if (!mintAmount || isNaN(mintAmount) || parseFloat(mintAmount) <= 0) {
+    if (!mintAmount || isNaN(mintAmount) || mintAmount <= 0) {
       toast.error("Please enter a valid amount");
       return;
     }
 
     setIsLoading(true);
     try {
-      const response = await mintToken(parseFloat(mintAmount));
+      const response = await mintToken(selectedCurrency,mintAmount);
       if(!response.success){
         throw new Error(response.message);
       }
       await fetchBalance();
       toast.success("Tokens minted successfully");
-      setMintAmount('');
+      setMintAmount(0);
     } catch (error) {
       toast.error("Failed to mint tokens", {
         description: error.message
@@ -117,9 +117,9 @@ export function Wallet() {
   };
 
   const getExpectedTokens = () => {
-    if (!mintAmount || isNaN(mintAmount) || parseFloat(mintAmount) <= 0) return 0;
+    if (!mintAmount || isNaN(mintAmount) || mintAmount <= 0) return 0;
     const rate = rates.find(r => r.currency === selectedCurrency)?.rateToToken || 0;
-    return (parseFloat(mintAmount) * rate).toFixed(2);
+    return (mintAmount * rate).toFixed(2);
   };
 
   useEffect(() => {
