@@ -328,7 +328,7 @@ export function SingleCampaign({ campaign }) {
                 <Button 
                   variant="destructive" 
                   size="icon"
-                  onClick={() => handleAction('delete')}
+                  onClick={() => handleAction(CAMPAIGN_ACTION.DELETE)}
                 >
                   <Trash className="h-4 w-4" />
                 </Button>

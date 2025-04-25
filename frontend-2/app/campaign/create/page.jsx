@@ -55,18 +55,30 @@ export default function CreateCampaignPage() {
     setIsLoading(true);
 
     try {
-      const deadlineDate = new Date(formData.deadline);
+      let deadlineDate;
+
+      if (!formData.deadline) {
+        // If no deadline entered, set it to current date + 2 days
+        deadlineDate = new Date();
+        deadlineDate.setDate(deadlineDate.getDate() + 2);
+      } else {
+        deadlineDate = new Date(formData.deadline);
+      }
+
       const deadlineMs = deadlineDate.getTime();
 
       const campaignData = {
         title: formData.title,
         description: formData.description,
-        campaignType: formData.campaignType === 'Other' ? formData.customType : formData.campaignType,
+        campaignType:
+          formData.campaignType === 'Other'
+            ? formData.customType
+            : formData.campaignType,
         target: Number(formData.target),
         deadline: deadlineMs,
-        image: formData.image
+        image: formData.image,
       };
-      console.log(campaignData);
+
       const response = await createCampaign(campaignData);
 
       if (!response.success) {
@@ -77,12 +89,13 @@ export default function CreateCampaignPage() {
       router.push('/campaign');
     } catch (error) {
       toast.error('Failed to create campaign', {
-        description: error.message
+        description: error.message,
       });
     } finally {
       setIsLoading(false);
     }
   };
+
 
   return (
     <div className="container max-w-2xl mx-auto py-8">
@@ -185,10 +198,11 @@ export default function CreateCampaignPage() {
                   }}
                   required
                   className="h-11"
-                />
+                /> 
+                
               </div>
               <div>
-                <Input
+                 <Input
                   id="deadline-time"
                   name="deadline-time"
                   type="time"
@@ -203,6 +217,7 @@ export default function CreateCampaignPage() {
                   required
                   className="h-11"
                 />
+                
               </div>
             </div>
           </div>
