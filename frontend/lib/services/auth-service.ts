@@ -60,6 +60,7 @@ interface X509Identity {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(credentials),
+        credentials: 'include',
       });
 
       if(res.status !== 200){
@@ -82,7 +83,8 @@ interface X509Identity {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(credentials),
-      });
+        credentials: 'include',
+      }); 
   
       if(res.status !== 200){
         const err : Message = await res.json();

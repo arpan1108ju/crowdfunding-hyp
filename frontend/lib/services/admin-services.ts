@@ -1,7 +1,9 @@
 // utils/api.js or directly inside your component
 export async function fetchOneUser(userId : string) {
     try {
-        const res = await fetch(`/api/v1/admin/users/${userId}`);
+        const res = await fetch(`/api/v1/admin/users/${userId}`, {
+            credentials : 'include',
+        });
         if (!res.ok) throw new Error("Failed to fetch user");
 
         const data = await res.json();
@@ -14,7 +16,9 @@ export async function fetchOneUser(userId : string) {
 // utils/api.js
 export async function fetchAllUsers(verified = false) {
     try {
-        const response = await fetch(`/api/v1/admin/users?verified=${verified}`);
+        const response = await fetch(`/api/v1/admin/users?verified=${verified}`, {
+            credentials : 'include',
+        });
 
         if (!response.ok) {
             throw new Error("Failed to fetch users");
@@ -33,6 +37,7 @@ export async function revokeUser(userId : string) {
     try {
         const response = await fetch(`/api/v1/admin/users/${userId}/revoke`, {
             method: 'POST',
+            credentials : 'include',
         });
 
         if (!response.ok) {
@@ -53,6 +58,7 @@ export async function enrollUser(userId : string) {
     try {
         const response = await fetch(`/api/v1/admin/users/${userId}/enroll`, {
             method: 'POST',
+            credentials : 'include',
         });
 
         if (!response.ok) {
