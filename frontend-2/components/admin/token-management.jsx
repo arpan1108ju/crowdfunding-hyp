@@ -20,10 +20,10 @@ import {
 export function TokenManagement() {
   const { getTokenMetadata, setTokenMetadata, getAllExchangeRates, setExchangeRate } = useTokenService();
   
-//   const [metadata, setTokenMetadataState] = useState(null);
-  const [metadata, setTokenMetadataState] = useState(initialTokenMetadata);
-//   const [rates, setRates] = useState([]);
-  const [rates, setRates] = useState(initialExchangeRates);
+  const [metadata, setTokenMetadataState] = useState(null);
+  // const [metadata, setTokenMetadataState] = useState(initialTokenMetadata);
+  const [rates, setRates] = useState([]);
+  // const [rates, setRates] = useState(initialExchangeRates);
   const [isLoading, setIsLoading] = useState(false);
   const [isRefreshingMetadata, setIsRefreshingMetadata] = useState(false);
   const [isRefreshingRates, setIsRefreshingRates] = useState(false);
