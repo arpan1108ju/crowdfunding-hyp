@@ -98,7 +98,7 @@ export default function Navbar() {
 
     setMounted(true);
 
-    if(session?.isVerified){
+    if (session?.isVerified) {
       fetchBalance();
       fetchTokenMetadata();
     }
@@ -164,8 +164,8 @@ export default function Navbar() {
             <Link
               href="/"
               className={`text-sm font-medium transition-colors hover:text-foreground hover:bg-accent px-3 py-2 rounded-md ${pathname === "/"
-                  ? "text-foreground bg-accent"
-                  : "text-muted-foreground"
+                ? "text-foreground bg-accent"
+                : "text-muted-foreground"
                 }`}
             >
               Home
@@ -173,8 +173,8 @@ export default function Navbar() {
             <Link
               href="/about"
               className={`text-sm font-medium transition-colors hover:text-foreground hover:bg-accent px-3 py-2 rounded-md ${pathname === "/about"
-                  ? "text-foreground bg-accent"
-                  : "text-muted-foreground"
+                ? "text-foreground bg-accent"
+                : "text-muted-foreground"
                 }`}
             >
               About
@@ -185,8 +185,8 @@ export default function Navbar() {
               <Link
                 href="/admin"
                 className={`text-sm font-medium transition-colors hover:text-foreground hover:bg-accent px-3 py-2 rounded-md ${pathname === "/admin"
-                    ? "text-foreground bg-accent"
-                    : "text-muted-foreground"
+                  ? "text-foreground bg-accent"
+                  : "text-muted-foreground"
                   }`}
               >
                 Admin
@@ -198,70 +198,66 @@ export default function Navbar() {
               <Link
                 href="/superadmin"
                 className={`text-sm font-medium transition-colors hover:text-foreground hover:bg-accent px-3 py-2 rounded-md ${pathname === "/superadmin"
-                    ? "text-foreground bg-accent"
-                    : "text-muted-foreground"
+                  ? "text-foreground bg-accent"
+                  : "text-muted-foreground"
                   }`}
-                >
-                  Super Admin
-                </Link>
-              )}
-            </nav>
-          </div>
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2">
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <div className="flex items-center gap-1 px-3 py-1.5 bg-accent rounded-md">
-                      <span className="text-sm font-medium">
-                        {session ? (
-                          session.isVerified ? (
-                            balance
-                          ) : (
-                            "0"
-                          )
-                        ) : (
-                          "0"
-                        )}
-                      </span>
-                      <span className="text-xs text-muted-foreground">{tokenMetadata?.symbol || 'CFT'}</span>
-                    </div>
-                  </TooltipTrigger>
-                  {session && !session.isVerified && (
-                    <TooltipContent>
-                      <p>Account not verified</p>
-                    </TooltipContent>
-                  )}
-                </Tooltip>
-              </TooltipProvider>
+              >
+                Super Admin
+              </Link>
+            )}
+          </nav>
+        </div>
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
 
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      disabled={!session?.isVerified}
-                      asChild
-                    >
-                      <Link href="/profile">
-                        <PlusCircle className="h-4 w-4" />
-                      </Link>
-                    </Button>
-                  </TooltipTrigger>
-                  {session && !session.isVerified && (
-                    <TooltipContent>
-                      <p>Verify account to add tokens</p>
-                    </TooltipContent>
-                  )}
-                </Tooltip>
-              </TooltipProvider>
-            </div>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="flex items-center gap-1 px-3 py-1.5 bg-accent rounded-md">
+                  <span className="text-sm font-medium">
+                    {session ? (
+                      session.isVerified ? (
+                        balance
+                      ) : (
+                        "0"
+                      )
+                    ) : (
+                      "0"
+                    )}
+                  </span>
+                  <span className="text-xs text-muted-foreground">{tokenMetadata?.symbol || 'CFT'}</span>
+                </div>
+              </TooltipTrigger>
+              {session && !session.isVerified && (
+                <TooltipContent>
+                  <p>Account not verified</p>
+                </TooltipContent>
+              )}
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  disabled={!session?.isVerified}
+                  asChild
+                >
+                  <Link href="/profile">
+                    <PlusCircle className="h-4 w-4" />
+                  </Link>
+                </Button>
+              </TooltipTrigger>
+              {session && !session.isVerified && (
+                <TooltipContent>
+                  <p>Verify account to add tokens</p>
+                </TooltipContent>
+              )}
+            </Tooltip>
+          </div>
           <ThemeToggle />
-            {session ? (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+          {session ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="relative h-8 w-8 rounded-full">
                   <Avatar className="h-8 w-8">
                     {session?.email ? (
                       <>
@@ -274,7 +270,6 @@ export default function Navbar() {
                       />
                     )}
                   </Avatar>
-
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="w-56" align="end" forceMount>
