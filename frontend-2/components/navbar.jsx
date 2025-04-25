@@ -262,17 +262,9 @@ export default function Navbar() {
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-                    <Avatar className="h-8 w-8">
-                      <AvatarImage src="/placeholder.svg?height=32&width=32" alt={session.email} />
-                      <AvatarFallback>{session.email?.charAt(0).toUpperCase()}</AvatarFallback>
-                    </Avatar> */}
                   <Avatar className="h-8 w-8">
                     {session?.email ? (
                       <>
-                        {/* <AvatarImage
-                          src="/profile-default.svg?height=32&width=32"
-                          alt={session.email}
-                        /> */}
                         <AvatarFallback>{session.email.charAt(0).toUpperCase()}</AvatarFallback>
                       </>
                     ) : (
