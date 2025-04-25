@@ -2,8 +2,8 @@
 
 import express from 'express';
 import cors from 'cors';
-import { PORT } from './config.js';
-
+import { FRONT_END_URL, PORT } from './config.js';
+import cookieParser from 'cookie-parser';
 
 import dummyRoute from "./routes/dummyRoute/dummyRoute.js";
 import adminRoutes from "./routes/adminRoutes/adminRoutes.js";
@@ -19,9 +19,25 @@ import { contextMiddleware } from './middlewares/requestContextMiddleware.js';
 const app = express();
 
 
-app.use(cors())
-app.use(express.json());
+const allowedOrigins = [
+    FRONT_END_URL,
+    'https://your-production-frontend.com'
+];
+  
+app.use(cors({
+    origin: function (origin, callback) {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
+    credentials: true
+}));
 
+
+app.use(express.json());
+app.use(cookieParser());
 app.use(contextMiddleware); 
 
 app.use('/api/v1/auth',authRoutes);

@@ -20,7 +20,9 @@ export async function getCampaigns() {
 
 export async function getCampaign(id: string) {
   try {
-    const response = await fetch(`/api/v1/campaigns/${id}`);
+    const response = await fetch(`/api/v1/campaigns/${id}`,{
+      credentials : 'include',
+    });
 
     if (!response.ok) {
       throw new Error(`Failed to fetch campaign with ID ${id}`);
@@ -43,6 +45,7 @@ export async function createCampaign(campaign: Campaign) {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(campaign),
+      credentials : 'include',    
     });
 
     if (!response.ok) {
@@ -66,6 +69,7 @@ export async function donateToCampaign(campaignId: string, amount: number, userI
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({ amount, userId }),
+      credentials : 'include',
     });
 
     if (!response.ok) {

@@ -5,6 +5,7 @@ import jwt from "jsonwebtoken"; // Make sure this line is included
 import bcrypt from "bcrypt";
 import { sendSuccess, sendError } from "../../utils/responses.js";
 import { JWT_SECRET, EXP_TIME } from "../../config.js";
+import { AUTH_TOKEN_NAME } from "../../constants.js";
 
 export const login = async (req, res) => {
   try {
@@ -59,13 +60,14 @@ export const login = async (req, res) => {
       { expiresIn: EXP_TIME } // token valid for 7 days
     );
 
-    res.cookie('auth-token', token, {
+    res.cookie(AUTH_TOKEN_NAME, token, {
       httpOnly: true,
       secure: false,
       sameSite: 'lax',
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     });
 
-    sendSuccess(res, {user,token}, "Login successful!");
+    sendSuccess(res, {user}, "Login successful!");
   } catch (error) {
     sendError(res, error.details || {}, error.message, error.statusCode || 500);
   }
