@@ -28,7 +28,7 @@ export const createCampaignSchema = z.object({
   title: z.string().min(3, { message: "Title must be at least 3 characters long" }),
   description: z.string().min(10, { message: "Description must be at least 10 characters" }),
   campaignType : z.string().min(1, { message: "Category is required" }),
-  target: z.number().positive({ message: "target must be a positive number" }),
+  target: z.number().int().positive({ message: "target must be a positive integer" }),
   deadline: z.number().refine((val) => val > Date.now(), {
     message: "Deadline must be a future timestamp"
   }),

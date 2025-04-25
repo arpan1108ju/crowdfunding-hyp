@@ -8,14 +8,19 @@ export const setExchangeRateHandler = async (req, res) => {
     const validation = setExchangeRateSchema.safeParse(req.body);
 
     if (!validation.success) {
-      throw new CustomError("Invalid data", 400, validation.error.errors);
+      throw new CustomError(
+        validation.error.issues
+          .map((e) => `${e.path.join(".")}: ${e.message}`)
+          .join(" | "),
+        400
+      );
     }
 
     const { currency, rate } = validation.data;
 
     const result = await setExchangeRate({ currency, rate });
 
-    sendSuccess(res, {result}, "exchange rate set successfully");
+    sendSuccess(res, { result }, "exchange rate set successfully");
   } catch (error) {
     // Catch and handle CustomError
     sendError(

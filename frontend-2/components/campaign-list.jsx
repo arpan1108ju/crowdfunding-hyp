@@ -23,8 +23,8 @@ import { initialCampaigns } from "@/lib/data/dummy-data";
 
 import {toast} from "sonner";
 
-export function CampaignList() {
-  const { getAllCampaigns } = useCampaignService();
+export function CampaignList({isAdminCampaigns = false}) {
+  const { getAllCampaigns , getUserCampaigns } = useCampaignService();
   const [campaigns, setCampaigns] = useState(initialCampaigns);
   // const [campaigns, setCampaigns] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -69,7 +69,13 @@ export function CampaignList() {
 
   async function loadCampaigns() {
     try {
-      const result = await getAllCampaigns();
+      let result;
+      if(isAdminCampaigns){
+        result = await getUserCampaigns();
+      }else{
+        result = await getAllCampaigns();
+      }
+      
       if(!result.success){
         throw new Error(result.message);
       }

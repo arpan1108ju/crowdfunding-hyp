@@ -57,12 +57,21 @@ export function Sidebar() {
       active: pathname === "/campaign",
     }
 
+    const adminCampaigns = {
+      label: "Admin Campaigns",
+      icon: Flag,
+      href: "/campaign/admin",
+      active: pathname === "/campaign/admin",
+    }
+
     const createCampaign = {
       label: "Create Campaign",
       icon: PlusCircle,
       href: "/campaign/create",
       active: pathname === "/campaign/create",
     }
+
+
 
     const adminPanel = {
       label: "Admin",
@@ -83,7 +92,7 @@ export function Sidebar() {
     }
 
     if (isAdmin) {
-      return [...base, profile, campaigns, createCampaign, adminPanel]
+      return [...base, profile, campaigns, adminCampaigns , createCampaign, adminPanel]
     }
 
     return [...base, profile , campaigns]

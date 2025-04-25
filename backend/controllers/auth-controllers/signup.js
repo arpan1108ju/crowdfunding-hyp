@@ -12,7 +12,12 @@ export const signup = async (req, res) => {
     const validation = signupSchema.safeParse(req.body);
 
     if (!validation.success) {
-      throw new CustomError("Invalid data", 400, validation.error.errors);
+      throw new CustomError(
+        validation.error.issues
+          .map((e) => `${e.path.join(".")}: ${e.message}`)
+          .join(" | "),
+        400
+      );
     }
 
     const { username, email, password } = validation.data;
@@ -47,14 +52,14 @@ export const signup = async (req, res) => {
         username: true,
         email: true,
         isVerified: true,
-        role : true,
+        role: true,
       },
     });
 
-     // Now check if x509Identity exists
-     const x509 = await db.user.findUnique({
+    // Now check if x509Identity exists
+    const x509 = await db.user.findUnique({
       where: { email },
-      select: { x509Identity: true }
+      select: { x509Identity: true },
     });
 
     if (x509?.x509Identity) {
@@ -71,12 +76,12 @@ export const signup = async (req, res) => {
     res.cookie(AUTH_TOKEN_NAME, token, {
       httpOnly: true,
       secure: false,
-      sameSite: 'lax',
+      sameSite: "lax",
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     });
 
     //  Send success response with token
-    sendSuccess(res, { user}, "Signup successful!");
+    sendSuccess(res, { user }, "Signup successful!");
   } catch (error) {
     sendError(
       res,

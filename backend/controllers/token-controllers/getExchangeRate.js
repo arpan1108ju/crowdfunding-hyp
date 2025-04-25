@@ -4,19 +4,23 @@ import { sendError, sendSuccess } from "../../utils/responses.js";
 
 export const getExchangeRateHandler = async (req, res) => {
   try {
-    
     const { currency } = req.query;
 
     const validation = currencySchema.safeParse(currency);
-    
+
     if (!validation.success) {
-          throw new CustomError("Invalid data", 400, validation.error.errors);
+      throw new CustomError(
+        validation.error.issues
+          .map((e) => `${e.path.join(".")}: ${e.message}`)
+          .join(" | "),
+        400
+      );
     }
 
     const currencyData = validation.data;
-    const exchangeRate = await getExchangeRate({ currency : currencyData });
+    const exchangeRate = await getExchangeRate({ currency: currencyData });
 
-    sendSuccess(res, {exchangeRate}, "fetched exchange rate successfully");
+    sendSuccess(res, { exchangeRate }, "fetched exchange rate successfully");
   } catch (error) {
     // Catch and handle CustomError
     sendError(

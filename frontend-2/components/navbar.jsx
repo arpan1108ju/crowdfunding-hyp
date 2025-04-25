@@ -201,58 +201,59 @@ export default function Navbar() {
                   ? "text-foreground bg-accent"
                   : "text-muted-foreground"
                   }`}
-              >
-                Super Admin
-              </Link>
-            )}
-          </nav>
-        </div>
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2">
-
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <div className="flex items-center gap-1 px-3 py-1.5 bg-accent rounded-md">
-                  <span className="text-sm font-medium">
-                    {session ? (
-                      session.isVerified ? (
-                        balance
-                      ) : (
-                        "0"
-                      )
-                    ) : (
-                      "0"
-                    )}
-                  </span>
-                  <span className="text-xs text-muted-foreground">{tokenMetadata?.symbol || 'CFT'}</span>
-                </div>
-              </TooltipTrigger>
-              {session && !session.isVerified && (
-                <TooltipContent>
-                  <p>Account not verified</p>
-                </TooltipContent>
-              )}
-            </Tooltip>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  disabled={!session?.isVerified}
-                  asChild
                 >
-                  <Link href="/profile">
-                    <PlusCircle className="h-4 w-4" />
-                  </Link>
-                </Button>
-              </TooltipTrigger>
-              {session && !session.isVerified && (
-                <TooltipContent>
-                  <p>Verify account to add tokens</p>
-                </TooltipContent>
+                  Super Admin
+                </Link>
               )}
-            </Tooltip>
+            </nav>
           </div>
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div className="flex items-center gap-1 px-3 py-1.5 bg-accent rounded-md">
+                      <span className="text-sm font-medium">
+                        {session ? (
+                          session.isVerified ? (
+                            balance
+                          ) : (
+                            "0"
+                          )
+                        ) : (
+                          "0"
+                        )}
+                      </span>
+                      <span className="text-xs text-muted-foreground">{tokenMetadata?.symbol || 'CFT'}</span>
+                    </div>
+                  </TooltipTrigger>
+                  {session && !session.isVerified && (
+                    <TooltipContent>
+                      <p>Account not verified</p>
+                    </TooltipContent>
+                  )}
+                </Tooltip>
+
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      disabled={!session?.isVerified}
+                      asChild
+                    >
+                      <Link href="/profile">
+                        <PlusCircle className="h-4 w-4" />
+                      </Link>
+                    </Button>
+                  </TooltipTrigger>
+                  {session && !session.isVerified && (
+                    <TooltipContent>
+                      <p>Verify account to add tokens</p>
+                    </TooltipContent>
+                  )}
+                </Tooltip>
+
+            </div>
           <ThemeToggle />
           {session ? (
             <DropdownMenu>
