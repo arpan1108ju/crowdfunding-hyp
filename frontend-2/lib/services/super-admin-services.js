@@ -1,22 +1,18 @@
 const API_URL = `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/superadmin`;
 
-export async function enrollSuperadmin(token) {
-
+export async function enrollSuperadmin() {
   const response = await fetch(`${API_URL}/enroll`, {
     method: 'POST',
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
+    credentials: 'include',
   });
   return await response.json();
 }
 
-
-export async function changeUserRole(token, userId, role) {
+export async function changeUserRole(userId, role) {
   const response = await fetch(`${API_URL}/users/${userId}`, {
     method: 'POST',
+    credentials: 'include',
     headers: {
-      Authorization: `Bearer ${token}`,
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({ role }),
@@ -24,22 +20,18 @@ export async function changeUserRole(token, userId, role) {
   return await response.json();
 }
 
-export async function enrollAdmin(token, adminId) {
+export async function enrollAdmin(adminId) {
   const response = await fetch(`${API_URL}/admins/${adminId}/enroll`, {
     method: 'POST',
-    headers: {
-      Authorization: `Bearer ${token}`
-    },
+    credentials: 'include',
   });
   return await response.json();
 }
 
-export async function revokeAdmin(token, adminId) {
+export async function revokeAdmin(adminId) {
   const response = await fetch(`${API_URL}/admins/${adminId}/revoke`, {
     method: 'POST',
-    headers: {
-      Authorization: `Bearer ${token}`
-    },
+    credentials: 'include',
   });
   return await response.json();
 }

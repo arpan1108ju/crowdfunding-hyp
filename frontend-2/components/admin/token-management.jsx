@@ -41,7 +41,7 @@ export function TokenManagement() {
       if (!response.success) {
         throw new Error(response.message);
       }
-      setMetadataState(response.data.metadata);
+      setMetadataState(response.data.tokenMetadata);
       toast.success("Token metadata refreshed");
     } catch (error) {
       toast.error("Failed to fetch token metadata", {

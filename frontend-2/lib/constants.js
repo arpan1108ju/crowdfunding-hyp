@@ -11,7 +11,12 @@ export const PAYMENT_TYPE = {
   CANCEL: "CANCEL",
 };
 
-
+export const CAMPAIGN_ACTION = {
+  DONATE: "DONATE",
+  WITHDRAW: "WITHDRAW",
+  CANCEL: "CANCEL",
+  DELETE: "DELETE",
+};
 
 /**
  * Check if a given role is valid

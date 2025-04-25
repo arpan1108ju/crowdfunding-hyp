@@ -1,49 +1,39 @@
 const API_URL = `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/admin`;
 
-export async function fetchAllUsers(token,verified) {
+export async function fetchAllUsers(verified) {
 
   let url = `${API_URL}/users`;
   if(verified === true || verified === false){
     url = `${API_URL}/users?verified=${verified}`;
   }
 
-  // console.log('token : ',token);
-
   const response = await fetch(url, {
     method: 'GET',
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
+    credentials : 'include',
   });
   return response.json();
 }
 
-export async function fetchUserById(token, userId) {
+export async function fetchUserById(userId) {
   const response = await fetch(`${API_URL}/users/${userId}`, {
     method: 'GET',
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
+    credentials : 'include',
   });
   return response.json();
 }
 
-export async function enrollUser(token, userId) {
+export async function enrollUser(userId) {
   const response = await fetch(`${API_URL}/users/${userId}/enroll`, {
     method: 'POST',
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
+    credentials : 'include',
   });
   return response.json();
 }
 
-export async function revokeUser(token, userId) {
+export async function revokeUser(userId) {
   const response = await fetch(`${API_URL}/users/${userId}/revoke`, {
     method: 'POST',
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
+    credentials : 'include',
   });
   return response.json();
 }

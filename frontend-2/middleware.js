@@ -13,15 +13,15 @@ export function middleware(request) {
   }
 
   // Get the token from cookies
-  const token = request.cookies.get("auth-token")?.value;
+  // const token = request.cookies.get("auth-token")?.value;
 
-  // If there's no token, redirect to login
-  if (!token) {
-    const loginUrl = new URL("/login", request.url);
-    // Add the current path as a redirect parameter
-    loginUrl.searchParams.set("redirect", pathname);
-    return NextResponse.redirect(loginUrl);
-  }
+  // // If there's no token, redirect to login
+  // if (!token) {
+  //   const loginUrl = new URL("/login", request.url);
+  //   // Add the current path as a redirect parameter
+  //   loginUrl.searchParams.set("redirect", pathname);
+  //   return NextResponse.redirect(loginUrl);
+  // }
 
   // Special case for /home redirect
   if (pathname === "/home") {

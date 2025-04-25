@@ -18,7 +18,6 @@ export function AuthProvider({ children }) {
         isVerified: authResponse.data.user.isVerified,
         x509identity: authResponse.data.user.x509identity,
         role: authResponse.data.user.role,
-        token: authResponse.data.token,
       });
       return response;
     }

@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Search, User, Moon, Sun, LogOut } from "lucide-react"
+import { Search, User, Moon, Sun, LogOut, PlusCircle } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -18,9 +18,13 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { useAuth } from "@/hooks/use-auth"
 import { ROLE } from "@/lib/constants"
+import { useTokenService } from "@/hooks/use-token-service"
 
 import ThemeToggle from "@/components/theme-toggle";
 import { toast } from "sonner"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+
+
 
 export default function Navbar() {
 
@@ -31,6 +35,39 @@ export default function Navbar() {
   const [searchQuery, setSearchQuery] = useState("")
   const [searchResults, setSearchResults] = useState([])
   const [showResults, setShowResults] = useState(false)
+
+  const [balance, setBalance] = useState("0");
+  const [tokenMetadata, setTokenMetadata] = useState(null);
+  const { getBalance, getTokenMetadata } = useTokenService();
+
+  const fetchBalance = async () => {
+    try {
+      const response = await getBalance();
+      if (!response.success) {
+        throw new Error(response.message);
+      }
+      setBalance(response.data.balance);
+    } catch (error) {
+      toast.error("Failed to fetch balance", {
+        description: error.message
+      });
+      setBalance("0");
+    }
+  };
+
+  const fetchTokenMetadata = async () => {
+    try {
+      const response = await getTokenMetadata();
+      if (!response.success) {
+        throw new Error(response.message);
+      }
+      setTokenMetadata(response.data.tokenMetadata);
+    } catch (error) {
+      toast.error("Failed to fetch token metadata", {
+        description: error.message
+      });
+    }
+  };
 
   // Sample campaigns list
   const campaigns = [
@@ -59,6 +96,8 @@ export default function Navbar() {
 
   useEffect(() => {
     setMounted(true)
+    fetchBalance();
+    fetchTokenMetadata();
   }, [])
 
   if (!mounted) {
@@ -169,6 +208,55 @@ export default function Navbar() {
             </nav>
           </div>
           <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div className="flex items-center gap-1 px-3 py-1.5 bg-accent rounded-md">
+                      <span className="text-sm font-medium">
+                        {session ? (
+                          session.isVerified ? (
+                            balance
+                          ) : (
+                            "0"
+                          )
+                        ) : (
+                          "0"
+                        )}
+                      </span>
+                      <span className="text-xs text-muted-foreground">{tokenMetadata?.symbol || 'CFT'}</span>
+                    </div>
+                  </TooltipTrigger>
+                  {session && !session.isVerified && (
+                    <TooltipContent>
+                      <p>Account not verified</p>
+                    </TooltipContent>
+                  )}
+                </Tooltip>
+              </TooltipProvider>
+
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      disabled={!session?.isVerified}
+                      asChild
+                    >
+                      <Link href="/profile">
+                        <PlusCircle className="h-4 w-4" />
+                      </Link>
+                    </Button>
+                  </TooltipTrigger>
+                  {session && !session.isVerified && (
+                    <TooltipContent>
+                      <p>Verify account to add tokens</p>
+                    </TooltipContent>
+                  )}
+                </Tooltip>
+              </TooltipProvider>
+            </div>
           <ThemeToggle />
             {session ? (
               <DropdownMenu>

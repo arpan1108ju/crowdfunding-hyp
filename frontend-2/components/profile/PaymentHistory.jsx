@@ -13,7 +13,8 @@ import { initialPaymentHistory } from "@/lib/data/dummy-data";
 
 export function PaymentHistory() {
   const { getPayments } = useTokenService();
-  const [payments, setPayments] = useState(initialPaymentHistory);
+  // const [payments, setPayments] = useState(initialPaymentHistory);
+  const [payments, setPayments] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
 

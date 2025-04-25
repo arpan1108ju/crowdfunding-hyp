@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { LayoutDashboard, CreditCard, Users, Settings, PlusCircle, Menu, X, ChevronLeft, ChevronRight } from "lucide-react"
+import { LayoutDashboard, Users, PlusCircle, Menu, X, ChevronLeft, ChevronRight, Flag, Shield, ShieldPlus } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
@@ -15,27 +15,28 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 import { useAuth } from "@/hooks/use-auth"
+import { ROLE } from "@/lib/constants"
 
 export function Sidebar() {
   const pathname = usePathname()
   const { session } = useAuth()
   const [open, setOpen] = useState(false)
   const [mounted, setMounted] = useState(false)
-  const [collapsed, setCollapsed] = useState(true)
+  const [collapsed, setCollapsed] = useState(false)
 
   useEffect(() => {
     setMounted(true)
   }, [])
-const isSuperAdmin = session?.role === "superadmin"
-const isAdmin = session?.role === "admin" || isSuperAdmin;
+  const isSuperAdmin = session?.role === ROLE.SUPERADMIN;
+  const isAdmin = session?.role === ROLE.ADMIN;
 
   const routes = (() => {
     const base = [
       {
         label: "Dashboard",
         icon: LayoutDashboard,
-        href: "/campaign",
-        active: pathname === "/campaign",
+        href: "/",
+        active: pathname === "/",
       },
     ]
 
@@ -52,38 +53,38 @@ const isAdmin = session?.role === "admin" || isSuperAdmin;
 
     const campaigns = {
       label: "Campaigns",
-      icon: LayoutDashboard,
-      href: "/campaigns",
-      active: pathname === "/campaigns",
+      icon: Flag,
+      href: "/campaign",
+      active: pathname === "/campaign",
     }
 
-    const payments = {
-      label: "Payments",
-      icon: CreditCard,
-      href: "/payments",
-      active: pathname === "/payments",
+    const createCampaign = {
+      label: "Create Campaign",
+      icon: PlusCircle,
+      href: "/campaign/create",
+      active: pathname === "/campaign/create",
     }
 
     const adminPanel = {
       label: "Admin",
-      icon: Users,
+      icon: Shield,
       href: "/admin",
       active: pathname === "/admin",
     }
 
     const superAdminPanel = {
       label: "Super Admin",
-      icon: Settings,
+      icon: ShieldPlus,
       href: "/superadmin",
       active: pathname === "/superadmin",
     }
 
     if (isSuperAdmin) {
-      return [...base, profile, campaigns, payments, adminPanel, superAdminPanel]
+      return [...base, profile, campaigns, createCampaign, adminPanel, superAdminPanel]
     }
 
     if (isAdmin) {
-      return [...base, profile, campaigns, adminPanel]
+      return [...base, profile, campaigns, createCampaign, adminPanel]
     }
 
     return [...base, profile]
@@ -164,14 +165,6 @@ const isAdmin = session?.role === "admin" || isSuperAdmin;
                     </Link>
                   </Button>
                 ))}
-                {(isAdmin || isSuperAdmin) && (
-                  <Button className="justify-start mt-4" asChild>
-                    <Link href="/campaigns/new" onClick={() => setOpen(false)}>
-                      <PlusCircle className="mr-2 h-5 w-5" />
-                      Create Campaign
-                    </Link>
-                  </Button>
-                )}
               </div>
             </ScrollArea>
           </div>
@@ -213,30 +206,6 @@ const isAdmin = session?.role === "admin" || isSuperAdmin;
               {routes.map((route) => (
                 <NavItem key={route.href} route={route} />
               ))}
-              {isAdmin && !collapsed && (
-                <Button className="justify-start mt-4" asChild>
-                  <Link href="/campaigns/new">
-                    <PlusCircle className="mr-2 h-5 w-5" />
-                    Create Campaign
-                  </Link>
-                </Button>
-              )}
-              {isAdmin && collapsed && (
-                <TooltipProvider delayDuration={0}>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button className="justify-start mt-4 px-2" asChild>
-                        <Link href="/campaigns/new">
-                          <PlusCircle className="h-5 w-5" />
-                        </Link>
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent side="right" className="ml-1">
-                      Create Campaign
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              )}
             </div>
           </ScrollArea>
         </div>

@@ -20,13 +20,13 @@ export function useSession() {
 
   const save = (data) => {
     localStorage.setItem('auth-session', JSON.stringify(data));
-    document.cookie = `auth-token=${data.token}; path=/; max-age=604800`;
+    // document.cookie = `auth-token=${data.token}; path=/; max-age=604800`;
     setSession(data);
   };
 
   const clear = () => {
     localStorage.removeItem('auth-session');
-    document.cookie = 'auth-token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+    // document.cookie = 'auth-token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
     setSession(null);
   };
 

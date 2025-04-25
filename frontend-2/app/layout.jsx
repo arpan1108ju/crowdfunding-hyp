@@ -45,7 +45,7 @@ export default function RootLayout({ children }) {
             <div className="flex-1 flex flex-col overflow-hidden transition-all duration-300 min-w-0">
               <Navbar />
               <main className="flex-1 overflow-y-auto">
-                <div className="w-full max-w-full break-words">
+                <div className="w-full max-w-full break-words px-4">
                   {children}
                 </div>
               </main>

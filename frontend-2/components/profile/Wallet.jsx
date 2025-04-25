@@ -9,13 +9,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { ROLE } from "@/lib/constants";
 import { initialExchangeRates, initialTokenMetadata } from "@/lib/data/dummy-data";
+import { Badge } from "@/components/ui/badge";
 
 
 
 export function Wallet() {
-  const { session } = useAuth();
+
   const { 
     getBalance, 
     getTokenMetadata, 
@@ -24,14 +24,15 @@ export function Wallet() {
   } = useTokenService();
 
   const [balance, setBalance] = useState(0);
-  const [metadata, setMetadata] = useState(initialTokenMetadata);
-  const [rates, setRates] = useState(initialExchangeRates);
+  // const [metadata, setMetadata] = useState(initialTokenMetadata);
+  const [metadata, setMetadata] = useState(null);
+  // const [rates, setRates] = useState(initialExchangeRates);
+  const [rates, setRates] = useState([]);
   const [mintAmount, setMintAmount] = useState('');
-  const [selectedCurrency, setSelectedCurrency] = useState('USD');
+  const [selectedCurrency, setSelectedCurrency] = useState();
   const [isLoading, setIsLoading] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
-  const isAdmin = session?.role === ROLE.ADMIN || session?.role === ROLE.SUPERADMIN;
 
   const fetchBalance = async () => {
     try {
@@ -122,7 +123,7 @@ export function Wallet() {
   };
 
   useEffect(() => {
-    // refreshData();
+    refreshData();
   }, []);
 
   return (
@@ -148,12 +149,12 @@ export function Wallet() {
         <div className="grid grid-cols-2 gap-4">
           <div>
             <p className="text-sm font-medium text-muted-foreground">Current Balance</p>
-            <p className="text-2xl font-bold">{balance} {metadata.symbol}</p>
+            <p className="text-2xl font-bold">{balance} {metadata?.symbol}</p>
           </div>
           <div>
             <p className="text-sm font-medium text-muted-foreground">Token Metadata</p>
-            <p>{metadata.name} ({metadata.symbol})</p>
-            <p className="text-sm text-muted-foreground">Total Supply: {metadata.totalSupply}</p>
+            <p>{metadata?.name}  <Badge variant="outline" className="text-sm mx-2 mt-2 pb-1 bg-muted">{metadata?.symbol}</Badge></p>
+            <p className="text-sm text-muted-foreground">Total Supply: {metadata?.totalSupply}</p>
           </div>
         </div>
 
@@ -164,14 +165,14 @@ export function Wallet() {
               <thead>
                 <tr className="border-b">
                   <th className="p-2 text-left text-sm font-medium">Currency</th>
-                  <th className="p-2 text-left text-sm font-medium">Rate to {metadata.symbol}</th>
+                  <th className="p-2 text-left text-sm font-medium">Rate to {metadata?.symbol}</th>
                 </tr>
               </thead>
               <tbody>
                 {rates.map((rate) => (
                   <tr key={rate.currency} className="border-b last:border-0">
                     <td className="p-2">{rate.currency}</td>
-                    <td className="p-2">1 {rate.currency} = {rate.rateToToken} {metadata.symbol}</td>
+                    <td className="p-2">1 {rate.currency} = {rate.rateToToken} {metadata?.symbol}</td>
                   </tr>
                 ))}
               </tbody>
@@ -215,7 +216,7 @@ export function Wallet() {
               </div>
               {mintAmount && (
                 <p className="text-sm text-muted-foreground">
-                  You will receive approximately {getExpectedTokens()} {metadata.symbol}
+                  You will receive approximately {getExpectedTokens()} {metadata?.symbol}
                 </p>
               )}
             </div>

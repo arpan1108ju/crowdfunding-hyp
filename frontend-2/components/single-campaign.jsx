@@ -28,15 +28,23 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 
 import { useAuth } from "@/hooks/use-auth";
 import { useTokenService } from "@/hooks/use-token-service";
-import { ROLE } from "@/lib/constants";
+import { CAMPAIGN_ACTION, ROLE } from "@/lib/constants";
 import { toast } from "sonner";
+import { Separator } from "@/components/ui/separator";
+import { useCampaignService } from "@/hooks/use-campaign-service";
+
 
 export function SingleCampaign({ campaign }) {
   const router = useRouter();
   const { session } = useAuth();
-  const { getMetadata } = useTokenService();
+  const { getTokenMetadata , getBalance } = useTokenService();
+
+  const { donateToCampaign,withdrawFromCampaign,cancelCampaign,deleteCampaign } = useCampaignService();
+
   const [isLoading, setIsLoading] = useState(false);
-  const [tokenMetadata, setTokenMetadata] = useState({ symbol: 'TOKEN' });
+  const [tokenMetadata, setTokenMetadata] = useState(null);
+  const [donationAmount, setDonationAmount] = useState('');
+  const [balance, setBalance] = useState(null);
   const [dialogState, setDialogState] = useState({
     isOpen: false,
     type: null, // 'donate', 'withdraw', 'cancel', 'delete'
@@ -44,24 +52,43 @@ export function SingleCampaign({ campaign }) {
   });
 
   const isAdmin = session?.role === ROLE.ADMIN || session?.role === ROLE.SUPERADMIN;
-  const isOwner = session?.id === campaign.owner;
+  // const isOwner = session?.id === campaign.owner;
+  const isOwner = isAdmin;
   const canWithdraw = isOwner && !campaign.withdrawn && !campaign.canceled;
   const canCancel = isOwner && !campaign.withdrawn && !campaign.canceled;
   const canDonate = !campaign.withdrawn && !campaign.canceled && Date.now() < campaign.deadline;
 
-  useEffect(() => {
-    const fetchTokenMetadata = async () => {
-      try {
-        const response = await getMetadata();
-        if (response.success) {
-          setTokenMetadata(response.data.metadata);
-        }
-      } catch (error) {
-        console.error('Failed to fetch token metadata:', error);
+  const fetchTokenMetadata = async () => {
+    try {
+      const response = await getTokenMetadata();
+      if (!response.success) {
+        throw new Error(response.message);
       }
-    };
+      setTokenMetadata(response.data.tokenMetadata);
+    } catch (error) {
+      toast.error("Error", {
+        description: error.message
+      });
+    }
+  };
+
+  const fetchBalance = async () => {
+    try {
+      const response = await getBalance();
+      if (!response.success) {
+        throw new Error(response.message);
+      }
+      setBalance(response.data.balance);
+    } catch (error) {
+      toast.error("Error fetching balance", {
+        description: error.message
+      });
+    }
+  };
+
+  useEffect(() => {
     fetchTokenMetadata();
-  }, [getMetadata]);
+  }, []);
 
   const getCampaignStatus = () => {
     const now = Date.now();
@@ -98,40 +125,61 @@ export function SingleCampaign({ campaign }) {
   };
 
   const handleAction = async (type) => {
+    if (type === CAMPAIGN_ACTION.DONATE) {
+      await fetchBalance();
+    }
     setDialogState({ isOpen: true, type, data: null });
   };
 
   const handleConfirmAction = async () => {
     setIsLoading(true);
     try {
-      let message;
+      let response;
       switch (dialogState.type) {
-        case 'donate':
-          // Handle donation
-          message = "Donation successful";
+        case CAMPAIGN_ACTION.DONATE:
+          if (!donationAmount || isNaN(donationAmount) || Number(donationAmount) <= 0) {
+            throw new Error('Please enter a valid donation amount');
+          }
+          response = await donateToCampaign(campaign.id, Number(donationAmount));
+          if (!response.success) {
+            throw new Error(response.message);
+          }
+          toast.success('Donation successful');
           break;
-        case 'withdraw':
-          // Handle withdrawal
-          message = "Funds withdrawn successfully";
+
+        case CAMPAIGN_ACTION.WITHDRAW:
+          response = await withdrawFromCampaign(campaign.id);
+          if (!response.success) {
+            throw new Error(response.message);
+          }
+          toast.success('Funds withdrawn successfully');
           break;
-        case 'cancel':
-          // Handle cancellation
-          message = "Campaign canceled successfully";
+
+        case CAMPAIGN_ACTION.CANCEL:
+          response = await cancelCampaign(campaign.id);
+          if (!response.success) {
+            throw new Error(response.message);
+          }
+          toast.success('Campaign canceled successfully');
           break;
-        case 'delete':
-          // Handle deletion
-          message = "Campaign deleted successfully";
+
+        case CAMPAIGN_ACTION.DELETE:
+          response = await deleteCampaign(campaign.id);
+          if (!response.success) {
+            throw new Error(response.message);
+          }
+          toast.success('Campaign deleted successfully');
           break;
       }
-      toast.success(message);
       router.refresh();
     } catch (error) {
-      toast.error(`Failed to ${dialogState.type} campaign`, {
+      toast.error(`Failed to ${dialogState.type.toLowerCase()} campaign`, {
         description: error.message
       });
     } finally {
       setIsLoading(false);
       setDialogState({ isOpen: false, type: null, data: null });
+      setDonationAmount('');
     }
   };
 
@@ -170,7 +218,7 @@ export function SingleCampaign({ campaign }) {
                   {campaign.donators.map((donor, index) => (
                     <div key={index} className="flex items-center justify-between">
                       <span className="font-medium">{donor.name}</span>
-                      <span>{donor.amount} {tokenMetadata.symbol}</span>
+                      <span>{donor.amount} {tokenMetadata?.symbol}</span>
                     </div>
                   ))}
                 </div>
@@ -186,7 +234,11 @@ export function SingleCampaign({ campaign }) {
           <div className="flex items-start justify-between">
             <div>
               <h1 className="text-3xl font-bold">{campaign.title}</h1>
-              <p className="text-muted-foreground">Campaign Type: {campaign.type}</p>
+              <span className="text-muted-foreground px-2 py-1">
+                Category : <Badge variant="outline" className="text-sm mt-2 pb-1 bg-muted">
+                    {campaign.campaignType}
+                  </Badge>
+              </span>
             </div>
             {isAdmin && (
               <div className="flex gap-2">
@@ -207,7 +259,7 @@ export function SingleCampaign({ campaign }) {
           <div className="space-y-2">
             <div className="flex justify-between text-sm">
               <span className="text-lg font-medium">
-                {campaign.amountCollected.toLocaleString()} {tokenMetadata.symbol} raised of {campaign.target.toLocaleString()} {tokenMetadata.symbol}
+                {campaign.amountCollected.toLocaleString()} {tokenMetadata?.symbol} raised of {campaign.target.toLocaleString()} {tokenMetadata?.symbol}
               </span>
               <span className="text-lg font-medium">
                 {Math.round((campaign.amountCollected / campaign.target) * 100)}%
@@ -242,13 +294,13 @@ export function SingleCampaign({ campaign }) {
 
           <Separator />
 
-          <div className="flex gap-3">
+          <div className="flex gap-3 flex-col">
             {session ? (
               <>
                 {canDonate && (
                   <Button 
                     className="flex-1"
-                    onClick={() => handleAction('donate')}
+                    onClick={() => handleAction(CAMPAIGN_ACTION.DONATE)}
                   >
                     <CreditCard className="mr-2 h-4 w-4" />
                     Donate Now
@@ -257,7 +309,7 @@ export function SingleCampaign({ campaign }) {
                 {canWithdraw && (
                   <Button 
                     variant="outline"
-                    onClick={() => handleAction('withdraw')}
+                    onClick={() => handleAction(CAMPAIGN_ACTION.WITHDRAW)}
                   >
                     Withdraw Funds
                   </Button>
@@ -265,7 +317,7 @@ export function SingleCampaign({ campaign }) {
                 {canCancel && (
                   <Button 
                     variant="destructive"
-                    onClick={() => handleAction('cancel')}
+                    onClick={() => handleAction(CAMPAIGN_ACTION.CANCEL)}
                   >
                     <Ban className="mr-2 h-4 w-4" />
                     Cancel Campaign
@@ -286,18 +338,34 @@ export function SingleCampaign({ campaign }) {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
-              {dialogState.type === 'donate' ? 'Make a Donation' :
-               dialogState.type === 'withdraw' ? 'Withdraw Funds' :
-               dialogState.type === 'cancel' ? 'Cancel Campaign' :
+              {dialogState.type === CAMPAIGN_ACTION.DONATE ? 'Make a Donation' :
+               dialogState.type === CAMPAIGN_ACTION.WITHDRAW ? 'Withdraw Funds' :
+               dialogState.type === CAMPAIGN_ACTION.CANCEL ? 'Cancel Campaign' :
                'Delete Campaign'}
             </DialogTitle>
             <DialogDescription>
-              {dialogState.type === 'donate' ? 'Enter the amount you want to donate.' :
-               dialogState.type === 'withdraw' ? 'Are you sure you want to withdraw all funds? This action cannot be undone.' :
-               dialogState.type === 'cancel' ? 'Are you sure you want to cancel this campaign? This will stop all future donations.' :
+              {dialogState.type === CAMPAIGN_ACTION.DONATE ? 'Enter the amount you want to donate.' :
+               dialogState.type === CAMPAIGN_ACTION.WITHDRAW ? 'Are you sure you want to withdraw all funds? This action cannot be undone.' :
+               dialogState.type === CAMPAIGN_ACTION.CANCEL ? 'Are you sure you want to cancel this campaign? This will stop all future donations.' :
                'Are you sure you want to delete this campaign? This action cannot be undone.'}
             </DialogDescription>
           </DialogHeader>
+          {dialogState.type === CAMPAIGN_ACTION.DONATE && (
+            <div className="py-4">
+              <input
+                type="number"
+                value={donationAmount}
+                onChange={(e) => setDonationAmount(e.target.value)}
+                placeholder="Enter amount"
+                className="w-full px-3 py-2 border rounded-md"
+                min="0"
+                step="0.01"
+              />
+              <p className="text-sm text-muted-foreground mt-2">
+                Available balance: {balance !== null ? balance : 'Loading...'} {tokenMetadata?.symbol}
+              </p>
+            </div>
+          )}
           <DialogFooter>
             <Button
               variant="outline"
@@ -307,14 +375,14 @@ export function SingleCampaign({ campaign }) {
               Cancel
             </Button>
             <Button
-              variant={dialogState.type === 'delete' || dialogState.type === 'cancel' ? 'destructive' : 'default'}
+              variant={dialogState.type === CAMPAIGN_ACTION.DELETE || dialogState.type === CAMPAIGN_ACTION.CANCEL ? 'destructive' : 'default'}
               onClick={handleConfirmAction}
               disabled={isLoading}
             >
               {isLoading ? "Processing..." : 
-               dialogState.type === 'donate' ? 'Donate' :
-               dialogState.type === 'withdraw' ? 'Withdraw' :
-               dialogState.type === 'cancel' ? 'Cancel Campaign' :
+               dialogState.type === CAMPAIGN_ACTION.DONATE ? 'Donate' :
+               dialogState.type === CAMPAIGN_ACTION.WITHDRAW ? 'Withdraw' :
+               dialogState.type === CAMPAIGN_ACTION.CANCEL ? 'Cancel Campaign' :
                'Delete Campaign'}
             </Button>
           </DialogFooter>

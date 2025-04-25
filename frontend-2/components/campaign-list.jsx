@@ -21,9 +21,12 @@ import { Badge } from "@/components/ui/badge";
 import { useCampaignService } from "@/hooks/use-campaign-service";
 import { initialCampaigns } from "@/lib/data/dummy-data";
 
+import {toast} from "sonner";
+
 export function CampaignList() {
   const { getAllCampaigns } = useCampaignService();
   const [campaigns, setCampaigns] = useState(initialCampaigns);
+  // const [campaigns, setCampaigns] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const router = useRouter();
@@ -72,7 +75,9 @@ export function CampaignList() {
       }
       setCampaigns(result.data);
     } catch (error) {
-      toast.error(error.message);
+      toast.error("Error", {
+        description : error.message
+      });
     } finally {
       setLoading(false);
       setIsRefreshing(false);
