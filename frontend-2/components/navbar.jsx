@@ -23,6 +23,7 @@ import { useTokenService } from "@/hooks/use-token-service"
 import ThemeToggle from "@/components/theme-toggle";
 import { toast } from "sonner"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
+import { BALANCE_UPDATED_EVENT } from "@/lib/events";
 
 
 
@@ -95,14 +96,27 @@ export default function Navbar() {
   }
 
   useEffect(() => {
-
     setMounted(true);
 
     if (session?.isVerified) {
       fetchBalance();
       fetchTokenMetadata();
     }
-  }, [])
+
+    // Add event listener for balance updates
+    const handleBalanceUpdate = () => {
+      if (session?.isVerified) {
+        fetchBalance();
+      }
+    };
+
+    window.addEventListener(BALANCE_UPDATED_EVENT, handleBalanceUpdate);
+
+    // Cleanup event listener
+    return () => {
+      window.removeEventListener(BALANCE_UPDATED_EVENT, handleBalanceUpdate);
+    };
+  }, [session?.isVerified]);
 
   if (!mounted) {
     return null

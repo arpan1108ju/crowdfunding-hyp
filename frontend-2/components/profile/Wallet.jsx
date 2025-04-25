@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import { initialExchangeRates, initialTokenMetadata } from "@/lib/data/dummy-data";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { dispatchBalanceUpdated } from "@/lib/events";
 
 
 
@@ -100,12 +101,12 @@ export function Wallet() {
 
     setIsLoading(true);
     try {
-      
-      const response = await mintToken(selectedCurrency,mintAmount);
+      const response = await mintToken(selectedCurrency, mintAmount);
       if(!response.success){
         throw new Error(response.message);
       }
       await fetchBalance();
+      dispatchBalanceUpdated();
       toast.success("Tokens minted successfully");
       setMintAmount(0);
     } catch (error) {
