@@ -33,7 +33,6 @@ export async function createCampaign(campaignData) {
     },
     body: JSON.stringify(campaignData),
   });
-  console.log(JSON.stringify(campaignData));
   return response.json();
 }
 

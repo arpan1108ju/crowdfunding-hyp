@@ -158,7 +158,7 @@ export function CampaignList() {
           >
             <div className="relative h-48 w-full">
               <img
-                src={campaign.image || "/placeholder.svg"}
+                src={campaign.image }
                 alt={campaign.title}
                 className="h-full w-full object-cover"
               />

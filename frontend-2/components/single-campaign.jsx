@@ -201,7 +201,7 @@ export function SingleCampaign({ campaign }) {
         <div className="space-y-6">
           <div className="relative">
             <img
-              src={campaign.image || "/placeholder.svg"}
+              src={campaign.image}
               alt={campaign.title}
               className="w-full aspect-video object-cover rounded-lg"
             />

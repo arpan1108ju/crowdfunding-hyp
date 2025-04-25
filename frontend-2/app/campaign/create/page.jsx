@@ -53,7 +53,7 @@ export default function CreateCampaignPage() {
     setFormData(prev => ({
       ...prev,
       campaignType: value,
-      customType: value === 'Other' ? prev.customType : ''
+      customType: '' // reset customType when changing campaignType
     }));
   };
 
@@ -62,19 +62,20 @@ export default function CreateCampaignPage() {
     setIsLoading(true);
 
     try {
-      // Convert deadline to milliseconds
       const deadlineDate = new Date(formData.deadline);
       const deadlineMs = deadlineDate.getTime();
 
       const campaignData = {
-        ...formData,
+        title: formData.title,
+        description: formData.description,
+        campaignType: formData.campaignType === 'Other' ? formData.customType : formData.campaignType,
         target: Number(formData.target),
         deadline: deadlineMs,
-        campaignType: formData.campaignType === 'Other' ? formData.customType : formData.campaignType
+        image: formData.image
       };
-
+      console.log(campaignData);
       const response = await createCampaign(campaignData);
-      
+
       if (!response.success) {
         throw new Error(response.message);
       }
@@ -92,11 +93,7 @@ export default function CreateCampaignPage() {
 
   return (
     <div className="container max-w-2xl mx-auto py-8">
-      <Button 
-        variant="ghost" 
-        onClick={() => router.back()}
-        className="mb-6"
-      >
+      <Button variant="ghost" onClick={() => router.back()} className="mb-6">
         <ArrowLeft className="mr-2 h-4 w-4" />
         Back
       </Button>
@@ -111,9 +108,7 @@ export default function CreateCampaignPage() {
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-2">
-            <label htmlFor="title" className="text-base font-semibold">
-              Campaign Title
-            </label>
+            <label htmlFor="title" className="text-base font-semibold">Campaign Title</label>
             <Input
               id="title"
               name="title"
@@ -126,9 +121,7 @@ export default function CreateCampaignPage() {
           </div>
 
           <div className="space-y-2">
-            <label htmlFor="description" className="text-base font-semibold">
-              Description
-            </label>
+            <label htmlFor="description" className="text-base font-semibold">Description</label>
             <Textarea
               id="description"
               name="description"
@@ -141,22 +134,14 @@ export default function CreateCampaignPage() {
           </div>
 
           <div className="space-y-2">
-            <label htmlFor="campaignType" className="text-base font-semibold">
-              Campaign Type
-            </label>
-            <Select
-              value={formData.campaignType}
-              onValueChange={handleSelectChange}
-              required
-            >
+            <label htmlFor="campaignType" className="text-base font-semibold">Campaign Type</label>
+            <Select value={formData.campaignType} onValueChange={handleSelectChange} required>
               <SelectTrigger className="h-11">
                 <SelectValue placeholder="Select campaign type" />
               </SelectTrigger>
               <SelectContent>
                 {campaignTypes.map((type) => (
-                  <SelectItem key={type} value={type}>
-                    {type}
-                  </SelectItem>
+                  <SelectItem key={type} value={type}>{type}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -174,9 +159,7 @@ export default function CreateCampaignPage() {
           </div>
 
           <div className="space-y-2">
-            <label htmlFor="target" className="text-base font-semibold">
-              Target Amount
-            </label>
+            <label htmlFor="target" className="text-base font-semibold">Target Amount</label>
             <Input
               id="target"
               name="target"
@@ -192,9 +175,7 @@ export default function CreateCampaignPage() {
           </div>
 
           <div className="space-y-2">
-            <label htmlFor="deadline" className="text-base font-semibold">
-              Campaign Deadline
-            </label>
+            <label htmlFor="deadline" className="text-base font-semibold">Campaign Deadline</label>
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Input
@@ -234,9 +215,7 @@ export default function CreateCampaignPage() {
           </div>
 
           <div className="space-y-2">
-            <label htmlFor="image" className="text-base font-semibold">
-              Campaign Image URL
-            </label>
+            <label htmlFor="image" className="text-base font-semibold">Campaign Image URL</label>
             <Input
               id="image"
               name="image"
@@ -248,8 +227,8 @@ export default function CreateCampaignPage() {
             />
           </div>
 
-          <Button 
-            type="submit" 
+          <Button
+            type="submit"
             className="w-full h-11 text-base"
             disabled={isLoading}
           >

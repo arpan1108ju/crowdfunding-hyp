@@ -29,7 +29,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 export default function Navbar() {
 
   const pathname = usePathname();
-  const { session,logout } = useAuth();
+  const { session, logout } = useAuth();
   const [mounted, setMounted] = useState(false)
 
   const [searchQuery, setSearchQuery] = useState("")
@@ -106,205 +106,217 @@ export default function Navbar() {
 
 
 
-    // return (
-    //   <nav className="flex items-center justify-between p-4 border-b shadow-sm bg-background">
-    //     <h1 className="text-xl font-semibold">My App</h1>
-    //     <ThemeToggle />
-    //   </nav>
-    // );
+  // return (
+  //   <nav className="flex items-center justify-between p-4 border-b shadow-sm bg-background">
+  //     <h1 className="text-xl font-semibold">My App</h1>
+  //     <ThemeToggle />
+  //   </nav>
+  // );
 
-    return (
-      <header className="sticky top-0 z-10 w-full border-b bg-background">
-        <div className="flex h-16 items-center px-4">
-          <div className="flex items-center gap-2 md:w-64">
-            <Link href="/" className="flex items-center gap-2">
-              <span className="text-3xl font-bold">FundFab</span>
-            </Link>
-          </div>
-          <div className="flex flex-1 items-center gap-4 md:gap-8">
-            <form className="flex-1 md:flex-initial relative" onSubmit={(e) => e.preventDefault()}>
-              <div className="relative flex items-center">
-                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                  type="search"
-                  placeholder="Search campaigns..."
-                  className="w-full rounded-lg bg-background pl-8 pr-10 md:w-[300px] lg:w-[400px]"
-                  value={searchQuery}
-                  onChange={handleInputChange}
-                />
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="absolute right-1.5 top-1.5 h-6 w-6"
-                  onClick={handleSearch}
-                >
-                  <Search className="h-4 w-4" />
-                </Button>
+  return (
+    <header className="sticky top-0 z-10 w-full border-b bg-background">
+      <div className="flex h-16 items-center px-4">
+        <div className="flex items-center gap-2 md:w-64">
+          <Link href="/" className="flex items-center gap-2">
+            <span className="text-3xl font-bold">FundFab</span>
+          </Link>
+        </div>
+        <div className="flex flex-1 items-center gap-4 md:gap-8">
+          <form className="flex-1 md:flex-initial relative" onSubmit={(e) => e.preventDefault()}>
+            <div className="relative flex items-center">
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                type="search"
+                placeholder="Search campaigns..."
+                className="w-full rounded-lg bg-background pl-8 pr-10 md:w-[300px] lg:w-[400px]"
+                value={searchQuery}
+                onChange={handleInputChange}
+              />
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="absolute right-1.5 top-1.5 h-6 w-6"
+                onClick={handleSearch}
+              >
+                <Search className="h-4 w-4" />
+              </Button>
+            </div>
+            {showResults && (
+              <div className="absolute z-10 mt-1 w-full rounded-lg border bg-white p-2 shadow">
+                {searchResults.length > 0 ? (
+                  searchResults.map((result, idx) => (
+                    <div key={idx} className="p-1 text-sm hover:bg-muted cursor-pointer">
+                      {result}
+                    </div>
+                  ))
+                ) : (
+                  <div className="p-1 text-sm text-muted-foreground">No matches found.</div>
+                )}
               </div>
-              {showResults && (
-                <div className="absolute z-10 mt-1 w-full rounded-lg border bg-white p-2 shadow">
-                  {searchResults.length > 0 ? (
-                    searchResults.map((result, idx) => (
-                      <div key={idx} className="p-1 text-sm hover:bg-muted cursor-pointer">
-                        {result}
-                      </div>
-                    ))
-                  ) : (
-                    <div className="p-1 text-sm text-muted-foreground">No matches found.</div>
-                  )}
-                </div>
-              )}
-            </form>
-            <nav className="hidden gap-6 md:flex">
-              <Link
-                href="/"
-                className={`text-sm font-medium transition-colors hover:text-foreground hover:bg-accent px-3 py-2 rounded-md ${
-                  pathname === "/" 
-                    ? "text-foreground bg-accent" 
-                    : "text-muted-foreground"
+            )}
+          </form>
+          <nav className="hidden gap-6 md:flex">
+            <Link
+              href="/"
+              className={`text-sm font-medium transition-colors hover:text-foreground hover:bg-accent px-3 py-2 rounded-md ${pathname === "/"
+                  ? "text-foreground bg-accent"
+                  : "text-muted-foreground"
                 }`}
-              >
-                Home
-              </Link>
-              <Link
-                href="/about"
-                className={`text-sm font-medium transition-colors hover:text-foreground hover:bg-accent px-3 py-2 rounded-md ${
-                  pathname === "/about" 
-                    ? "text-foreground bg-accent" 
-                    : "text-muted-foreground"
+            >
+              Home
+            </Link>
+            <Link
+              href="/about"
+              className={`text-sm font-medium transition-colors hover:text-foreground hover:bg-accent px-3 py-2 rounded-md ${pathname === "/about"
+                  ? "text-foreground bg-accent"
+                  : "text-muted-foreground"
                 }`}
-              >
-                About
-              </Link>
-              
-              {/* Admin Link - visible to both ADMIN and SUPERADMIN */}
-              {session?.role && (session.role === ROLE.ADMIN || session.role === ROLE.SUPERADMIN) && (
-                <Link
-                  href="/admin"
-                  className={`text-sm font-medium transition-colors hover:text-foreground hover:bg-accent px-3 py-2 rounded-md ${
-                    pathname === "/admin" 
-                      ? "text-foreground bg-accent" 
-                      : "text-muted-foreground"
-                  }`}
-                >
-                  Admin
-                </Link>
-              )}
+            >
+              About
+            </Link>
 
-              {/* SuperAdmin Link - visible only to SUPERADMIN */}
-              {session?.role === ROLE.SUPERADMIN && (
-                <Link
-                  href="/superadmin"
-                  className={`text-sm font-medium transition-colors hover:text-foreground hover:bg-accent px-3 py-2 rounded-md ${
-                    pathname === "/superadmin" 
-                      ? "text-foreground bg-accent" 
-                      : "text-muted-foreground"
+            {/* Admin Link - visible to both ADMIN and SUPERADMIN */}
+            {session?.role && (session.role === ROLE.ADMIN || session.role === ROLE.SUPERADMIN) && (
+              <Link
+                href="/admin"
+                className={`text-sm font-medium transition-colors hover:text-foreground hover:bg-accent px-3 py-2 rounded-md ${pathname === "/admin"
+                    ? "text-foreground bg-accent"
+                    : "text-muted-foreground"
                   }`}
-                >
-                  Super Admin
-                </Link>
-              )}
-            </nav>
-          </div>
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2">
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <div className="flex items-center gap-1 px-3 py-1.5 bg-accent rounded-md">
-                      <span className="text-sm font-medium">
-                        {session ? (
-                          session.isVerified ? (
-                            balance
-                          ) : (
-                            "0"
-                          )
+              >
+                Admin
+              </Link>
+            )}
+
+            {/* SuperAdmin Link - visible only to SUPERADMIN */}
+            {session?.role === ROLE.SUPERADMIN && (
+              <Link
+                href="/superadmin"
+                className={`text-sm font-medium transition-colors hover:text-foreground hover:bg-accent px-3 py-2 rounded-md ${pathname === "/superadmin"
+                    ? "text-foreground bg-accent"
+                    : "text-muted-foreground"
+                  }`}
+              >
+                Super Admin
+              </Link>
+            )}
+          </nav>
+        </div>
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className="flex items-center gap-1 px-3 py-1.5 bg-accent rounded-md">
+                    <span className="text-sm font-medium">
+                      {session ? (
+                        session.isVerified ? (
+                          balance
                         ) : (
                           "0"
-                        )}
-                      </span>
-                      <span className="text-xs text-muted-foreground">{tokenMetadata?.symbol || 'CFT'}</span>
-                    </div>
-                  </TooltipTrigger>
-                  {session && !session.isVerified && (
-                    <TooltipContent>
-                      <p>Account not verified</p>
-                    </TooltipContent>
-                  )}
-                </Tooltip>
-              </TooltipProvider>
-
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      disabled={!session?.isVerified}
-                      asChild
-                    >
-                      <Link href="/profile">
-                        <PlusCircle className="h-4 w-4" />
-                      </Link>
-                    </Button>
-                  </TooltipTrigger>
-                  {session && !session.isVerified && (
-                    <TooltipContent>
-                      <p>Verify account to add tokens</p>
-                    </TooltipContent>
-                  )}
-                </Tooltip>
-              </TooltipProvider>
-            </div>
-          <ThemeToggle />
-            {session ? (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-                    <Avatar className="h-8 w-8">
-                      <AvatarImage src="/placeholder.svg?height=32&width=32" alt={session.email} />
-                      <AvatarFallback>{session.email?.charAt(0).toUpperCase()}</AvatarFallback>
-                    </Avatar>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-56" align="end" forceMount>
-                  <div className="flex flex-col space-y-1 p-2">
-                    <p className="text-sm font-medium leading-none">Hi, {session.username}</p>
-                    <p className="text-xs leading-none pt-2 text-muted-foreground">{session.role}</p>
+                        )
+                      ) : (
+                        "0"
+                      )}
+                    </span>
+                    <span className="text-xs text-muted-foreground">{tokenMetadata?.symbol || 'CFT'}</span>
                   </div>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem asChild>
-                    <Link href="/profile">
-                      <User className="mr-2 h-4 w-4" />
-                      <span>Profile</span>
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem
-                    className="cursor-pointer"
-                    onSelect={async (e) => {
-                      e.preventDefault()
-                      await logout()
-                      window.location.href = "/login"
-                      toast.success("Success",{
-                        description : "Logged out successfully"
-                      })
-                    }}
+                </TooltipTrigger>
+                {session && !session.isVerified && (
+                  <TooltipContent>
+                    <p>Account not verified</p>
+                  </TooltipContent>
+                )}
+              </Tooltip>
+            </TooltipProvider>
+
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    disabled={!session?.isVerified}
+                    asChild
                   >
-                    <LogOut className="mr-2 h-4 w-4" />
-                    Log out
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            ) : (
-              <Button asChild>
-                <Link href="/login">Login</Link>
-              </Button>
-            )}
+                    <Link href="/profile">
+                      <PlusCircle className="h-4 w-4" />
+                    </Link>
+                  </Button>
+                </TooltipTrigger>
+                {session && !session.isVerified && (
+                  <TooltipContent>
+                    <p>Verify account to add tokens</p>
+                  </TooltipContent>
+                )}
+              </Tooltip>
+            </TooltipProvider>
           </div>
+          <ThemeToggle />
+          {session ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+                  {/* <Avatar className="h-8 w-8">
+                      <AvatarImage src="/profile-default.svg?height=32&width=32" alt={session.email} />
+                      <AvatarFallback>{session.email?.charAt(0).toUpperCase()}</AvatarFallback>
+                    </Avatar> */}
+                  <Avatar className="h-8 w-8">
+                    {session?.email ? (
+                      <>
+                        {/* <AvatarImage
+                          src="/profile-default.svg?height=32&width=32"
+                          alt={session.email}
+                        /> */}
+                        <AvatarFallback>{session.email.charAt(0).toUpperCase()}</AvatarFallback>
+                      </>
+                    ) : (
+                      <AvatarImage
+                        src="/profile-default.svg?height=32&width=32"
+                        alt="Default profile"
+                      />
+                    )}
+                  </Avatar>
+
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-56" align="end" forceMount>
+                <div className="flex flex-col space-y-1 p-2">
+                  <p className="text-sm font-medium leading-none">Hi, {session.username}</p>
+                  <p className="text-xs leading-none pt-2 text-muted-foreground">{session.role}</p>
+                </div>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                  <Link href="/profile">
+                    <User className="mr-2 h-4 w-4" />
+                    <span>Profile</span>
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  className="cursor-pointer"
+                  onSelect={async (e) => {
+                    e.preventDefault()
+                    await logout()
+                    window.location.href = "/login"
+                    toast.success("Success", {
+                      description: "Logged out successfully"
+                    })
+                  }}
+                >
+                  <LogOut className="mr-2 h-4 w-4" />
+                  Log out
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <Button asChild>
+              <Link href="/login">Login</Link>
+            </Button>
+          )}
         </div>
-      </header>
-    )
+      </div>
+    </header>
+  )
 }
-  
