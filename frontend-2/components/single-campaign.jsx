@@ -40,7 +40,7 @@ import { campaignTypes } from "@/lib/data/dummy-data";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 
-export function SingleCampaign({ campaign }) {
+export function SingleCampaign({ campaign, onCampaignUpdate }) {
   const router = useRouter();
   const { session } = useAuth();
   const { getTokenMetadata , getBalance } = useTokenService();
@@ -58,15 +58,7 @@ export function SingleCampaign({ campaign }) {
   });
   const [editDialogState, setEditDialogState] = useState({
     isOpen: false,
-    data: {
-      title: "",
-      description: "",
-      campaignType: "",
-      customType: "",
-      goal: 0,
-      deadline: 0,
-      image: ""
-    }
+    data: null
   });
 
   const isAdmin = session?.role === ROLE.ADMIN;
@@ -160,49 +152,48 @@ export function SingleCampaign({ campaign }) {
             throw new Error('Please enter a valid donation amount');
           }
           
-          // Check if user has sufficient balance
           if (balance < donationAmount) {
             throw new Error(`Insufficient balance. You have ${balance} ${tokenMetadata?.symbol} available.`);
           }
           
-          response = await donateToCampaign(campaign?.id, donationAmount);
+          response = await donateToCampaign(campaign.id, donationAmount);
           if (!response.success) {
             throw new Error(response.message);
           }
           dispatchBalanceUpdated();
           toast.success('Donation successful');
+          await onCampaignUpdate();
           break;
 
         case CAMPAIGN_ACTION.WITHDRAW:
-          response = await withdrawFromCampaign(campaign?.id);
+          response = await withdrawFromCampaign(campaign.id);
           if (!response.success) {
             throw new Error(response.message);
           }
           dispatchBalanceUpdated();
           toast.success('Funds withdrawn successfully');
+          await onCampaignUpdate();
           break;
 
         case CAMPAIGN_ACTION.CANCEL:
-          response = await cancelCampaign(campaign?.id);
+          response = await cancelCampaign(campaign.id);
           if (!response.success) {
             throw new Error(response.message);
           }
           dispatchBalanceUpdated();
           toast.success('Campaign canceled successfully');
+          await onCampaignUpdate();
           break;
 
         case CAMPAIGN_ACTION.DELETE:
-          response = await deleteCampaign(campaign?.id);
+          response = await deleteCampaign(campaign.id);
           if (!response.success) {
             throw new Error(response.message);
           }
-          toast.success('Campaign deleted successfully'); 
+          toast.success('Campaign deleted successfully');
           router.push('/campaign');
           break;
       }
-
-      router.push(`/campaign/${campaign?.id}`);
-      router.refresh();
     } catch (error) {
       toast.error(`Failed to ${dialogState.type.toLowerCase()} campaign`, {
         description: error.message
@@ -215,16 +206,18 @@ export function SingleCampaign({ campaign }) {
   };
 
   const handleEdit = () => {
+    if (!campaign) return;
+    
     setEditDialogState({
       isOpen: true,
       data: {
-        title: campaign?.title,
-        description: campaign?.description,
+        title: campaign?.title || '',
+        description: campaign?.description || '',
         campaignType: campaignTypes.includes(campaign?.campaignType) ? campaign?.campaignType : 'Other',
         customType: campaignTypes.includes(campaign?.campaignType) ? '' : campaign?.campaignType,
-        goal: campaign?.target,
-        deadline: campaign?.deadline,
-        image: campaign?.image
+        goal: campaign?.target || 0,
+        deadline: campaign?.deadline || Date.now(),
+        image: campaign?.image || ''
       }
     });
   };
@@ -241,19 +234,21 @@ export function SingleCampaign({ campaign }) {
   };
 
   const handleUpdateCampaign = async () => {
+    if (!campaign?.id || !editDialogState.data) return;
+    
     setIsLoading(true);
     try {
       const campaignData = {
         ...editDialogState.data,
         campaignType: editDialogState.data.campaignType === 'Other' ? editDialogState.data.customType : editDialogState.data.campaignType
       };
-      const response = await updateCampaign(campaign?.id, campaignData);
+      const response = await updateCampaign(campaign.id, campaignData);
       if (!response.success) {
         throw new Error(response.message);
       }
       toast.success('Campaign updated successfully');
-      router.refresh();
       setEditDialogState({ isOpen: false, data: null });
+      await onCampaignUpdate();
     } catch (error) {
       toast.error('Failed to update campaign', {
         description: error.message
@@ -486,7 +481,14 @@ export function SingleCampaign({ campaign }) {
       </Dialog>
 
       {/* Edit Campaign Dialog */}
-      <Dialog open={editDialogState.isOpen} onOpenChange={(open) => !open && setEditDialogState({ isOpen: false, data: null })}>
+      <Dialog 
+        open={editDialogState.isOpen} 
+        onOpenChange={(open) => {
+          if (!open) {
+            setEditDialogState({ isOpen: false, data: null });
+          }
+        }}
+      >
         <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>Edit Campaign</DialogTitle>
@@ -494,128 +496,130 @@ export function SingleCampaign({ campaign }) {
               Update your campaign details below.
             </DialogDescription>
           </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="grid gap-2">
-              <Label htmlFor="title">Title</Label>
-              <Input
-                id="title"
-                value={editDialogState.data.title}
-                onChange={(e) => setEditDialogState(prev => ({
-                  ...prev,
-                  data: { ...prev.data, title: e.target.value }
-                }))}
-              />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="description">Description</Label>
-              <Textarea
-                id="description"
-                value={editDialogState.data.description}
-                onChange={(e) => setEditDialogState(prev => ({
-                  ...prev,
-                  data: { ...prev.data, description: e.target.value }
-                }))}
-              />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="campaignType">Campaign Type</Label>
-              <Select value={editDialogState.data.campaignType} onValueChange={handleSelectChange}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select campaign type" />
-                </SelectTrigger>
-                <SelectContent>
-                  {campaignTypes.map((type) => (
-                    <SelectItem key={type} value={type}>{type}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {editDialogState.data.campaignType === 'Other' && (
+          {editDialogState.data && (
+            <div className="grid gap-4 py-4">
+              <div className="grid gap-2">
+                <Label htmlFor="title">Title</Label>
                 <Input
-                  id="customType"
-                  value={editDialogState.data.customType}
+                  id="title"
+                  value={editDialogState.data.title}
                   onChange={(e) => setEditDialogState(prev => ({
                     ...prev,
-                    data: { ...prev.data, customType: e.target.value }
+                    data: { ...prev.data, title: e.target.value }
                   }))}
-                  placeholder="Specify campaign type"
-                  className="mt-2"
                 />
-              )}
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="goal">Goal Amount</Label>
-              <Input
-                id="goal"
-                type="number"
-                value={editDialogState.data.goal}
-                onChange={(e) => setEditDialogState(prev => ({
-                  ...prev,
-                  data: { ...prev.data, goal: Number(e.target.value) }
-                }))}
-              />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="deadline">Deadline</Label>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="description">Description</Label>
+                <Textarea
+                  id="description"
+                  value={editDialogState.data.description}
+                  onChange={(e) => setEditDialogState(prev => ({
+                    ...prev,
+                    data: { ...prev.data, description: e.target.value }
+                  }))}
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="campaignType">Campaign Type</Label>
+                <Select value={editDialogState.data.campaignType} onValueChange={handleSelectChange}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select campaign type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {campaignTypes.map((type) => (
+                      <SelectItem key={type} value={type}>{type}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {editDialogState.data.campaignType === 'Other' && (
                   <Input
-                    id="deadline-date"
-                    type="date"
-                    value={new Date(editDialogState.data.deadline).toISOString().split('T')[0]}
-                    onChange={(e) => {
-                      const time = new Date(editDialogState.data.deadline).toISOString().split('T')[1].slice(0, 5);
-                      setEditDialogState(prev => ({
-                        ...prev,
-                        data: {
-                          ...prev.data,
-                          deadline: new Date(`${e.target.value}T${time}`).getTime()
-                        }
-                      }));
-                    }}
+                    id="customType"
+                    value={editDialogState.data.customType}
+                    onChange={(e) => setEditDialogState(prev => ({
+                      ...prev,
+                      data: { ...prev.data, customType: e.target.value }
+                    }))}
+                    placeholder="Specify campaign type"
+                    className="mt-2"
                   />
-                </div>
-                <div>
-                  <Input
-                    id="deadline-time"
-                    type="time"
-                    value={new Date(editDialogState.data.deadline).toISOString().split('T')[1].slice(0, 5)}
-                    onChange={(e) => {
-                      const date = new Date(editDialogState.data.deadline).toISOString().split('T')[0];
-                      setEditDialogState(prev => ({
-                        ...prev,
-                        data: {
-                          ...prev.data,
-                          deadline: new Date(`${date}T${e.target.value}`).getTime()
-                        }
-                      }));
-                    }}
-                  />
+                )}
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="goal">Goal Amount</Label>
+                <Input
+                  id="goal"
+                  type="number"
+                  value={editDialogState.data.goal}
+                  onChange={(e) => setEditDialogState(prev => ({
+                    ...prev,
+                    data: { ...prev.data, goal: Number(e.target.value) }
+                  }))}
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="deadline">Deadline</Label>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Input
+                      id="deadline-date"
+                      type="date"
+                      value={new Date(editDialogState.data.deadline).toISOString().split('T')[0]}
+                      onChange={(e) => {
+                        const time = new Date(editDialogState.data.deadline).toISOString().split('T')[1].slice(0, 5);
+                        setEditDialogState(prev => ({
+                          ...prev,
+                          data: {
+                            ...prev.data,
+                            deadline: new Date(`${e.target.value}T${time}`).getTime()
+                          }
+                        }));
+                      }}
+                    />
+                  </div>
+                  <div>
+                    <Input
+                      id="deadline-time"
+                      type="time"
+                      value={new Date(editDialogState.data.deadline).toISOString().split('T')[1].slice(0, 5)}
+                      onChange={(e) => {
+                        const date = new Date(editDialogState.data.deadline).toISOString().split('T')[0];
+                        setEditDialogState(prev => ({
+                          ...prev,
+                          data: {
+                            ...prev.data,
+                            deadline: new Date(`${date}T${e.target.value}`).getTime()
+                          }
+                        }));
+                      }}
+                    />
+                  </div>
                 </div>
               </div>
+              <div className="grid gap-2">
+                <Label htmlFor="image">Image URL</Label>
+                <Input
+                  id="image"
+                  value={editDialogState.data.image}
+                  onChange={(e) => setEditDialogState(prev => ({
+                    ...prev,
+                    data: { ...prev.data, image: e.target.value }
+                  }))}
+                />
+              </div>
             </div>
-            <div className="grid gap-2">
-              <Label htmlFor="image">Image URL</Label>
-              <Input
-                id="image"
-                value={editDialogState.data.image}
-                onChange={(e) => setEditDialogState(prev => ({
-                  ...prev,
-                  data: { ...prev.data, image: e.target.value }
-                }))}
-              />
-            </div>
-          </div>
+          )}
           <DialogFooter>
             <Button
               variant="outline"
               onClick={() => setEditDialogState({ isOpen: false, data: null })}
-              disabled={isLoading || (editDialogState.data.campaignType === 'Other' && !editDialogState.data.customType)}
+              disabled={isLoading}
             >
               Cancel
             </Button>
             <Button
               onClick={handleUpdateCampaign}
-              disabled={isLoading || (editDialogState.data.campaignType === 'Other' && !editDialogState.data.customType)}
+              disabled={isLoading || !editDialogState.data || (editDialogState.data.campaignType === 'Other' && !editDialogState.data.customType)}
             >
               {isLoading ? "Updating..." : "Update Campaign"}
             </Button>

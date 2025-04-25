@@ -1,21 +1,20 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { use, useEffect, useState } from "react"
 import { SingleCampaign } from "@/components/single-campaign"
 import { useCampaignService } from "@/hooks/use-campaign-service";
 import { Skeleton } from "@/components/ui/skeleton";
 
-
 export default function CampaignPage({ params }) {
+  const { id } = use(params);
   const { getCampaignById } = useCampaignService();
-  // const [campaign, setCampaign] = useState(null);
   const [campaign, setCampaign] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
   const fetchCampaign = async () => {
     try {
-      const result = await getCampaignById(params.id);
+      const result = await getCampaignById(id);
       if (!result.success) {
         throw new Error(result.message);
       }
@@ -26,9 +25,14 @@ export default function CampaignPage({ params }) {
       setIsLoading(false);
     }
   };
+
   useEffect(() => {
     fetchCampaign();
-  }, [params.id, getCampaignById]);
+  }, [id]);
+
+  const handleCampaignUpdate = async () => {
+    await fetchCampaign();
+  };
 
   if (isLoading) {
     return (
@@ -54,5 +58,5 @@ export default function CampaignPage({ params }) {
     );
   }
 
-  return <SingleCampaign campaign={campaign} />;
+  return <SingleCampaign campaign={campaign} onCampaignUpdate={handleCampaignUpdate} />;
 }
