@@ -43,7 +43,7 @@ export function SingleCampaign({ campaign }) {
 
   const [isLoading, setIsLoading] = useState(false);
   const [tokenMetadata, setTokenMetadata] = useState(null);
-  const [donationAmount, setDonationAmount] = useState('');
+  const [donationAmount, setDonationAmount] = useState(0);
   const [balance, setBalance] = useState(null);
   const [dialogState, setDialogState] = useState({
     isOpen: false,
@@ -87,6 +87,7 @@ export function SingleCampaign({ campaign }) {
   };
 
   useEffect(() => {
+    console.log('id : ',campaign.id);
     fetchTokenMetadata();
   }, []);
 
@@ -137,10 +138,10 @@ export function SingleCampaign({ campaign }) {
       let response;
       switch (dialogState.type) {
         case CAMPAIGN_ACTION.DONATE:
-          if (!donationAmount || isNaN(donationAmount) || Number(donationAmount) <= 0) {
+          if (!donationAmount || donationAmount <= 0) {
             throw new Error('Please enter a valid donation amount');
           }
-          response = await donateToCampaign(campaign.id, Number(donationAmount));
+          response = await donateToCampaign(campaign.id, donationAmount);
           if (!response.success) {
             throw new Error(response.message);
           }
@@ -179,7 +180,7 @@ export function SingleCampaign({ campaign }) {
     } finally {
       setIsLoading(false);
       setDialogState({ isOpen: false, type: null, data: null });
-      setDonationAmount('');
+      setDonationAmount(0);
     }
   };
 
@@ -355,7 +356,7 @@ export function SingleCampaign({ campaign }) {
               <input
                 type="number"
                 value={donationAmount}
-                onChange={(e) => setDonationAmount(e.target.value)}
+                onChange={(e) => setDonationAmount(Number(e.target.value))}
                 placeholder="Enter amount"
                 className="w-full px-3 py-2 border rounded-md"
                 min="0"

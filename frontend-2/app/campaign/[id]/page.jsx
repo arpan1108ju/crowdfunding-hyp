@@ -4,7 +4,7 @@ import { useEffect, useState } from "react"
 import { SingleCampaign } from "@/components/single-campaign"
 import { useCampaignService } from "@/hooks/use-campaign-service";
 import { Skeleton } from "@/components/ui/skeleton";
-import { initialCampaigns } from "@/lib/data/dummy-data";
+
 
 export default function CampaignPage({ params }) {
   const { getCampaignById } = useCampaignService();
@@ -15,8 +15,7 @@ export default function CampaignPage({ params }) {
 
   const fetchCampaign = async () => {
     try {
-      // const result = await getCampaignById(params.id);
-      // let result = {success: true, data: initialCampaigns[0]}
+      const result = await getCampaignById(params.id);
       if (!result.success) {
         throw new Error(result.message);
       }
