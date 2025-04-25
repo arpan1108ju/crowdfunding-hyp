@@ -22,7 +22,7 @@ import { useTokenService } from "@/hooks/use-token-service"
 
 import ThemeToggle from "@/components/theme-toggle";
 import { toast } from "sonner"
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 
 
 
@@ -95,9 +95,13 @@ export default function Navbar() {
   }
 
   useEffect(() => {
-    setMounted(true)
-    fetchBalance();
-    fetchTokenMetadata();
+
+    setMounted(true);
+
+    if(session?.isVerified){
+      fetchBalance();
+      fetchTokenMetadata();
+    }
   }, [])
 
   if (!mounted) {
@@ -176,8 +180,8 @@ export default function Navbar() {
               About
             </Link>
 
-            {/* Admin Link - visible to both ADMIN and SUPERADMIN */}
-            {session?.role && (session.role === ROLE.ADMIN || session.role === ROLE.SUPERADMIN) && (
+            {/* Admin Link - visible to only ADMIN  */}
+            {session?.role === ROLE.ADMIN && (
               <Link
                 href="/admin"
                 className={`text-sm font-medium transition-colors hover:text-foreground hover:bg-accent px-3 py-2 rounded-md ${pathname === "/admin"
@@ -197,69 +201,69 @@ export default function Navbar() {
                     ? "text-foreground bg-accent"
                     : "text-muted-foreground"
                   }`}
-              >
-                Super Admin
-              </Link>
-            )}
-          </nav>
-        </div>
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2">
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <div className="flex items-center gap-1 px-3 py-1.5 bg-accent rounded-md">
-                    <span className="text-sm font-medium">
-                      {session ? (
-                        session.isVerified ? (
-                          balance
+                >
+                  Super Admin
+                </Link>
+              )}
+            </nav>
+          </div>
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div className="flex items-center gap-1 px-3 py-1.5 bg-accent rounded-md">
+                      <span className="text-sm font-medium">
+                        {session ? (
+                          session.isVerified ? (
+                            balance
+                          ) : (
+                            "0"
+                          )
                         ) : (
                           "0"
-                        )
-                      ) : (
-                        "0"
-                      )}
-                    </span>
-                    <span className="text-xs text-muted-foreground">{tokenMetadata?.symbol || 'CFT'}</span>
-                  </div>
-                </TooltipTrigger>
-                {session && !session.isVerified && (
-                  <TooltipContent>
-                    <p>Account not verified</p>
-                  </TooltipContent>
-                )}
-              </Tooltip>
-            </TooltipProvider>
+                        )}
+                      </span>
+                      <span className="text-xs text-muted-foreground">{tokenMetadata?.symbol || 'CFT'}</span>
+                    </div>
+                  </TooltipTrigger>
+                  {session && !session.isVerified && (
+                    <TooltipContent>
+                      <p>Account not verified</p>
+                    </TooltipContent>
+                  )}
+                </Tooltip>
+              </TooltipProvider>
 
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    disabled={!session?.isVerified}
-                    asChild
-                  >
-                    <Link href="/profile">
-                      <PlusCircle className="h-4 w-4" />
-                    </Link>
-                  </Button>
-                </TooltipTrigger>
-                {session && !session.isVerified && (
-                  <TooltipContent>
-                    <p>Verify account to add tokens</p>
-                  </TooltipContent>
-                )}
-              </Tooltip>
-            </TooltipProvider>
-          </div>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      disabled={!session?.isVerified}
+                      asChild
+                    >
+                      <Link href="/profile">
+                        <PlusCircle className="h-4 w-4" />
+                      </Link>
+                    </Button>
+                  </TooltipTrigger>
+                  {session && !session.isVerified && (
+                    <TooltipContent>
+                      <p>Verify account to add tokens</p>
+                    </TooltipContent>
+                  )}
+                </Tooltip>
+              </TooltipProvider>
+            </div>
           <ThemeToggle />
-          {session ? (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-                  {/* <Avatar className="h-8 w-8">
-                      <AvatarImage src="/profile-default.svg?height=32&width=32" alt={session.email} />
+            {session ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+                    <Avatar className="h-8 w-8">
+                      <AvatarImage src="/placeholder.svg?height=32&width=32" alt={session.email} />
                       <AvatarFallback>{session.email?.charAt(0).toUpperCase()}</AvatarFallback>
                     </Avatar> */}
                   <Avatar className="h-8 w-8">
