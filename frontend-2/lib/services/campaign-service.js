@@ -1,41 +1,34 @@
-
 const API_URL = `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/campaigns`;
 
-export async function getAllCampaigns(token) {
+export async function getAllCampaigns() {
   const response = await fetch(`${API_URL}`, {
     method: 'GET',
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
+    credentials: 'include',
   });
   return response.json();
 }
 
-export async function getUserCampaigns(token) {
+export async function getUserCampaigns() {
   const response = await fetch(`${API_URL}/admin`, {
     method: 'GET',
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
+    credentials: 'include',
   });
   return response.json();
 }
 
-export async function getCampaignById(token, campaignId) {
+export async function getCampaignById(campaignId) {
   const response = await fetch(`${API_URL}/${campaignId}`, {
     method: 'GET',
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
+    credentials: 'include',
   });
   return response.json();
 }
 
-export async function createCampaign(token, campaignData) {
+export async function createCampaign(campaignData) {
   const response = await fetch(`${API_URL}`, {
     method: 'POST',
+    credentials: 'include',
     headers: {
-      Authorization: `Bearer ${token}`,
       'Content-Type': 'application/json',
     },
     body: JSON.stringify(campaignData),
@@ -43,11 +36,11 @@ export async function createCampaign(token, campaignData) {
   return response.json();
 }
 
-export async function donateToCampaign(token, campaignId, amount) {
+export async function donateToCampaign(campaignId, amount) {
   const response = await fetch(`${API_URL}/${campaignId}/donate`, {
     method: 'POST',
+    credentials: 'include',
     headers: {
-      Authorization: `Bearer ${token}`,
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({ amount }),
@@ -55,31 +48,27 @@ export async function donateToCampaign(token, campaignId, amount) {
   return response.json();
 }
 
-export async function withdrawFromCampaign(token, campaignId) {
+export async function withdrawFromCampaign(campaignId) {
   const response = await fetch(`${API_URL}/${campaignId}/withdraw`, {
     method: 'POST',
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
+    credentials: 'include',
   });
   return response.json();
 }
 
-export async function cancelCampaign(token, campaignId) {
+export async function cancelCampaign(campaignId) {
   const response = await fetch(`${API_URL}/${campaignId}/cancel`, {
     method: 'POST',
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
+    credentials: 'include',
   });
   return response.json();
 }
 
-export async function updateCampaign(token, campaignId, updates) {
+export async function updateCampaign(campaignId, updates) {
   const response = await fetch(`${API_URL}/${campaignId}`, {
     method: 'PATCH',
+    credentials: 'include',
     headers: {
-      Authorization: `Bearer ${token}`,
       'Content-Type': 'application/json',
     },
     body: JSON.stringify(updates),
@@ -87,12 +76,10 @@ export async function updateCampaign(token, campaignId, updates) {
   return response.json();
 }
 
-export async function deleteCampaign(token, campaignId) {
+export async function deleteCampaign(campaignId) {
   const response = await fetch(`${API_URL}/${campaignId}`, {
     method: 'DELETE',
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
+    credentials: 'include',
   });
   return response.json();
 }

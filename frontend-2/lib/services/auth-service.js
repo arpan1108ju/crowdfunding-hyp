@@ -7,6 +7,7 @@
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(credentials),
+        credentials : 'include',
       });
 
       if(res.status !== 200){
@@ -17,6 +18,8 @@
       console.log('login : ',response);
       return response;
     } catch (error) {
+
+      console.log('login error : ',error);
       return {
         success: false,
         message: 'Network error or invalid server response'
@@ -30,6 +33,7 @@
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(credentials),
+        credentials : 'include',
       });
   
       if(res.status !== 200){

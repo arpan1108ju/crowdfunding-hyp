@@ -61,6 +61,7 @@ export async function enroll(admin, client,role) {
 
     // console.log('result : ',identity.result);
 
+
     // if(identity.result.revoked){
     //    throw new CustomError("Cannot re-enroll revoked user(ask user to re-login with different email",405);
     // }
