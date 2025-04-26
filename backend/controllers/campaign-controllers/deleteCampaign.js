@@ -1,12 +1,14 @@
 import { deleteCampaign } from "../../methods/invoke/deleteCampaign.js";
 import { sendError, sendSuccess } from "../../utils/responses.js";
 
+
+
 export const deleteCampaignHandler = async (req, res) => {
   try {
       
       const { id } = req.params;
   
-      const responseMessage = await deleteCampaign({id});
+      const responseMessage = await deleteCampaign({id,timestamp: Date.now().toString()});
   
       sendSuccess(res,{},responseMessage);
     } catch (error) {
