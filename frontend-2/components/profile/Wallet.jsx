@@ -11,8 +11,10 @@ import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { dispatchBalanceUpdated } from "@/lib/events";
+import { useRouter } from "next/navigation";
 
 export function Wallet() {
+  const router = useRouter();
   const { 
     getBalance, 
     getTokenMetadata, 
@@ -92,23 +94,13 @@ export function Wallet() {
       return;
     }
 
-    setIsLoading(true);
-    try {
-      const response = await mintToken(selectedCurrency, mintAmount);
-      if(!response.success){
-        throw new Error(response.message);
-      }
-      await fetchBalance();
-      dispatchBalanceUpdated();
-      toast.success("Tokens minted successfully");
-      setMintAmount(0);
-    } catch (error) {
-      toast.error("Failed to mint tokens", {
-        description: error.message
-      });
-    } finally {
-      setIsLoading(false);
+    if (!selectedCurrency) {
+      toast.error("Please select a currency");
+      return;
     }
+
+    // Navigate to checkout page with parameters
+    router.push(`/payment/checkout?currency=${selectedCurrency}&amount=${mintAmount}`);
   };
 
   const getExpectedTokens = () => {
@@ -122,7 +114,7 @@ export function Wallet() {
   }, []);
 
   return (
-    <Card>
+    <Card className="bg-card text-card-foreground">
       <CardHeader>
         <div className="flex items-center justify-between">
           <div className="flex items-center">
@@ -183,7 +175,7 @@ export function Wallet() {
                   value={selectedCurrency}
                   onValueChange={setSelectedCurrency}
                 >
-                  <SelectTrigger className="w-[120px]">
+                  <SelectTrigger className="w-[120px] bg-background">
                     <SelectValue placeholder="Currency" />
                   </SelectTrigger>
                   <SelectContent>
@@ -199,24 +191,23 @@ export function Wallet() {
                   placeholder="Amount"
                   value={mintAmount}
                   onChange={(e) => setMintAmount(Number(e.target.value))}
-                  className="flex-1"
+                  className="flex-1 bg-background"
                 />
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <span>
                     <Button 
                       onClick={handleMintToken}
-                      disabled={isLoading || mintAmount <= 0 || selectedCurrency === ""}
+                      disabled={mintAmount <= 0 || selectedCurrency === ""}
                     >
-                      {isLoading ? "Minting..." : "Mint"}
+                      Mint
                     </Button>
                     </span>
                   </TooltipTrigger>
                   <TooltipContent>
-                    {isLoading ? "Processing your mint request..." : 
-                     mintAmount <= 0 ? "Please enter a valid amount" :
+                    {mintAmount <= 0 ? "Please enter a valid amount" :
                      selectedCurrency === "" ? "Please select a currency" :
-                     "Click to mint tokens"}
+                     "Click to proceed to payment"}
                   </TooltipContent>
                 </Tooltip>
               </div>

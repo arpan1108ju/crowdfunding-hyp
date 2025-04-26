@@ -42,9 +42,25 @@ export const donateCampaignSchema = z.object({
 export const updateCampaignSchema = createCampaignSchema.partial();
 
 export const currencySchema = z.enum([
-  "USD",
-  "INR"
-])
+  "USD", // US Dollar
+  "INR", // Indian Rupee
+  "EUR", // Euro
+  "GBP", // British Pound
+  "AUD", // Australian Dollar
+  "CAD", // Canadian Dollar
+  "JPY", // Japanese Yen
+  "CNY", // Chinese Yuan
+  "SGD", // Singapore Dollar
+  "NZD", // New Zealand Dollar
+  "CHF", // Swiss Franc
+  "HKD", // Hong Kong Dollar
+  "SEK", // Swedish Krona
+  "NOK", // Norwegian Krone
+  "DKK", // Danish Krone
+  "ZAR", // South African Rand
+  "BRL", // Brazilian Real
+  "MXN", // Mexican Peso
+]);
 
 
 export const setExchangeRateSchema = z.object({

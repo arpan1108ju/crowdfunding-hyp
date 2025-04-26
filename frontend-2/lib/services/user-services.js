@@ -17,3 +17,24 @@ export async function getUserSelf() {
   });
   return response.json();
 }
+
+export async function payment({amountPaid,currency}) {
+
+  console.log(JSON.stringify({ 
+    amountPaid, 
+    currency 
+  }))
+
+  const response = await fetch(`${API_URL}/payment`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify({ 
+      amountPaid, 
+      currency 
+    }),
+  });
+
+  return response.json();
+
+}
