@@ -153,6 +153,15 @@ func (s *SmartContract) InitLedger(ctx contractapi.TransactionContextInterface) 
 	metadataBytes, _ := json.Marshal(metadata)
 	ctx.GetStub().PutState(TOKEN_METADATA, metadataBytes)
 
+	// Set default exchange rate for USD
+	defaultRate := ExchangeRate{
+		Currency:   "USD",
+		RateToToken: 100.0, // 1 USD = 100 CFT
+	}
+	rateBytes, _ := json.Marshal(defaultRate)
+	rateKey, _ := ctx.GetStub().CreateCompositeKey(RatePrefix, []string{"USD"})
+	ctx.GetStub().PutState(rateKey, rateBytes)
+
 	log.Printf("Successfully called InitLedger")
 	return nil
 }

@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { LayoutDashboard, Users, PlusCircle, Menu, X, ChevronLeft, ChevronRight, Flag, Shield, ShieldPlus } from "lucide-react"
+import { LayoutDashboard, Users, PlusCircle, Menu, X, ChevronLeft, ChevronRight, Flag, Shield, ShieldPlus, Megaphone } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
@@ -59,7 +59,7 @@ export function Sidebar() {
 
     const adminCampaigns = {
       label: "Admin Campaigns",
-      icon: Flag,
+      icon: Megaphone,
       href: "/campaign/admin",
       active: pathname === "/campaign/admin",
     }

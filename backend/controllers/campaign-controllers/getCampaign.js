@@ -27,7 +27,7 @@ export const getCampaignHandler = async (req, res) => {
             username: true,
           },
         });
-        return { donor: user.username, donation: donor.donationAmount, timestamp };
+        return { donor: user.username, donation: donor.donationAmount, timestamp : donor.timestamp };
       })
     );
 
