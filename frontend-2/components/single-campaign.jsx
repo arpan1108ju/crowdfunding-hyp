@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Users, Calendar, Clock, ArrowLeft, Edit, Trash, Ban, CreditCard } from "lucide-react";
+import { Users, Calendar, Clock, ArrowLeft, Edit, Trash, Ban, CreditCard, Wallet } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 import {
   Card,
@@ -62,11 +63,23 @@ export function SingleCampaign({ campaign, onCampaignUpdate }) {
   });
 
   const isAdmin = session?.role === ROLE.ADMIN;
+  const isSuperAdmin = session?.role === ROLE.SUPER_ADMIN;
+  const isVerifiedUser = session?.role === ROLE.VERIFIED_USER;
   const isOwner = session?.id === campaign?.owner?.id;
-  // const isOwner = isAdmin;
-  const canWithdraw = isOwner && !campaign?.withdrawn && !campaign?.canceled;
-  const canCancel = isOwner && !campaign?.withdrawn && !campaign?.canceled;
-  const canDonate = !campaign?.withdrawn && !campaign?.canceled && Date.now() < campaign?.deadline;
+  const canWithdraw = (isOwner || isAdmin) && !campaign?.withdrawn && !campaign?.canceled;
+  const canCancel = (isOwner || isAdmin) && !campaign?.withdrawn && !campaign?.canceled;
+  const canDonate = (isAdmin || isVerifiedUser) && !campaign?.withdrawn && !campaign?.canceled && Date.now() < campaign?.deadline;
+
+  // const isAdmin = false;
+  // const isSuperAdmin = false;
+  // const isVerifiedUser = true;
+  // const isOwner = false;
+  // const canWithdraw = false;
+  // const canCancel = false;
+  // const canDonate = false;
+
+
+
 
   const fetchTokenMetadata = async () => {
     try {
@@ -271,142 +284,172 @@ export function SingleCampaign({ campaign, onCampaignUpdate }) {
         Back to campaigns
       </Button>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        {/* Left Column - Image and Donors */}
-        <div className="space-y-6">
-          <div className="relative">
-            <img
-              src={campaign?.image}
-              alt={campaign?.title}
-              className="w-full aspect-video object-cover rounded-lg"
-            />
-            <div className="absolute top-4 right-4">
-              <Badge variant={status.variant}>{status.label}</Badge>
-            </div>
-          </div>
-
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold">Donors</h3>
-            <ScrollArea className="h-[300px] rounded-md border p-4">
-              {campaign?.donors?.length > 0 ? (
-                <div className="space-y-4">
-                  {campaign?.donors.map((donor, index) => (
-                    <div key={index} className="flex items-center justify-between">
-                      <span className="font-medium">{donor.donor}</span>
-                      <span>{donor.donation} {tokenMetadata?.symbol}</span>
-                    </div>
-                  ))}
+      {/* Main Campaign Container */}
+      <Card className="w-full">
+        <CardContent className="p-6">
+          <div className="grid md:grid-cols-2 gap-6 items-stretch">
+            {/* Left Column - Campaign Image */}
+            <div className="h-full">
+              <div className="relative w-full h-full">
+                <img
+                  src={campaign?.image}
+                  alt={campaign?.title}
+                  className="absolute inset-0 w-full h-full object-cover rounded-lg"
+                />
+                <div className="absolute top-4 right-4">
+                  <Badge variant={status.variant}>{status.label}</Badge>
                 </div>
-              ) : (
-                <p className="text-center text-muted-foreground">No donors yet</p>
-              )}
-            </ScrollArea>
-          </div>
-        </div>
-
-        {/* Right Column - Campaign Details */}
-        <div className="space-y-6">
-          <div className="flex items-start justify-between">
-            <div>
-              <h1 className="text-3xl font-bold">{campaign?.title}</h1>
-              <span className="text-muted-foreground px-2 py-1">
-                Category : <Badge variant="outline" className="text-sm mt-2 pb-1 bg-muted">
-                    {campaign?.campaignType}
-                  </Badge>
-              </span>
+              </div>
             </div>
-            {isAdmin && (
-              <div className="flex gap-2">
-                <Button variant="outline" size="icon" onClick={handleEdit}>
-                  <Edit className="h-4 w-4" />
-                </Button>
-                <Button 
-                  variant="destructive" 
-                  size="icon"
-                  onClick={() => handleAction(CAMPAIGN_ACTION.DELETE)}
-                >
-                  <Trash className="h-4 w-4" />
-                </Button>
+
+            {/* Right Column - Campaign Details */}
+            <div className="space-y-6">
+              <div className="flex items-start justify-between">
+                <div>
+                  <h1 className="text-3xl font-bold">{campaign?.title}</h1>
+                  <span className="text-muted-foreground px-2 py-1">
+                    Category : <Badge variant="outline" className="text-sm mt-2 pb-1 bg-muted">
+                      {campaign?.campaignType}
+                    </Badge>
+                  </span>
+                </div>
+                {isAdmin && (
+                  <div className="flex gap-2">
+                    <Button variant="outline" size="icon" onClick={handleEdit}>
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                    <Button 
+                      variant="destructive" 
+                      size="icon"
+                      onClick={() => handleAction(CAMPAIGN_ACTION.DELETE)}
+                    >
+                      <Trash className="h-4 w-4" />
+                    </Button>
+                  </div>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span className="text-lg font-medium">
+                    {campaign?.amountCollected.toLocaleString()} {tokenMetadata?.symbol} raised of {campaign?.target.toLocaleString()} {tokenMetadata?.symbol}
+                  </span>
+                  <span className="text-lg font-medium">
+                    {Math.round((campaign?.amountCollected / campaign?.target) * 100)}%
+                  </span>
+                </div>
+                <Progress value={(campaign?.amountCollected / campaign?.target) * 100} className="h-2" />
+              </div>
+
+              <div className="grid grid-cols-3 gap-4 text-sm text-muted-foreground">
+                <div className="flex items-center">
+                  <Users className="mr-2 h-4 w-4" />
+                  {campaign?.donators?.length || 0} backers
+                </div>
+                <div className="flex items-center">
+                  <Calendar className="mr-2 h-4 w-4" />
+                  {formatDate(campaign?.deadline)}
+                </div>
+                <div className="flex items-center">
+                  <Clock className="mr-2 h-4 w-4" />
+                  {getTimeRemaining()}
+                </div>
+              </div>
+
+              <Separator />
+
+              <div className="space-y-4">
+                <h2 className="text-xl font-semibold">About this campaign</h2>
+                <p className="text-muted-foreground whitespace-pre-wrap">
+                  {campaign?.description}
+                </p>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      {/* </Card> */}
+
+      {/* Donors Table and Action Buttons Container */}
+      {/* <Card> */}
+        <CardContent className="p-6">
+          <div className="flex flex-col md:flex-row gap-6">
+            {/* Donors Table - 70% width */}
+            <div className="w-full md:w-[70%]">
+              <h2 className="text-xl font-semibold mb-4">Donors</h2>
+              <div className="relative w-full overflow-auto">
+                <table className="w-full caption-bottom text-sm">
+                  <thead className="[&_tr]:border-b">
+                    <tr className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted">
+                      <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Donor</th>
+                      <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Amount</th>
+                      <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Date</th>
+                    </tr>
+                  </thead>
+                  <tbody className="[&_tr:last-child]:border-0">
+                    {campaign?.donors?.length > 0 ? (
+                      campaign.donors.map((donor, index) => (
+                        <tr key={index} className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted">
+                          <td className="p-4 align-middle">{donor.donor}</td>
+                          <td className="p-4 align-middle">{donor.donation} {tokenMetadata?.symbol}</td>
+                          <td className="p-4 align-middle">{formatDate(donor.timestamp)}</td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan="3" className="p-4 text-center text-muted-foreground">No donors yet</td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Action Buttons - 30% width */}
+            {session && (
+              <div className="w-full md:w-[30%] flex items-center">
+                <div className="w-full grid auto-cols-fr gap-3" style={{
+                  gridTemplateColumns: '1fr',
+                  gridAutoRows: 'min-content'
+                }}>
+                  {/* Donate button for admin and verified users */}
+                  {canDonate && (
+                    <Button 
+                      className="w-full"
+                      onClick={() => handleAction(CAMPAIGN_ACTION.DONATE)}
+                    >
+                      <CreditCard className="mr-2 h-4 w-4" />
+                      Donate Now
+                    </Button>
+                  )}
+                  
+                  {/* Withdraw button with updated styling */}
+                  {canWithdraw && (
+                    <Button 
+                      className="w-full bg-blue-600 hover:bg-blue-700"
+                      onClick={() => handleAction(CAMPAIGN_ACTION.WITHDRAW)}
+                    >
+                      <Wallet className="mr-2 h-4 w-4" />
+                      Withdraw Funds
+                    </Button>
+                  )}
+
+                  {/* Cancel button */}
+                  {canCancel && (
+                    <Button 
+                      variant="destructive"
+                      className="w-full"
+                      onClick={() => handleAction(CAMPAIGN_ACTION.CANCEL)}
+                    >
+                      <Ban className="mr-2 h-4 w-4" />
+                      Cancel Campaign
+                    </Button>
+                  )}
+                </div>
               </div>
             )}
           </div>
-
-          <div className="space-y-2">
-            <div className="flex justify-between text-sm">
-              <span className="text-lg font-medium">
-                {campaign?.amountCollected.toLocaleString()} {tokenMetadata?.symbol} raised of {campaign?.target.toLocaleString()} {tokenMetadata?.symbol}
-              </span>
-              <span className="text-lg font-medium">
-                {Math.round((campaign?.amountCollected / campaign?.target) * 100)}%
-              </span>
-            </div>
-            <Progress value={(campaign?.amountCollected / campaign?.target) * 100} className="h-2" />
-          </div>
-
-          <div className="grid grid-cols-3 gap-4 text-sm text-muted-foreground">
-            <div className="flex items-center">
-              <Users className="mr-2 h-4 w-4" />
-              {campaign?.donators?.length || 0} backers
-            </div>
-            <div className="flex items-center">
-              <Calendar className="mr-2 h-4 w-4" />
-              {formatDate(campaign?.deadline)}
-            </div>
-            <div className="flex items-center">
-              <Clock className="mr-2 h-4 w-4" />
-              {getTimeRemaining()}
-            </div>
-          </div>
-
-          <Separator />
-
-          <div className="space-y-4">
-            <h2 className="text-xl font-semibold">About this campaign</h2>
-            <p className="text-muted-foreground whitespace-pre-wrap">
-              {campaign?.description}
-            </p>
-          </div>
-
-          <Separator />
-
-          <div className="flex gap-3 flex-col">
-            {session ? (
-              <>
-                {canDonate && (
-                  <Button 
-                    className="flex-1"
-                    onClick={() => handleAction(CAMPAIGN_ACTION.DONATE)}
-                  >
-                    <CreditCard className="mr-2 h-4 w-4" />
-                    Donate Now
-                  </Button>
-                )}
-                {canWithdraw && (
-                  <Button 
-                    variant="outline"
-                    onClick={() => handleAction(CAMPAIGN_ACTION.WITHDRAW)}
-                  >
-                    Withdraw Funds
-                  </Button>
-                )}
-                {canCancel && (
-                  <Button 
-                    variant="destructive"
-                    onClick={() => handleAction(CAMPAIGN_ACTION.CANCEL)}
-                  >
-                    <Ban className="mr-2 h-4 w-4" />
-                    Cancel Campaign
-                  </Button>
-                )}
-              </>
-            ) : (
-              <Button asChild className="flex-1">
-                <a href="/login">Login to Donate</a>
-              </Button>
-            )}
-          </div>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
 
       {/* Confirmation Dialog */}
       <Dialog open={dialogState.isOpen} onOpenChange={(open) => !open && setDialogState({ isOpen: false, type: null, data: null })}>
