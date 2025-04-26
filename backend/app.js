@@ -60,6 +60,11 @@ app.use('/api/v1/token',tokenRoutes);
 //just for testing
 app.use('/api/v1/upload',uploadRoutes);
 
+app.get('/',(req,res)=> {
+   res.json({message : "backend working brother 👍 "})
+})
+
+
 app.use(notFound);
 app.use(errorHandler);
 

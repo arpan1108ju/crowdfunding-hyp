@@ -60,6 +60,7 @@ type UserMapping struct {
 type Donor struct {
 	DonorDBID      string `json:"donorDbId"`
 	DonationAmount uint64 `json:"donationAmount"`
+	Timestamp      uint64 `json:"timestamp"`
 }
 
 // Campaign defines a crowdfunding campaign
@@ -620,6 +621,7 @@ func (s *SmartContract) DonateToCampaign(ctx contractapi.TransactionContextInter
 	newDonor := Donor{
 		DonorDBID:      donorDBID,
 		DonationAmount: amount,
+		Timestamp:      timestamp,
 	}
 
 	campaign.AmountCollected += amount

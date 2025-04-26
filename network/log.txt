@@ -1,2 +1,3 @@
 Installed chaincodes on peer:
 Package ID: crowdfundingGO_1:39d81367fcf980bff19b8b5e19124dbc50204bec9ff4674457e4cb0839c72cb8, Label: crowdfundingGO_1
+Package ID: crowdfundingGO_2:f3e1e086305945051c69eebd20dc4676af3a0c81d0a4392661e1d7ba0a3bdaca, Label: crowdfundingGO_2
