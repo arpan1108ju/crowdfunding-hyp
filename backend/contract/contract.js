@@ -2,11 +2,9 @@
 
  // Or another config file
 import { CHANNEL_NAME, CONTRACT_NAME } from '../constants.js';
-import { connectToGateway } from '../gateway/connect.js';
 import { getGateway } from '../gateway/gateway.js';
 
 export const getContract = async () => {
-    await connectToGateway();
     const gateway = getGateway();
 
     if (!gateway) {

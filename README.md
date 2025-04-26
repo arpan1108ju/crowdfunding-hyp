@@ -14,3 +14,14 @@
 11.
 
 10.revoke user as admin
+
+/////////////////////////////////////
+
+
+1.user id linking with smartcontract ---> done
+2.profile with cred
+3.image and cred url handle
+4.profile/id --> for general purpsose user click on donors
+5.payment click opens campaign
+
+

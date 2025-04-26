@@ -204,7 +204,7 @@ export function CampaignList({isAdminCampaigns = false}) {
                 </div>
                 <div className="flex items-center">
                   <Users className="mr-1 h-4 w-4" />
-                  {campaign.donators?.length || 0} backers
+                  {campaign?.numDonors || 0} donors
                 </div>
               </div>
             </CardContent>

@@ -92,6 +92,8 @@ export function EnrollRevokeManagement({fetchAll,enroll,revoke,fetchSingle,isCal
       if (!result.success) {
         throw new Error(result.message);
       }
+
+      
       
       // Simulate API call
       // await new Promise(resolve => setTimeout(resolve, 1000));
@@ -104,11 +106,11 @@ export function EnrollRevokeManagement({fetchAll,enroll,revoke,fetchSingle,isCal
       }))
       
       toast.success("Success", {
-        description: `${userDetails.email} has been enrolled successfully`
+        description: `${gotUser.email} has been enrolled successfully`
       })
     } catch (error) {
       toast.error("Error", {
-        description: error.message || `Failed to enroll ${userDetails.email}`
+        description: error.message || `Failed to enroll ${gotUser.email}`
       })
     } finally {
       setIsProcessing(false)

@@ -8,14 +8,14 @@ import { getCurrentUser } from '../utils/getCurrentUser.js';
 
 const currentRole = APP_USER;
 
-export const connectToGateway = async () => {
+export const connectToGateway = async ({ enrollViaUser = null } = {}) => {
+    const user = enrollViaUser || await getCurrentUser();
 
 
-    const user = await getCurrentUser();
-
-    let gateway = await getGateway();
-    if(gateway){
-        return;
+    let gateway;
+    if (!enrollViaUser) {
+      gateway = await getGateway();
+      if (gateway) return;
     }
 
     const ccp = JSON.parse(fs.readFileSync(CONNECTION_PROFILE_PATH, 'utf8'));

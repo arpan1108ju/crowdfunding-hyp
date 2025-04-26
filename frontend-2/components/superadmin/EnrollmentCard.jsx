@@ -7,10 +7,13 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
 import { useSuperadminService } from "@/hooks/use-superadmin-service";
 import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 export function EnrollmentCard({x509Identity}) {
   const { enrollSuperadmin } = useSuperadminService();
   const [isEnrolling, setIsEnrolling] = useState(false);
+  const { save } = useAuth();
+  const router = useRouter();
 
   const isEnrolled = (x509Identity !== null && x509Identity !== undefined);
 
@@ -21,7 +24,14 @@ export function EnrollmentCard({x509Identity}) {
       if(!response.success){
         throw new Error(response.message);
       }
+      
+      // Update session with new x509Identity
+      save(response?.data);
+      
       toast.success("Successfully enrolled");
+      
+      // Reload the page to refresh the x509Identity
+      router.refresh();
     } catch (error) {
       toast.error("Failed to enroll", {
         description: error.message || "Something went wrong"

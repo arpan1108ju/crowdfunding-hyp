@@ -6,7 +6,25 @@ export const getUserCampaignsHandler = async (req, res) => {
 
 
     const result = await getUserCampaigns();
-    sendSuccess(res, result, "Fetched campaign details successfully!");
+
+    const responseToReturn = await Promise.all((
+      result.map(async(camp) => {
+
+         const { ownerDbId,donors,...rest } = camp;
+         const owner = await db.user.findFirst({
+           where : {
+              id : ownerDbId
+           },
+           select : {
+             id : true,
+             username : true
+           }
+         })
+         return { owner,numDonors : donors.length,...rest };
+      })
+   ))
+
+    sendSuccess(res, responseToReturn, "Fetched campaign details successfully!");
   } catch (error) {
     // Catch and handle CustomError
     sendError(

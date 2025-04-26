@@ -40,6 +40,8 @@ const GET_CLIENT_ID_FROM_X509 ="GetClientIDFromX509";
 const GET_ALL_EXCHANGE_RATE="GetAllExchangeRates";
 const GET_USER_CAMPAIGNS="GetUserCampaigns";
 
+const REGISTER_USER = "RegisterUser";
+const UNREGISTER_USER = "UnregisterUser";
 
 // /utils/constants.js or /constants/roles.js
 
@@ -61,6 +63,10 @@ const SUPERADMIN_PASSWORD = 'adminpw';
 const AUTH_TOKEN_NAME = 'auth-token';
 
 export {
+
+  REGISTER_USER,
+  UNREGISTER_USER,
+
   AUTH_TOKEN_NAME,
   GET_CLIENT_ID_FROM_X509,
   GET_USER_CAMPAIGNS,

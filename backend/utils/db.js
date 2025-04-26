@@ -1,4 +1,3 @@
-
 // @ts-check
 import { PrismaClient } from "@prisma/client";
 

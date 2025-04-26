@@ -6,10 +6,12 @@ import { CONNECTION_PROFILE_PATH } from '../paths.js';
 import { CustomError } from '../utils/customError.js';
 import db from '../utils/db.js';
 import { FabricRoles } from '../constants.js';
+import { registerUser } from '../methods/invoke/registerUser.js';
 
 
 export async function enroll(admin, client,role) {
   
+
     if(!admin.x509Identity){
        throw new CustomError("Admin not enrolled (prefrebly re-login).",405);
     }
@@ -25,10 +27,11 @@ export async function enroll(admin, client,role) {
         select: {
           id: true,
           username: true,
-            email: true,
+          email: true,
           isVerified: true,
           createdAt: true,
-          role : true
+          role : true,
+          x509Identity : true
         }
       })
 
@@ -109,9 +112,12 @@ export async function enroll(admin, client,role) {
         email: true,
         isVerified: true,
         createdAt: true,
-        role : true
+        role : true , 
+        x509Identity : true
       }
     });
+
+    await registerUser({user : updatedUser});
 
     console.log(`✅ Successfully registered ${role} and enrolled ${client.username} by ${admin.username}`);
 

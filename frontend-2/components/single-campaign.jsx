@@ -62,8 +62,8 @@ export function SingleCampaign({ campaign, onCampaignUpdate }) {
   });
 
   const isAdmin = session?.role === ROLE.ADMIN;
-  // const isOwner = session?.id === campaign?.owner;
-  const isOwner = isAdmin;
+  const isOwner = session?.id === campaign?.owner?.id;
+  // const isOwner = isAdmin;
   const canWithdraw = isOwner && !campaign?.withdrawn && !campaign?.canceled;
   const canCancel = isOwner && !campaign?.withdrawn && !campaign?.canceled;
   const canDonate = !campaign?.withdrawn && !campaign?.canceled && Date.now() < campaign?.deadline;
@@ -97,7 +97,7 @@ export function SingleCampaign({ campaign, onCampaignUpdate }) {
   };
 
   useEffect(() => {
-    console.log('id : ',campaign?.id);
+    console.log('camp : ',campaign);
     fetchTokenMetadata();
   }, []);
 
@@ -288,12 +288,12 @@ export function SingleCampaign({ campaign, onCampaignUpdate }) {
           <div className="space-y-4">
             <h3 className="text-lg font-semibold">Donors</h3>
             <ScrollArea className="h-[300px] rounded-md border p-4">
-              {campaign?.donators?.length > 0 ? (
+              {campaign?.donors?.length > 0 ? (
                 <div className="space-y-4">
-                  {campaign?.donators.map((donor, index) => (
+                  {campaign?.donors.map((donor, index) => (
                     <div key={index} className="flex items-center justify-between">
-                      <span className="font-medium">{donor.name}</span>
-                      <span>{donor.amount} {tokenMetadata?.symbol}</span>
+                      <span className="font-medium">{donor.donor}</span>
+                      <span>{donor.donation} {tokenMetadata?.symbol}</span>
                     </div>
                   ))}
                 </div>

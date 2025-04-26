@@ -5,6 +5,7 @@ import { Wallets } from "fabric-network";
 import { CONNECTION_PROFILE_PATH } from '../paths.js';
 import { CustomError } from '../utils/customError.js';
 import db from '../utils/db.js';
+import { unregisterUser } from '../methods/invoke/unregisterUser.js';
 
 
 export async function revoke(admin, client,role) {
@@ -35,6 +36,8 @@ export async function revoke(admin, client,role) {
     //   enrollmentID: client.email,
     //   genCRL : true
     // }, adminUser);
+
+    // await unregisterUser({user : client});
     
     console.log(`❌ Revoked certificate for ${client.email}`);
 

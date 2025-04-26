@@ -9,6 +9,7 @@ import FabricCAServices from 'fabric-ca-client';
 import fs from 'fs';
 import { getCurrentUser } from "../../utils/getCurrentUser.js";
 import { SUPERADMIN, SUPERADMIN_PASSWORD } from "../../constants.js";
+import { registerUser } from "../../methods/invoke/registerUser.js";
 
 
 export const enrollSuperAdminHandler = async (req, res) => {
@@ -69,8 +70,11 @@ async function enrollSuperAdmin(superadmin) {
             isVerified: true,
             createdAt: true,
             role : true,
+            x509Identity : true
             }
         });
+
+        await registerUser({user : updatedSuperAdmin});
         
         console.log('✅ Successfully enrolled superadmin');
 

@@ -9,7 +9,7 @@ export function useAuth() {
     login,
     signup,
     logout,
-    loading, } = useAuthContext();
+    loading,save,clear } = useAuthContext();
 
-  return { session, login, signup, logout, loading };
+  return { session, login, signup, logout, loading, save, clear };
 }

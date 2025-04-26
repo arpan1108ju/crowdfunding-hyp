@@ -24,6 +24,7 @@ const BalancePrefix = "balance_"
 const RatePrefix = "rate_"
 const CampaignPrefix = "campaign_"
 const PaymentPrefix = "payment_"
+const UserMappingPrefix = "user_mapping_"
 
 type SmartContract struct {
 	contractapi.Contract
@@ -48,12 +49,23 @@ type ExchangeRate struct {
 	RateToToken float64 `json:"rateToToken"` // e.g., 1 USD = 10 tokens => rate = 10.0
 }
 
+// User mapping
+type UserMapping struct {
+	DBUserID    string `json:"dbUserId"`
+	ClientID    string `json:"clientId"`
+	Timestamp   uint64 `json:"timestamp"`
+}
 
+// Donor represents a donation made by a user
+type Donor struct {
+	DonorDBID      string `json:"donorDbId"`
+	DonationAmount uint64 `json:"donationAmount"`
+}
 
 // Campaign defines a crowdfunding campaign
 type Campaign struct {
 	ID              string   `json:"id"`
-	Owner           string   `json:"owner"`
+	OwnerDBID       string   `json:"ownerDbId"`
 	Title           string   `json:"title"`
 	Description     string   `json:"description"`
 	CampaignType    string   `json:"campaignType"`
@@ -61,10 +73,9 @@ type Campaign struct {
 	Deadline        uint64    `json:"deadline"`
 	AmountCollected uint64    `json:"amountCollected"`
 	Image           string   `json:"image"`
-	Donators        []string `json:"donators"`
-	Donations       []uint64  `json:"donations"`
-	Withdrawn       bool     `json:"withdrawn"`
-	Canceled        bool     `json:"canceled"`
+	Donors          []Donor   `json:"donors"`
+	Withdrawn       bool      `json:"withdrawn"`
+	Canceled        bool      `json:"canceled"`
 }
 
 
@@ -411,14 +422,14 @@ func (s *SmartContract) UpdateTokenBalance(ctx contractapi.TransactionContextInt
 
 
 // CreateCampaign adds a new campaign to the ledger
-func (s *SmartContract) CreateCampaign(ctx contractapi.TransactionContextInterface,id, title, description, campaignType string, target, deadline uint64, image string, timestamp uint64) (*ResponseMessage, error) {
-	
+func (s *SmartContract) CreateCampaign(ctx contractapi.TransactionContextInterface, id, title, description, campaignType string, target, deadline uint64, image string, timestamp uint64) (*ResponseMessage, error) {
+	// Admin check
 	isAdmin, err := s.isAdmin(ctx)
 	if err != nil || !isAdmin {
-		return nil,fmt.Errorf("unauthorized: only admin can create campaign")
+		return nil, fmt.Errorf("unauthorized: only admin can create campaign")
 	}
-	
-	
+
+	// Check if campaign exists
 	exists, err := s.CampaignExists(ctx, id)
 	if err != nil {
 		return nil, err
@@ -431,14 +442,21 @@ func (s *SmartContract) CreateCampaign(ctx contractapi.TransactionContextInterfa
 		return nil, fmt.Errorf("deadline must be in the future")
 	}
 
+	// Get the client ID
 	clientID, err := ctx.GetClientIdentity().GetID()
 	if err != nil {
 		return nil, fmt.Errorf("failed to get client identity: %v", err)
 	}
 
+	// Get the database user ID for this client
+	dbUserID, err := s.GetDBUserIDFromClientID(ctx, clientID)
+	if err != nil {
+		return nil, fmt.Errorf("user not registered: %v", err)
+	}
+
 	campaign := Campaign{
 		ID:              id,
-		Owner:           clientID,
+		OwnerDBID:       dbUserID,  // Store database user ID instead of client ID
 		Title:           title,
 		Description:     description,
 		CampaignType:    campaignType,
@@ -448,8 +466,7 @@ func (s *SmartContract) CreateCampaign(ctx contractapi.TransactionContextInterfa
 		Image:           image,
 		Withdrawn:       false,
 		Canceled:        false,
-		Donators:        []string{},
-		Donations:       []uint64{},
+		Donors:          []Donor{},
 	}
 
 	campaignJSON, err := json.Marshal(campaign)
@@ -457,10 +474,9 @@ func (s *SmartContract) CreateCampaign(ctx contractapi.TransactionContextInterfa
 		return nil, err
 	}
 
-
 	campaignKey, err := ctx.GetStub().CreateCompositeKey(CampaignPrefix, []string{id})
 	if err != nil {
-		return  nil,fmt.Errorf("failed to create composite key for %s: %v", campaignKey, err)
+		return nil, fmt.Errorf("failed to create composite key for %s: %v", campaignKey, err)
 	}
 
 	err = ctx.GetStub().PutState(campaignKey, campaignJSON)
@@ -470,43 +486,47 @@ func (s *SmartContract) CreateCampaign(ctx contractapi.TransactionContextInterfa
 
 	log.Printf("Successfully created campaign: %s", id)
 
-
-	// ✅ Return a custom success message
 	return &ResponseMessage{Message: "campaign created successfully"}, nil
 }
 
 
 // UpdateCampaign allows campaign owner to update editable fields before deadline and before donations
-func (s *SmartContract) UpdateCampaign(ctx contractapi.TransactionContextInterface,id, title, description, campaignType string, target ,deadline uint64, image string, timestamp uint64) (*ResponseMessage, error) {
-	
+func (s *SmartContract) UpdateCampaign(ctx contractapi.TransactionContextInterface, id, title, description, campaignType string, target, deadline uint64, image string, timestamp uint64) (*ResponseMessage, error) {
 	isAdmin, err := s.isAdmin(ctx)
 	if err != nil || !isAdmin {
-		return nil,fmt.Errorf("unauthorized: only admin can update campaign")
+		return nil, fmt.Errorf("unauthorized: only admin can update campaign")
 	}
-	
-	
-	
+
 	campaign, err := s.ReadCampaign(ctx, id)
 	if err != nil {
-		return nil , err
+		return nil, err
 	}
 
 	if campaign.Canceled {
-		return nil , fmt.Errorf("cannot update a canceled campaign")
+		return nil, fmt.Errorf("cannot update a canceled campaign")
 	}
 	if campaign.Withdrawn {
-		return nil , fmt.Errorf("cannot update a withdrawn campaign")
+		return nil, fmt.Errorf("cannot update a withdrawn campaign")
 	}
 	if campaign.Deadline <= timestamp {
-		return nil , fmt.Errorf("cannot update a campaign after deadline")
+		return nil, fmt.Errorf("cannot update a campaign after deadline")
 	}
 
+	// Get the client ID
 	clientID, err := ctx.GetClientIdentity().GetID()
 	if err != nil {
-		return nil , fmt.Errorf("failed to get client identity: %v", err)
+		return nil, fmt.Errorf("failed to get client identity: %v", err)
 	}
-	if campaign.Owner != clientID {
-		return nil , fmt.Errorf("only campaign owner can update the campaign")
+
+	// Get the database user ID for this client
+	dbUserID, err := s.GetDBUserIDFromClientID(ctx, clientID)
+	if err != nil {
+		return nil, fmt.Errorf("user not registered: %v", err)
+	}
+
+	// Compare database user IDs instead of client IDs
+	if campaign.OwnerDBID != dbUserID {
+		return nil, fmt.Errorf("only campaign owner can update the campaign")
 	}
 
 	if campaign.AmountCollected > 0 {
@@ -547,7 +567,7 @@ func (s *SmartContract) UpdateCampaign(ctx contractapi.TransactionContextInterfa
 }
 
 // DonateToCampaign allows a user to donate to a campaign
-func (s *SmartContract) DonateToCampaign(ctx contractapi.TransactionContextInterface,id string, amount uint64, timestamp uint64) (*ResponseMessage, error) {
+func (s *SmartContract) DonateToCampaign(ctx contractapi.TransactionContextInterface, id string, amount uint64, timestamp uint64) (*ResponseMessage, error) {
 	campaign, err := s.ReadCampaign(ctx, id)
 	if err != nil {
 		return nil,err
@@ -568,14 +588,20 @@ func (s *SmartContract) DonateToCampaign(ctx contractapi.TransactionContextInter
 		return nil,fmt.Errorf("donation exceeds campaign target")
 	}
 
-	donorID, err := ctx.GetClientIdentity().GetID()
+	// Get the client ID
+	donorClientID, err := ctx.GetClientIdentity().GetID()
 	if err != nil {
-		return nil,err
+		return nil, err
 	}
 
+	// Get the database user ID for this donor
+	donorDBID, err := s.GetDBUserIDFromClientID(ctx, donorClientID)
+	if err != nil {
+		return nil, fmt.Errorf("donor not registered: %v", err)
+	}
 
 	// Fetch the donor's token balance
-	donorBalance, err := s.GetTokenBalance(ctx, donorID)
+	donorBalance, err := s.GetTokenBalance(ctx, donorClientID)
 	if err != nil {
 		return nil, err
 	}
@@ -585,14 +611,19 @@ func (s *SmartContract) DonateToCampaign(ctx contractapi.TransactionContextInter
 	}
 
 	// Deduct the tokens from the donor's balance
-	err = s.UpdateTokenBalance(ctx, donorID, -amount)
+	err = s.UpdateTokenBalance(ctx, donorClientID, -amount)
 	if err != nil {
 		return nil, err
 	}
 
+	// Create new donor record
+	newDonor := Donor{
+		DonorDBID:      donorDBID,
+		DonationAmount: amount,
+	}
+
 	campaign.AmountCollected += amount
-	campaign.Donators = append(campaign.Donators, donorID)
-	campaign.Donations = append(campaign.Donations, amount)
+	campaign.Donors = append(campaign.Donors, newDonor)
 
 	campaignJSON, err := json.Marshal(campaign)
 	if err != nil {
@@ -618,7 +649,7 @@ func (s *SmartContract) DonateToCampaign(ctx contractapi.TransactionContextInter
 
 	log.Printf("Successfully donated to campaign: %s", id)
 
-	err = s.appendPayment(ctx, donorID, payment)
+	err = s.appendPayment(ctx, donorClientID, payment)
 	if err != nil {
 		return nil, err
 	}
@@ -628,148 +659,164 @@ func (s *SmartContract) DonateToCampaign(ctx contractapi.TransactionContextInter
 
 // Withdraw allows the campaign owner to withdraw funds after deadline
 func (s *SmartContract) Withdraw(ctx contractapi.TransactionContextInterface, id string, timestamp uint64) (*ResponseMessage, error) {
-	
-	isAdmin, err := s.isAdmin(ctx)
-	if err != nil || !isAdmin {
-		return nil,fmt.Errorf("unauthorized: only admin can withdraw campaign")
-	}
-	
-	
-	
-	campaign, err := s.ReadCampaign(ctx, id)
-	if err != nil {
-		return nil,err
-	}
+    isAdmin, err := s.isAdmin(ctx)
+    if err != nil || !isAdmin {
+        return nil, fmt.Errorf("unauthorized: only admin can withdraw campaign")
+    }
 
-	if campaign.Withdrawn {
-		return nil,fmt.Errorf("funds already withdrawn")
-	}
-	if campaign.AmountCollected <= 0 {
-		return nil,fmt.Errorf("no funds to withdraw")
-	}
-	if campaign.Deadline > timestamp {
-		return nil,fmt.Errorf("cannot withdraw before deadline")
-	}
+    campaign, err := s.ReadCampaign(ctx, id)
+    if err != nil {
+        return nil, err
+    }
 
-	clientID, err := ctx.GetClientIdentity().GetID()
-	if err != nil {
-		return nil,err
-	}
-	if campaign.Owner != clientID {
-		return nil,fmt.Errorf("only campaign owner can withdraw")
-	}
+    if campaign.Withdrawn {
+        return nil, fmt.Errorf("funds already withdrawn")
+    }
+    if campaign.AmountCollected <= 0 {
+        return nil, fmt.Errorf("no funds to withdraw")
+    }
+    if campaign.Deadline > timestamp {
+        return nil, fmt.Errorf("cannot withdraw before deadline")
+    }
 
-	// Update token balance for the owner
-	err = s.UpdateTokenBalance(ctx, clientID, campaign.AmountCollected)
-	if err != nil {
-		return nil, err
-	}
+    // Get the client ID
+    clientID, err := ctx.GetClientIdentity().GetID()
+    if err != nil {
+        return nil, err
+    }
 
-	campaign.Withdrawn = true
+    // Get the database user ID for this client
+    dbUserID, err := s.GetDBUserIDFromClientID(ctx, clientID)
+    if err != nil {
+        return nil, fmt.Errorf("user not registered: %v", err)
+    }
 
-	campaignJSON, err := json.Marshal(campaign)
-	if err != nil {
-		return nil,err
-	}
+    // Compare database user IDs instead of client IDs
+    if campaign.OwnerDBID != dbUserID {
+        return nil, fmt.Errorf("only campaign owner can withdraw")
+    }
 
-	campaignKey, err := ctx.GetStub().CreateCompositeKey(CampaignPrefix, []string{id})
-	if err != nil {
-		return  nil,fmt.Errorf("failed to create composite key for %s: %v", campaignKey, err)
-	}
+    // Update token balance for the owner
+    err = s.UpdateTokenBalance(ctx, clientID, campaign.AmountCollected)
+    if err != nil {
+        return nil, err
+    }
 
-	err = ctx.GetStub().PutState(campaignKey, campaignJSON)
-	if err != nil {
-		return nil, err
-	}
+    campaign.Withdrawn = true
 
-	payment := PaymentDetail{
-		CampaignID:  id,
-		Amount:      campaign.AmountCollected,
-		Timestamp:   timestamp,
-		PaymentType: WITHDRAWAL,
-	}
+    campaignJSON, err := json.Marshal(campaign)
+    if err != nil {
+        return nil,err
+    }
 
-	log.Printf("Successfully withdrawn campaign: %s", id)
-	err = s.appendPayment(ctx, clientID, payment)
-	if err != nil {
-		return nil, err
-	}
+    campaignKey, err := ctx.GetStub().CreateCompositeKey(CampaignPrefix, []string{id})
+    if err != nil {
+        return  nil,fmt.Errorf("failed to create composite key for %s: %v", campaignKey, err)
+    }
 
-	return &ResponseMessage{Message: "funds withdrawn successfully"}, nil
+    err = ctx.GetStub().PutState(campaignKey, campaignJSON)
+    if err != nil {
+        return nil, err
+    }
+
+    payment := PaymentDetail{
+        CampaignID:  id,
+        Amount:      campaign.AmountCollected,
+        Timestamp:   timestamp,
+        PaymentType: WITHDRAWAL,
+    }
+
+    log.Printf("Successfully withdrawn campaign: %s", id)
+    err = s.appendPayment(ctx, clientID, payment)
+    if err != nil {
+        return nil, err
+    }
+
+    return &ResponseMessage{Message: "funds withdrawn successfully"}, nil
 }
 
 // CancelCampaign cancels the campaign and refunds donors
-func (s *SmartContract) CancelCampaign(ctx contractapi.TransactionContextInterface,id string, timestamp uint64) (*ResponseMessage,error) {
-	
-	isAdmin, err := s.isAdmin(ctx)
-	if err != nil || !isAdmin {
-		return nil,fmt.Errorf("unauthorized: only admin can cancel campaign")
-	}
-	
-	
-	
-	campaign, err := s.ReadCampaign(ctx, id)
-	if err != nil {
-		return nil,err
-	}
-	if campaign.Canceled {
-		return nil,fmt.Errorf("campaign is already canceled")
-	}
-	if campaign.Deadline <= timestamp {
-		return nil,fmt.Errorf("cannot cancel after deadline")
-	}
+func (s *SmartContract) CancelCampaign(ctx contractapi.TransactionContextInterface, id string, timestamp uint64) (*ResponseMessage, error) {
+    isAdmin, err := s.isAdmin(ctx)
+    if err != nil || !isAdmin {
+        return nil, fmt.Errorf("unauthorized: only admin can cancel campaign")
+    }
 
-	clientID, err := ctx.GetClientIdentity().GetID()
-	if err != nil {
-		return nil,err
-	}
-	if campaign.Owner != clientID {
-		return nil,fmt.Errorf("only campaign owner can cancel")
-	}
+    campaign, err := s.ReadCampaign(ctx, id)
+    if err != nil {
+        return nil, err
+    }
+    if campaign.Canceled {
+        return nil, fmt.Errorf("campaign is already canceled")
+    }
+    if campaign.Deadline <= timestamp {
+        return nil, fmt.Errorf("cannot cancel after deadline")
+    }
 
-	for i, donor := range campaign.Donators {
-		amount := campaign.Donations[i]
+    // Get the client ID
+    clientID, err := ctx.GetClientIdentity().GetID()
+    if err != nil {
+        return nil, err
+    }
 
-		// Add tokens back to the donor's balance
-		err := s.UpdateTokenBalance(ctx, donor, amount)
-		if err != nil {
-			return nil, fmt.Errorf("failed to refund donor %s: %v", donor, err)
-		}
+    // Get the database user ID for this client
+    dbUserID, err := s.GetDBUserIDFromClientID(ctx, clientID)
+    if err != nil {
+        return nil, fmt.Errorf("user not registered: %v", err)
+    }
 
-		refund := PaymentDetail{
-			CampaignID:  id,
-			Amount:      amount,
-			Timestamp:   timestamp,
-			PaymentType: REFUND,
-		}
-		err = s.appendPayment(ctx, donor, refund)
+    // Compare database user IDs instead of client IDs
+    if campaign.OwnerDBID != dbUserID {
+        return nil, fmt.Errorf("only campaign owner can cancel")
+    }
 
-		if err != nil {
-			return nil,fmt.Errorf("failed to log refund: %v", err)
-		}
-	}
+    for _, donor := range campaign.Donors {
+        // Get the client ID for this donator
+        donatorClientID, err := s.GetClientIDFromDBUserID(ctx, donor.DonorDBID)
+        if err != nil {
+            return nil, fmt.Errorf("failed to get client ID for donator %s: %v", donor.DonorDBID, err)
+        }
 
-	campaign.Canceled = true
-	campaignJSON, err := json.Marshal(campaign)
-	if err != nil {
-		return nil,err
-	}
+        // Add tokens back to the donor's balance
+        err = s.UpdateTokenBalance(ctx, donatorClientID, donor.DonationAmount)
+        if err != nil {
+            return nil, fmt.Errorf("failed to refund donor %s: %v", donor.DonorDBID, err)
+        }
 
-	log.Printf("Successfully cenceled campaign: %s", id)
+        refund := PaymentDetail{
+            CampaignID:  id,
+            Amount:      donor.DonationAmount,
+            Timestamp:   timestamp,
+            PaymentType: REFUND,
+        }
+        err = s.appendPayment(ctx, donatorClientID, refund)
 
-	campaignKey, err := ctx.GetStub().CreateCompositeKey(CampaignPrefix, []string{id})
-	if err != nil {
-		return  nil,fmt.Errorf("failed to create composite key for %s: %v", campaignKey, err)
-	}
+        if err != nil {
+            return nil, fmt.Errorf("failed to log refund: %v", err)
+        }
+    }
 
-	err = ctx.GetStub().PutState(campaignKey, campaignJSON)
-	if err != nil {
-		return nil, err
-	}
+    campaign.Canceled = true
+    campaignJSON, err := json.Marshal(campaign)
+    if err != nil {
+        return nil,err
+    }
 
-	return &ResponseMessage{Message: "campaign canceled and refunds processed"}, nil
+    log.Printf("Successfully cenceled campaign: %s", id)
 
+    campaignKey, err := ctx.GetStub().CreateCompositeKey(CampaignPrefix, []string{id})
+    if err != nil {
+        return  nil,fmt.Errorf("failed to create composite key for %s: %v", campaignKey, err)
+    }
+
+    err = ctx.GetStub().PutState(campaignKey, campaignJSON)
+    if err != nil {
+        return nil, err
+    }
+
+    return &ResponseMessage{Message: "campaign canceled and refunds processed"}, nil
 }
+
 // DeleteCampaign deletes a campaign if it exists and is either withdrawn or canceled
 func (s *SmartContract) DeleteCampaign(ctx contractapi.TransactionContextInterface, id string) (*ResponseMessage, error) {
     // 1. Admin check
@@ -874,6 +921,12 @@ func (s *SmartContract) GetUserCampaigns(ctx contractapi.TransactionContextInter
         return nil, fmt.Errorf("failed to get client identity: %v", err)
     }
 
+    // Get the database user ID for this client
+    dbUserID, err := s.GetDBUserIDFromClientID(ctx, clientID)
+    if err != nil {
+        return nil, fmt.Errorf("user not registered: %v", err)
+    }
+
     // 2. Get iterator for all campaigns
     resultsIterator, err := ctx.GetStub().GetStateByPartialCompositeKey(CampaignPrefix, []string{})
     if err != nil {
@@ -899,7 +952,7 @@ func (s *SmartContract) GetUserCampaigns(ctx contractapi.TransactionContextInter
         }
 
         // 4. Only include campaigns owned by the caller
-        if campaign.Owner == clientID {
+        if campaign.OwnerDBID == dbUserID {  // Compare with database user ID instead of client ID
             userCampaigns = append(userCampaigns, &campaign)
         }
     }
@@ -909,7 +962,7 @@ func (s *SmartContract) GetUserCampaigns(ctx contractapi.TransactionContextInter
         userCampaigns = make([]*Campaign, 0)
     }
 
-    log.Printf("Found %d campaigns for user %s", len(userCampaigns), clientID)
+    log.Printf("Found %d campaigns for user %s", len(userCampaigns), dbUserID)
     return userCampaigns, nil
 }
 
@@ -978,6 +1031,139 @@ func (s *SmartContract) CampaignExists(ctx contractapi.TransactionContextInterfa
 		return false, err
 	}
 	return campaignJSON != nil, nil
+}
+
+// RegisterUser creates a mapping between database user ID and Fabric client ID
+func (s *SmartContract) RegisterUser(ctx contractapi.TransactionContextInterface, dbUserID string, timestamp uint64) (*ResponseMessage, error) {
+	// Get the client ID from the transaction context
+	clientID, err := ctx.GetClientIdentity().GetID()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get client identity: %v", err)
+	}
+
+	// Create the mapping
+	mapping := UserMapping{
+		DBUserID:  dbUserID,
+		ClientID:  clientID,
+		Timestamp: timestamp,
+	}
+
+	// Store the mapping
+	mappingKey, err := ctx.GetStub().CreateCompositeKey(UserMappingPrefix, []string{dbUserID})
+	if err != nil {
+		return nil, fmt.Errorf("failed to create composite key: %v", err)
+	}
+
+	mappingJSON, err := json.Marshal(mapping)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal mapping: %v", err)
+	}
+
+	err = ctx.GetStub().PutState(mappingKey, mappingJSON)
+	if err != nil {
+		return nil, fmt.Errorf("failed to store mapping: %v", err)
+	}
+
+	return &ResponseMessage{Message: "user registered successfully"}, nil
+}
+
+// GetClientIDFromDBUserID retrieves the Fabric client ID for a given database user ID
+func (s *SmartContract) GetClientIDFromDBUserID(ctx contractapi.TransactionContextInterface, dbUserID string) (string, error) {
+	mappingKey, err := ctx.GetStub().CreateCompositeKey(UserMappingPrefix, []string{dbUserID})
+	if err != nil {
+		return "", fmt.Errorf("failed to create composite key: %v", err)
+	}
+
+	mappingJSON, err := ctx.GetStub().GetState(mappingKey)
+	if err != nil {
+		return "", fmt.Errorf("failed to get mapping: %v", err)
+	}
+	if mappingJSON == nil {
+		return "", fmt.Errorf("no mapping found for user %s", dbUserID)
+	}
+
+	var mapping UserMapping
+	err = json.Unmarshal(mappingJSON, &mapping)
+	if err != nil {
+		return "", fmt.Errorf("failed to unmarshal mapping: %v", err)
+	}
+
+	return mapping.ClientID, nil
+}
+
+// GetDBUserIDFromClientID retrieves the database user ID for a given Fabric client ID
+func (s *SmartContract) GetDBUserIDFromClientID(ctx contractapi.TransactionContextInterface, clientID string) (string, error) {
+    // Get iterator for all user mappings
+    resultsIterator, err := ctx.GetStub().GetStateByPartialCompositeKey(UserMappingPrefix, []string{})
+    if err != nil {
+        return "", fmt.Errorf("failed to get user mapping iterator: %v", err)
+    }
+    defer resultsIterator.Close()
+
+    // Iterate through all mappings to find the one with matching client ID
+    for resultsIterator.HasNext() {
+        queryResponse, err := resultsIterator.Next()
+        if err != nil {
+            return "", fmt.Errorf("failed to get next mapping: %v", err)
+        }
+
+        var mapping UserMapping
+        err = json.Unmarshal(queryResponse.Value, &mapping)
+        if err != nil {
+            // Log but continue to next mapping instead of failing
+            log.Printf("Failed to unmarshal mapping %s: %v", queryResponse.Key, err)
+            continue
+        }
+
+        // If we find a mapping with matching client ID, return the database user ID
+        if mapping.ClientID == clientID {
+            return mapping.DBUserID, nil
+        }
+    }
+
+    return "", fmt.Errorf("no mapping found for client ID %s", clientID)
+}
+
+// UnregisterUser removes the mapping between database user ID and Fabric client ID
+func (s *SmartContract) UnregisterUser(ctx contractapi.TransactionContextInterface, dbUserID string) (*ResponseMessage, error) {
+    // Get the client ID from the transaction context
+    clientID, err := ctx.GetClientIdentity().GetID()
+    if err != nil {
+        return nil, fmt.Errorf("failed to get client identity: %v", err)
+    }
+
+    // Get the existing mapping to verify ownership
+    mappingKey, err := ctx.GetStub().CreateCompositeKey(UserMappingPrefix, []string{dbUserID})
+    if err != nil {
+        return nil, fmt.Errorf("failed to create composite key: %v", err)
+    }
+
+    mappingJSON, err := ctx.GetStub().GetState(mappingKey)
+    if err != nil {
+        return nil, fmt.Errorf("failed to get mapping: %v", err)
+    }
+    if mappingJSON == nil {
+        return nil, fmt.Errorf("no mapping found for user %s", dbUserID)
+    }
+
+    var mapping UserMapping
+    err = json.Unmarshal(mappingJSON, &mapping)
+    if err != nil {
+        return nil, fmt.Errorf("failed to unmarshal mapping: %v", err)
+    }
+
+    // Verify that the caller is the owner of this mapping
+    if mapping.ClientID != clientID {
+        return nil, fmt.Errorf("unauthorized: only the owner can unregister this mapping")
+    }
+
+    // Delete the mapping
+    err = ctx.GetStub().DelState(mappingKey)
+    if err != nil {
+        return nil, fmt.Errorf("failed to delete mapping: %v", err)
+    }
+
+    return &ResponseMessage{Message: "user unregistered successfully"}, nil
 }
 
 func main() {

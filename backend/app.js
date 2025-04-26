@@ -2,7 +2,7 @@
 
 import express from 'express';
 import cors from 'cors';
-import { FRONT_END_URL, PORT } from './config.js';
+import { FRONT_END_FALLBACK_URL, FRONT_END_URL, PORT } from './config.js';
 import cookieParser from 'cookie-parser';
 
 import dummyRoute from "./routes/dummyRoute/dummyRoute.js";
@@ -21,6 +21,7 @@ const app = express();
 
 const allowedOrigins = [
     FRONT_END_URL,
+    FRONT_END_FALLBACK_URL,
     'https://your-production-frontend.com'
 ];
   

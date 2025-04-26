@@ -5,7 +5,7 @@
   "main": "enrollAdmin.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev" : "node scripts/generate-connection-profile.js && node app.js"
+    "dev": "node scripts/generate-connection-profile.js && node app.js"
   },
   "keywords": [],
   "author": "",
