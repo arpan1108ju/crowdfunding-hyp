@@ -79,7 +79,8 @@ export function EnrollRevokeManagement({fetchAll,enroll,revoke,fetchSingle,isCal
     const matchesRole = roleFilter === "all" || user.role.toLowerCase() === roleFilter.toLowerCase();
     const matchesStatus = statusFilter === "all" || 
       (statusFilter === "verified" && user.isVerified) ||
-      (statusFilter === "not_verified" && !user.isVerified)
+      (statusFilter === "not_verified" && !user.isVerified && !user.isRevoked) ||
+      (statusFilter === "revoked" && user.isRevoked)
 
     return matchesSearch && matchesRole && matchesStatus
   })
@@ -93,7 +94,7 @@ export function EnrollRevokeManagement({fetchAll,enroll,revoke,fetchSingle,isCal
         throw new Error(result.message);
       }
 
-      
+      const gotUser = result.data;
       
       // Simulate API call
       // await new Promise(resolve => setTimeout(resolve, 1000));
@@ -122,28 +123,26 @@ export function EnrollRevokeManagement({fetchAll,enroll,revoke,fetchSingle,isCal
   const handleRevoke = async (userId) => {
     setIsProcessing(true)
     try {
-      // Commented out API call
       const result = await revoke(userId);
       if (!result.success) {
         throw new Error(result.message);
       }
-      
-      // Simulate API call
-      // await new Promise(resolve => setTimeout(resolve, 1000));
+
+      const gotUser = result.data;
       
       setUsers(users.map(user => {
         if (user.id === userId) {
-          return { ...user, isVerified: false }
+          return { ...user, isVerified: false, isRevoked: true }
         }
         return user
       }))
       
       toast.success("Success", {
-        description: "User has been revoked successfully"
+        description: `${gotUser} has been revoked successfully`
       })
     } catch (error) {
       toast.error("Error", {
-        description: error.message || "Failed to revoke user"
+        description: error.message || `Failed to revoke ${gotUser}`
       })
     } finally {
       setIsProcessing(false)
@@ -181,14 +180,27 @@ export function EnrollRevokeManagement({fetchAll,enroll,revoke,fetchSingle,isCal
     { value: "all", label: "All Status" },
     { value: "verified", label: "Verified" },
     { value: "not_verified", label: "Not Verified" },
+    { value: "revoked", label: "Revoked" },
   ]
 
-  // Available roles for dropdown
-  const availableRoles = Object.values(ROLE);
+  // Available roles for dropdown based on current role
+  const getAvailableRoles = (currentRole) => {
+    switch (currentRole) {
+      case ROLE.USER:
+        return [ROLE.ADMIN, ROLE.SUPERADMIN];
+      case ROLE.ADMIN:
+        return [ROLE.USER, ROLE.SUPERADMIN];
+      case ROLE.SUPERADMIN:
+        return [ROLE.USER, ROLE.ADMIN];
+      default:
+        return [];
+    }
+  };
 
   // Handle role selection from dropdown
   const handleRoleSelect = (user, newRole) => {
-    if (user.role !== newRole) {
+    // Only allow role changes for unverified and not revoked users
+    if (!user.isVerified && !user.isRevoked && user.role !== newRole) {
       setRoleChangeDetails({
         userId: user.id,
         currentRole: user.role,
@@ -325,11 +337,23 @@ export function EnrollRevokeManagement({fetchAll,enroll,revoke,fetchSingle,isCal
                     <TableCell>
                       <div
                         className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${
-                          user.isVerified ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
+                          user.isRevoked 
+                            ? "bg-red-100 text-red-800"
+                            : user.isVerified 
+                              ? "bg-green-100 text-green-800"
+                              : "bg-yellow-100 text-yellow-800"
                         }`}
                       >
-                        {user.isVerified ? <Check className="mr-1 h-3 w-3" /> : <X className="mr-1 h-3 w-3" />}
-                        <span className="capitalize">{user.isVerified ? "verified" : "not verified"}</span>
+                        {user.isRevoked ? (
+                          <X className="mr-1 h-3 w-3" />
+                        ) : user.isVerified ? (
+                          <Check className="mr-1 h-3 w-3" />
+                        ) : (
+                          <X className="mr-1 h-3 w-3" />
+                        )}
+                        <span className="capitalize">
+                          {user.isRevoked ? "Revoked" : user.isVerified ? "Verified" : "Not Verified"}
+                        </span>
                       </div>
                     </TableCell>
                     <TableCell className="text-right actions-column">
@@ -342,6 +366,7 @@ export function EnrollRevokeManagement({fetchAll,enroll,revoke,fetchSingle,isCal
                             setSelectedUser(user);
                             setIsDialogOpen(true);
                           }}
+                          disabled={user.isRevoked}
                         >
                           {user.isVerified ? "Revoke" : "Enroll"}
                         </Button>
@@ -353,13 +378,14 @@ export function EnrollRevokeManagement({fetchAll,enroll,revoke,fetchSingle,isCal
                                 variant="outline" 
                                 size="sm"
                                 onClick={(e) => e.stopPropagation()}
+                                disabled={user.isRevoked || user.isVerified}
                               >
                                 Change Role
                                 <ChevronDown className="ml-2 h-4 w-4" />
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
-                              {availableRoles.map((role) => (
+                              {getAvailableRoles(user.role).map((role) => (
                                 <DropdownMenuItem
                                   key={role}
                                   onClick={(e) => {
@@ -377,7 +403,7 @@ export function EnrollRevokeManagement({fetchAll,enroll,revoke,fetchSingle,isCal
                                 </DropdownMenuItem>
                               ))}
                             </DropdownMenuContent>
-                            </DropdownMenu>
+                          </DropdownMenu>
                         )}
                       </div>
                     </TableCell>
@@ -402,7 +428,15 @@ export function EnrollRevokeManagement({fetchAll,enroll,revoke,fetchSingle,isCal
               {selectedUser?.isVerified ? "Revoke User" : "Enroll User"}
             </DialogTitle>
             <DialogDescription>
-              Are you sure you want to {selectedUser?.isVerified ? "revoke" : "enroll"} {selectedUser?.email}?
+              {selectedUser?.isVerified ? (
+                <>
+                  <p className="text-red-600 font-semibold mb-2">Warning: This action cannot be undone!</p>
+                  <p>If you revoke this user's identity, they will be permanently revoked from the network and cannot be registered or enrolled again.</p>
+                  <p className="mt-2">Are you sure you want to revoke {selectedUser?.email}?</p>
+                </>
+              ) : (
+                `Are you sure you want to enroll ${selectedUser?.email}?`
+              )}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
@@ -459,15 +493,27 @@ export function EnrollRevokeManagement({fetchAll,enroll,revoke,fetchSingle,isCal
                 <div className="col-span-3 capitalize">{userDetails.role}</div>
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
-                <label className="font-medium">Verification:</label>
+                <label className="font-medium">Status:</label>
                 <div className="col-span-3">
                   <div
                     className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${
-                      userDetails.isVerified ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
+                      userDetails.isRevoked 
+                        ? "bg-red-100 text-red-800"
+                        : userDetails.isVerified 
+                          ? "bg-green-100 text-green-800"
+                          : "bg-yellow-100 text-yellow-800"
                     }`}
                   >
-                    {userDetails.isVerified ? <Check className="mr-1 h-3 w-3" /> : <X className="mr-1 h-3 w-3" />}
-                    <span className="capitalize">{userDetails.isVerified ? "Verified" : "Not Verified"}</span>
+                    {userDetails.isRevoked ? (
+                      <X className="mr-1 h-3 w-3" />
+                    ) : userDetails.isVerified ? (
+                      <Check className="mr-1 h-3 w-3" />
+                    ) : (
+                      <X className="mr-1 h-3 w-3" />
+                    )}
+                    <span className="capitalize">
+                      {userDetails.isRevoked ? "Revoked" : userDetails.isVerified ? "Verified" : "Not Verified"}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -512,6 +558,7 @@ export function EnrollRevokeManagement({fetchAll,enroll,revoke,fetchSingle,isCal
               Are you sure you want to change the role of user "{roleChangeDetails?.userEmail}" from{" "}
               <span className="font-semibold">{roleChangeDetails?.currentRole}</span> to{" "}
               <span className="font-semibold">{roleChangeDetails?.newRole}</span>?
+              <p className="mt-2 text-sm text-gray-500">Note: Role changes are only allowed for unverified users.</p>
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>

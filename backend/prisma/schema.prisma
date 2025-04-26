@@ -28,7 +28,9 @@ model User {
   password        String
 
   x509Identity    Json?
+  secret          String?
 
+  isRevoked       Boolean  @default(false)
   isVerified      Boolean  @default(false)
   credentials     String?
 

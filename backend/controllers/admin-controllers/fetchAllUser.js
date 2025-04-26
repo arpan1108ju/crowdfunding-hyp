@@ -35,6 +35,7 @@ export const fetchAllUser = async (req, res) => {
           email: true,
           role: true,
           isVerified: true,
+          isRevoked : true
         },
       });
     } else {
@@ -45,6 +46,7 @@ export const fetchAllUser = async (req, res) => {
           email: true,
           role: true,
           isVerified: true,
+          isRevoked : true
         },
       });
     }

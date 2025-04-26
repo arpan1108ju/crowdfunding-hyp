@@ -53,6 +53,7 @@ export const signup = async (req, res) => {
         email: true,
         isVerified: true,
         role: true,
+        isRevoked : true
       },
     });
 

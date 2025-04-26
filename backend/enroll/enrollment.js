@@ -16,30 +16,34 @@ export async function enroll(admin, client,role) {
        throw new CustomError("Admin not enrolled (prefrebly re-login).",405);
     }
 
-    if(!client.isVerified && client.x509Identity){
-      const updatedUser = await db.user.update({
-        where : {
-           id : client.id
-        },
-        data : {
-          isVerified : true
-        },
-        select: {
-          id: true,
-          username: true,
-          email: true,
-          isVerified: true,
-          createdAt: true,
-          role : true,
-          x509Identity : true
-        }
-      })
-
-      return updatedUser;
+    if(client.isRevoked){
+      throw new CustomError(`${client.username} has been revoked, cannot enroll.`,405);       
     }
 
+    // if(!client.isVerified && client.x509Identity){
+    //   const updatedUser = await db.user.update({
+    //     where : {
+    //        id : client.id
+    //     },
+    //     data : {
+    //       isVerified : true
+    //     },
+    //     select: {
+    //       id: true,
+    //       username: true,
+    //       email: true,
+    //       isVerified: true,
+    //       createdAt: true,
+    //       role : true,
+    //       x509Identity : true
+    //     }
+    //   })
 
-    if(client.x509Identity){
+    //   return updatedUser;
+    // }
+
+
+    if(client.isVerified && client.x509Identity){
        throw new CustomError("User already enrolled",405);
     }
 
@@ -86,6 +90,7 @@ export async function enroll(admin, client,role) {
       attrs,
     }, adminUser);
 
+
     const enrollment = await ca.enroll({
       enrollmentID: client.email,
       enrollmentSecret: secret,
@@ -104,7 +109,9 @@ export async function enroll(admin, client,role) {
       where: { id: client.id },
       data: {
         isVerified : true,
-        x509Identity : x509Identity
+        x509Identity : x509Identity,
+        secret : secret,
+        isRevoked : false
       },
       select: {
         id: true,

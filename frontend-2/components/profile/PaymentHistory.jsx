@@ -8,12 +8,9 @@ import { Button } from "@/components/ui/button";
 import { RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import { PAYMENT_TYPE } from "@/lib/constants";
-import { initialPaymentHistory } from "@/lib/data/dummy-data";
-
 
 export function PaymentHistory() {
   const { getPayments } = useTokenService();
-  // const [payments, setPayments] = useState(initialPaymentHistory);
   const [payments, setPayments] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);

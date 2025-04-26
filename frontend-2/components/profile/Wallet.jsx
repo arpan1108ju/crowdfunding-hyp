@@ -8,15 +8,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { initialExchangeRates, initialTokenMetadata } from "@/lib/data/dummy-data";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { dispatchBalanceUpdated } from "@/lib/events";
 
-
-
 export function Wallet() {
-
   const { 
     getBalance, 
     getTokenMetadata, 
@@ -25,15 +21,12 @@ export function Wallet() {
   } = useTokenService();
 
   const [balance, setBalance] = useState(0);
-  // const [metadata, setMetadata] = useState(initialTokenMetadata);
   const [metadata, setMetadata] = useState(null);
-  // const [rates, setRates] = useState(initialExchangeRates);
   const [rates, setRates] = useState([]);
   const [mintAmount, setMintAmount] = useState(0);
   const [selectedCurrency, setSelectedCurrency] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
-
 
   const fetchBalance = async () => {
     try {
@@ -182,7 +175,6 @@ export function Wallet() {
           </div>
         </div>
 
-        
         <div className="space-y-2">
             <p className="text-sm font-medium text-muted-foreground">Mint Tokens</p>
             <div className="flex flex-col gap-2">

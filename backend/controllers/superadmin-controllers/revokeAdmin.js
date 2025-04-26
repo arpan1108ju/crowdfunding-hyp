@@ -24,7 +24,7 @@ export const revokeAdminHandler = async (req, res) => {
     const superadmin = await getCurrentUser();
 
     if(existingAdmin.role !== Role.ADMIN){
-        throw new CustomError("Given user is not admin",403);
+        throw new CustomError("Identity is not admin",403);
     }
 
     const updatedAdmin = await revoke(superadmin,existingAdmin,FabricRoles.ADMIN);

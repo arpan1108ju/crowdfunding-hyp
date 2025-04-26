@@ -5,7 +5,7 @@ export const RoleSchema = z.nativeEnum(Role);
 
 // 2. changeRoleSchema: only allows "ADMIN" and "USER"
 export const changeRoleSchema = z.object({
-  role: z.enum([Role.ADMIN, Role.USER])
+  role: z.enum([Role.ADMIN,Role.SUPERADMIN,Role.USER])
 });
 
 export  const verifiedSchema = z.enum([

@@ -13,6 +13,8 @@ import tokenRoutes from "./routes/tokenRoutes/tokenRoutes.js";
 import uploadRoutes from "./routes/uploadRoutes/uploadRoutes.js";
 import superadminRoutes from "./routes/superadminRoutes/superadminRoutes.js";
 
+import userRoutes from "./routes/userRoutes/userRoutes.js";
+
 import { errorHandler, notFound } from './middlewares/errorMiddleware.js';
 import { contextMiddleware } from './middlewares/requestContextMiddleware.js';
 
@@ -45,6 +47,10 @@ app.use('/api/v1/auth',authRoutes);
 app.use('/api/v1/campaigns',campaignRoutes);
 
 app.use('/api/v1/dummy',dummyRoute);
+
+//user
+
+app.use('/api/v1/user',userRoutes);
 
 //admin
 app.use('/api/v1/admin',adminRoutes);

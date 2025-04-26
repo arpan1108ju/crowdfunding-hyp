@@ -18,7 +18,8 @@ export const fetchOneUser = async (req, res) => {
            email : true,
            isVerified : true,
            role : true,
-           createdAt : true
+           createdAt : true,
+           isRevoked : true
         }
       });
   

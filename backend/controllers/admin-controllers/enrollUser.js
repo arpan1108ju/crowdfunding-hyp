@@ -22,7 +22,7 @@ export const enrollUser = async (req, res) => {
     }
 
     if(existingUser.role !== Role.USER){
-       throw new CustomError("Given person is not user",403);
+       throw new CustomError("Identity is not user",403);
     }
     // call enroll user here
 

@@ -8,9 +8,11 @@ import { useAuth } from "@/hooks/use-auth";
 import { useSuperadminService } from "@/hooks/use-superadmin-service";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import { useUserService } from "@/hooks/use-user-service";
 
 export function EnrollmentCard({x509Identity}) {
   const { enrollSuperadmin } = useSuperadminService();
+  const { reEnrollUser } = useUserService();
   const [isEnrolling, setIsEnrolling] = useState(false);
   const { save } = useAuth();
   const router = useRouter();
@@ -34,6 +36,30 @@ export function EnrollmentCard({x509Identity}) {
       router.refresh();
     } catch (error) {
       toast.error("Failed to enroll", {
+        description: error.message || "Something went wrong"
+      });
+    } finally {
+      setIsEnrolling(false);
+    }
+  };
+
+  const handleReEnroll = async () => {
+    setIsEnrolling(true);
+    try {
+      const response = await reEnrollUser();
+      if(!response.success){
+        throw new Error(response.message);
+      }
+      
+      // Update session with new x509Identity
+      save(response?.data);
+      
+      toast.success("Successfully re-enrolled");
+      
+      // Reload the page to refresh the x509Identity
+      router.refresh();
+    } catch (error) {
+      toast.error("Failed to re-enroll", {
         description: error.message || "Something went wrong"
       });
     } finally {
@@ -74,7 +100,7 @@ export function EnrollmentCard({x509Identity}) {
               </Button>
             ) : (
               <Button
-                onClick={handleEnrollSelf}
+                onClick={handleReEnroll}
                 disabled={isEnrolling}
                 variant="outline"
                 className="w-full"

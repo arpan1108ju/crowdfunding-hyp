@@ -16,6 +16,7 @@ export function AuthProvider({ children }) {
         username: authResponse.data.user.username,
         email: authResponse.data.user.email,
         isVerified: authResponse.data.user.isVerified,
+        isRevoked: authResponse.data.user.isRevoked,
         x509Identity: authResponse.data.user.x509Identity,
         role: authResponse.data.user.role,
       });

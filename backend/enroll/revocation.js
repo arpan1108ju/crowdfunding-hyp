@@ -14,6 +14,10 @@ export async function revoke(admin, client,role) {
        throw new CustomError("Admin not enrolled (prefrebly re-login).",405);
     }
 
+    if(client.isRevoked){
+      throw new CustomError(`${client.username} already revoked.`,405);
+    }
+
     if(!client.x509Identity){
        throw new CustomError(`${client.username} not enrolled`,405);
     }
@@ -32,12 +36,12 @@ export async function revoke(admin, client,role) {
     const adminUser = await provider.getUserContext(admin.x509Identity, admin.id);
 
 
-    // await ca.revoke({ 
-    //   enrollmentID: client.email,
-    //   genCRL : true
-    // }, adminUser);
+    await ca.revoke({ 
+      enrollmentID: client.email,
+      genCRL : true
+    }, adminUser);
 
-    // await unregisterUser({user : client});
+    await unregisterUser({user : client});
     
     console.log(`❌ Revoked certificate for ${client.email}`);
 
@@ -46,7 +50,9 @@ export async function revoke(admin, client,role) {
       where: { id: client.id },
       data: {
         isVerified: false,
-       // x509Identity: null, // optionally clear cert
+        x509Identity: null,
+        isRevoked : true 
+       // optionally clear cert
       },
       select: {
         id: true,

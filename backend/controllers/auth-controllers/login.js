@@ -31,6 +31,7 @@ export const login = async (req, res) => {
         isVerified: true,
         role: true,
         password: true,
+        isRevoked : true
       },
     });
 

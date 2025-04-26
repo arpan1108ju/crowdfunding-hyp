@@ -105,3 +105,13 @@ export const campaignTypes = [
   'Sports',
   'Other'
 ];
+
+export const PUBLIC_PATHS = [
+  '/',
+  '/login',
+  '/register',
+  '/profile',
+  '/superadmin',
+  '/about',
+  '/contact'
+];

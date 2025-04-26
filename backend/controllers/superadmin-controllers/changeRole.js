@@ -29,13 +29,18 @@ export const changeRole = async (req, res) => {
         id: true,
         role: true,
         isVerified: true,
+        isRevoked : true
       },
     });
 
     if (!existingUser) {
       throw new CustomError("User not found", 404);
-    } else if (existingUser.role === Role.SUPERADMIN) {
-      throw new CustomError("Superadmin cannot be revoked", 403);
+    } 
+    else if(existingUser.isVerified){
+      throw new CustomError("Cannot change role of an enrolled identity",403);
+    }
+    else if(existingUser.isRevoked){
+      throw new CustomError("Cannot change role of an revoked identity",403);
     }
 
     const updatedUser = await db.user.update({
