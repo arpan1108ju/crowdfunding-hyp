@@ -12,3 +12,4 @@ crypto-config-ca/*
 
 fabric-ca/*
 !fabric-ca/.gitkeep
+log.txt

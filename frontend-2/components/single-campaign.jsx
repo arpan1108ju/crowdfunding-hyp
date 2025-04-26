@@ -39,6 +39,14 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { campaignTypes } from "@/lib/data/dummy-data";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 
 export function SingleCampaign({ campaign, onCampaignUpdate }) {
@@ -376,31 +384,33 @@ export function SingleCampaign({ campaign, onCampaignUpdate }) {
             {/* Donors Table - 70% width */}
             <div className="w-full md:w-[70%]">
               <h2 className="text-xl font-semibold mb-4">Donors</h2>
-              <div className="relative w-full overflow-auto">
-                <table className="w-full caption-bottom text-sm">
-                  <thead className="[&_tr]:border-b">
-                    <tr className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted">
-                      <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Donor</th>
-                      <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Amount</th>
-                      <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Date</th>
-                    </tr>
-                  </thead>
-                  <tbody className="[&_tr:last-child]:border-0">
+              <div className="rounded-md border">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Donor</TableHead>
+                      <TableHead>Amount</TableHead>
+                      <TableHead>Date</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
                     {campaign?.donors?.length > 0 ? (
                       campaign.donors.map((donor, index) => (
-                        <tr key={index} className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted">
-                          <td className="p-4 align-middle">{donor.donor}</td>
-                          <td className="p-4 align-middle">{donor.donation} {tokenMetadata?.symbol}</td>
-                          <td className="p-4 align-middle">{formatDate(donor.timestamp)}</td>
-                        </tr>
+                        <TableRow key={index}>
+                          <TableCell>{donor.donor}</TableCell>
+                          <TableCell>{donor.donation} {tokenMetadata?.symbol}</TableCell>
+                          <TableCell>{formatDate(donor.timestamp)}</TableCell>
+                        </TableRow>
                       ))
                     ) : (
-                      <tr>
-                        <td colSpan="3" className="p-4 text-center text-muted-foreground">No donors yet</td>
-                      </tr>
+                      <TableRow>
+                        <TableCell colSpan="3" className="text-center text-muted-foreground">
+                          No donors yet
+                        </TableCell>
+                      </TableRow>
                     )}
-                  </tbody>
-                </table>
+                  </TableBody>
+                </Table>
               </div>
             </div>
 
@@ -411,38 +421,71 @@ export function SingleCampaign({ campaign, onCampaignUpdate }) {
                   gridTemplateColumns: '1fr',
                   gridAutoRows: 'min-content'
                 }}>
-                  {/* Donate button for admin and verified users */}
-                  {canDonate && (
-                    <Button 
-                      className="w-full"
-                      onClick={() => handleAction(CAMPAIGN_ACTION.DONATE)}
-                    >
-                      <CreditCard className="mr-2 h-4 w-4" />
-                      Donate Now
-                    </Button>
-                  )}
-                  
-                  {/* Withdraw button with updated styling */}
-                  {canWithdraw && (
-                    <Button 
-                      className="w-full bg-blue-600 hover:bg-blue-700"
-                      onClick={() => handleAction(CAMPAIGN_ACTION.WITHDRAW)}
-                    >
-                      <Wallet className="mr-2 h-4 w-4" />
-                      Withdraw Funds
-                    </Button>
-                  )}
+                  {/* Show appropriate message or buttons based on campaign status */}
+                  {Date.now() > campaign?.deadline ? (
+                    // Campaign is completed
+                    isOwner ? (
+                      // Campaign owner's view
+                      campaign?.withdrawn ? (
+                        // After withdrawal
+                        <div className="text-center p-4 bg-muted rounded-lg">
+                          <p className="text-lg font-medium">Campaign Completed</p>
+                          <p className="text-sm text-muted-foreground">Funds have been withdrawn</p>
+                        </div>
+                      ) : (
+                        // Before withdrawal - show only withdraw button to campaign owner
+                        <Button 
+                          className="w-full bg-blue-600 hover:bg-blue-700"
+                          onClick={() => handleAction(CAMPAIGN_ACTION.WITHDRAW)}
+                        >
+                          <Wallet className="mr-2 h-4 w-4" />
+                          Withdraw Funds
+                        </Button>
+                      )
+                    ) : (
+                      // General user's view
+                      <div className="text-center p-4 bg-muted rounded-lg">
+                        <p className="text-lg font-medium">Campaign Completed</p>
+                        <p className="text-sm text-muted-foreground">Thank you for your support!</p>
+                      </div>
+                    )
+                  ) : (
+                    // Campaign is ongoing
+                    <>
+                      {/* Donate button for admin and verified users */}
+                      {canDonate && (
+                        <Button 
+                          className="w-full"
+                          onClick={() => handleAction(CAMPAIGN_ACTION.DONATE)}
+                        >
+                          <CreditCard className="mr-2 h-4 w-4" />
+                          Donate Now
+                        </Button>
+                      )}
+                      
+                      {/* Withdraw button */}
+                      {canWithdraw && (
+                        <Button 
+                          className="w-full bg-blue-600 hover:bg-blue-700"
+                          onClick={() => handleAction(CAMPAIGN_ACTION.WITHDRAW)}
+                        >
+                          <Wallet className="mr-2 h-4 w-4" />
+                          Withdraw Funds
+                        </Button>
+                      )}
 
-                  {/* Cancel button */}
-                  {canCancel && (
-                    <Button 
-                      variant="destructive"
-                      className="w-full"
-                      onClick={() => handleAction(CAMPAIGN_ACTION.CANCEL)}
-                    >
-                      <Ban className="mr-2 h-4 w-4" />
-                      Cancel Campaign
-                    </Button>
+                      {/* Cancel button */}
+                      {canCancel && (
+                        <Button 
+                          variant="destructive"
+                          className="w-full"
+                          onClick={() => handleAction(CAMPAIGN_ACTION.CANCEL)}
+                        >
+                          <Ban className="mr-2 h-4 w-4" />
+                          Cancel Campaign
+                        </Button>
+                      )}
+                    </>
                   )}
                 </div>
               </div>
