@@ -39,10 +39,6 @@ export function UserInfo() {
   };
 
   const handleReEnroll = async () => {
-    if (userData.role === ROLE.ADMIN) {
-      router.push('/superadmin');
-      return;
-    }
 
     setIsReEnrolling(true);
     try {
