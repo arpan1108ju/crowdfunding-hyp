@@ -1,5 +1,7 @@
 import { sendSuccess, sendError } from "../../utils/responses.js";
 import { getUserCampaigns } from "../../methods/query/getUserCampaigns.js";
+import db from "../../utils/db.js";
+
 
 export const getUserCampaignsHandler = async (req, res) => {
   try {
