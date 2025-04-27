@@ -17,8 +17,7 @@ export async function getUserCampaigns() {
 }
 
 export async function getCampaignById(campaignId) {
-  const response = await fetch(`${API_URL}/${campaignId}`, {
-    method: 'GET',
+  const response = await fetch(`${API_URL}/${campaignId}?t=${Date.now()}`, {
     credentials: 'include',
   });
   return response.json();

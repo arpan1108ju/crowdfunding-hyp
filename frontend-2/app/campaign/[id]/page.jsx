@@ -31,6 +31,7 @@ export default function CampaignPage({ params }) {
   }, [id]);
 
   const handleCampaignUpdate = async () => {
+    setIsLoading(true);
     await fetchCampaign();
   };
 

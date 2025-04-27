@@ -71,7 +71,7 @@ export function SingleCampaign({ campaign, onCampaignUpdate }) {
   });
 
   const isAdmin = session?.role === ROLE.ADMIN;
-  const isSuperAdmin = session?.role === ROLE.SUPER_ADMIN;
+  // const isSuperAdmin = session?.role === ROLE.SUPER_ADMIN;
   const isVerifiedUser = session?.role === ROLE.VERIFIED_USER;
   const isOwner = session?.id === campaign?.owner?.id;
   const canWithdraw = (isOwner || isAdmin) && !campaign?.withdrawn && !campaign?.canceled;
@@ -138,22 +138,20 @@ export function SingleCampaign({ campaign, onCampaignUpdate }) {
   };
 
 
-  // Add this helper function at the top
-  const formatTimestampToInput = (timestamp) => {
-    const date = new Date(timestamp);
-    const offset = date.getTimezoneOffset();
-    const localDate = new Date(date.getTime() - offset * 60000);
-    return localDate.toISOString().slice(0, 16); // "YYYY-MM-DDTHH:MM"
-  };
-
-
-
   const formatDate = (timestamp) => {
     return new Date(timestamp).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
       day: 'numeric'
     });
+  };
+
+  const formatTimestampToIST = (timestamp) => {
+    const date = new Date(timestamp);
+    // Convert to IST (UTC+5:30)
+    const istOffset = 5.5 * 60 * 60 * 1000;
+    const istDate = new Date(date.getTime() + istOffset);
+    return istDate.toISOString().slice(0, 16); // "YYYY-MM-DDTHH:MM"
   };
 
   const handleAction = async (type) => {
@@ -226,27 +224,9 @@ export function SingleCampaign({ campaign, onCampaignUpdate }) {
     }
   };
 
-  // const handleEdit = () => {
-  //   if (!campaign) return;
-    
-  //   setEditDialogState({
-  //     isOpen: true,
-  //     data: {
-  //       title: campaign?.title || '',
-  //       description: campaign?.description || '',
-  //       campaignType: campaignTypes.includes(campaign?.campaignType) ? campaign?.campaignType : 'Other',
-  //       customType: campaignTypes.includes(campaign?.campaignType) ? '' : campaign?.campaignType,
-  //       goal: campaign?.target || 0,
-  //       deadline: campaign?.deadline || Date.now(),
-  //       image: campaign?.image || ''
-  //     }
-  //   });
-  // };
-
-
   const handleEdit = () => {
     if (!campaign) return;
-  
+    
     setEditDialogState({
       isOpen: true,
       data: {
@@ -255,12 +235,11 @@ export function SingleCampaign({ campaign, onCampaignUpdate }) {
         campaignType: campaignTypes.includes(campaign?.campaignType) ? campaign?.campaignType : 'Other',
         customType: campaignTypes.includes(campaign?.campaignType) ? '' : campaign?.campaignType,
         goal: campaign?.target || 0,
-        deadline: formatTimestampToInput(campaign?.deadline || Date.now()), // <-- fixed here
+        deadline: formatTimestampToIST(campaign?.deadline || Date.now()),
         image: campaign?.image || ''
       }
     });
   };
-  
 
   const handleSelectChange = (value) => {
     setEditDialogState(prev => ({
@@ -278,18 +257,38 @@ export function SingleCampaign({ campaign, onCampaignUpdate }) {
     
     setIsLoading(true);
     try {
-      // const campaignData = {
-      //   ...editDialogState.data,
-      //   campaignType: editDialogState.data.campaignType === 'Other' ? editDialogState.data.customType : editDialogState.data.campaignType
-      // };
+      // Get the current time in UTC
+      // const currentUTC = new Date();
+      
+      // Get the selected deadline in IST (from input)
+      const selectedISTDate = new Date(editDialogState.data.deadline);
+      
+      // Get the previous deadline from the campaign (in UTC)
+      const previousDeadline = new Date(campaign.deadline);
+      
+      // Convert previous deadline to IST for comparison
+      const istOffset = 5.5 * 60 * 60 * 1000;
+      const previousDeadlineIST = new Date(previousDeadline.getTime() + istOffset);
+      
+      // Compare the timestamps in IST
+      // if (selectedISTDate.getTime() <= previousDeadlineIST.getTime()) {
+      //   throw new Error('New deadline must be after the previous deadline');
+      // }
+
+      // Convert selected IST time to UTC for storage
+      const selectedUTC = new Date(selectedISTDate.getTime() - istOffset);
+
+      // Compare with current time
+      // if (selectedUTC <= currentUTC) {
+      //   throw new Error('Deadline must be a future timestamp');
+      // }
 
       const campaignData = {
         ...editDialogState.data,
         campaignType: editDialogState.data.campaignType === 'Other' ? editDialogState.data.customType : editDialogState.data.campaignType,
-        deadline: new Date(editDialogState.data.deadline).getTime() // <-- fixed here
+        deadline: selectedUTC.getTime() // Store in UTC
       };
 
-      
       const response = await updateCampaign(campaign.id, campaignData);
       if (!response.success) {
         throw new Error(response.message);
@@ -348,19 +347,21 @@ export function SingleCampaign({ campaign, onCampaignUpdate }) {
                     </Badge>
                   </span>
                 </div>
-                {isAdmin && (
+                {isOwner && (
                   <div className="flex gap-2">
                     <Button variant="outline" size="icon" onClick={handleEdit}>
                       <Edit className="h-4 w-4" />
                     </Button>
-                    <Button 
-                      variant="destructive" 
-                      size="icon"
-                      onClick={() => handleAction(CAMPAIGN_ACTION.DELETE)}
-                    >
-                      <Trash className="h-4 w-4" />
-                    </Button>
                   </div>
+                )}
+                {isAdmin && (
+                  <Button 
+                    variant="destructive" 
+                    size="icon"
+                    onClick={() => handleAction(CAMPAIGN_ACTION.DELETE)}
+                  >
+                    <Trash className="h-4 w-4" />
+                  </Button>
                 )}
               </div>
 
@@ -683,14 +684,18 @@ export function SingleCampaign({ campaign, onCampaignUpdate }) {
                     <Input
                       id="deadline-date"
                       type="date"
-                      value={new Date(editDialogState.data.deadline).toISOString().split('T')[0]}
+                      value={new Date(editDialogState.data.deadline).toLocaleDateString('en-CA')}
                       onChange={(e) => {
-                        const time = new Date(editDialogState.data.deadline).toISOString().split('T')[1].slice(0, 5);
+                        const time = new Date(editDialogState.data.deadline).toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' });
+                        const newDate = new Date(`${e.target.value}T${time}`);
+                        // Convert to IST
+                        const istOffset = 5.5 * 60 * 60 * 1000;
+                        const istDate = new Date(newDate.getTime() + istOffset);
                         setEditDialogState(prev => ({
                           ...prev,
                           data: {
                             ...prev.data,
-                            deadline: new Date(`${e.target.value}T${time}`).getTime()
+                            deadline: istDate.toISOString().slice(0, 16)
                           }
                         }));
                       }}
@@ -700,14 +705,18 @@ export function SingleCampaign({ campaign, onCampaignUpdate }) {
                     <Input
                       id="deadline-time"
                       type="time"
-                      value={new Date(editDialogState.data.deadline).toISOString().split('T')[1].slice(0, 5)}
+                      value={new Date(editDialogState.data.deadline).toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' })}
                       onChange={(e) => {
-                        const date = new Date(editDialogState.data.deadline).toISOString().split('T')[0];
+                        const date = new Date(editDialogState.data.deadline).toLocaleDateString('en-CA');
+                        const newDate = new Date(`${date}T${e.target.value}`);
+                        // Convert to IST
+                        const istOffset = 5.5 * 60 * 60 * 1000;
+                        const istDate = new Date(newDate.getTime() + istOffset);
                         setEditDialogState(prev => ({
                           ...prev,
                           data: {
                             ...prev.data,
-                            deadline: new Date(`${date}T${e.target.value}`).getTime()
+                            deadline: istDate.toISOString().slice(0, 16)
                           }
                         }));
                       }}
