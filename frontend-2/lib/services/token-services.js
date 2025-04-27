@@ -76,14 +76,14 @@ export async function setTokenMetadata(name, symbol) {
   return response.json();
 }
 
-export async function mintToken(currency, amountPaid) {
+export async function mintToken(currency, amountPaid,paymentId) {
   const response = await fetch(`${API_URL}/mint`, {
     method: 'POST',
     credentials: 'include',
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ currency, amountPaid }),
+    body: JSON.stringify({ currency, amountPaid,paymentId }),
   });
   return response.json();
 }

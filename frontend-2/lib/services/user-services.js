@@ -20,10 +20,6 @@ export async function getUserSelf() {
 
 export async function payment({amountPaid,currency}) {
 
-  console.log(JSON.stringify({ 
-    amountPaid, 
-    currency 
-  }))
 
   const response = await fetch(`${API_URL}/payment`, {
     method: 'POST',
@@ -33,6 +29,18 @@ export async function payment({amountPaid,currency}) {
       amountPaid, 
       currency 
     }),
+  });
+
+  return response.json();
+
+}
+
+export async function getAllUserPayments() {
+
+  const response = await fetch(`${API_URL}/payment`, {
+    method: 'GET',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
   });
 
   return response.json();
