@@ -12,6 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { dispatchBalanceUpdated } from "@/lib/events";
 import { useRouter } from "next/navigation";
+import { CheckoutModal } from './CheckoutModal';
 
 export function Wallet() {
   const router = useRouter();
@@ -31,6 +32,7 @@ export function Wallet() {
   const [selectedCurrency, setSelectedCurrency] = useState(rates[0].currency);
   const [isLoading, setIsLoading] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
 
   const fetchBalance = async () => {
     try {
@@ -101,8 +103,25 @@ export function Wallet() {
       return;
     }
 
-    // Navigate to checkout page with parameters
-    router.push(`/payment/checkout?currency=${selectedCurrency}&amount=${mintAmount}`);
+    setIsLoading(true);
+    setIsCheckoutOpen(true);
+  };
+
+  const handleCheckoutSuccess = async () => {
+    await fetchBalance();
+    dispatchBalanceUpdated();
+    setMintAmount(0);
+    setIsLoading(false);
+  };
+
+  const handleCheckoutError = (error) => {
+    console.error('Checkout error:', error);
+    setIsLoading(false);
+  };
+
+  const handleCheckoutClose = () => {
+    setIsCheckoutOpen(false);
+    setIsLoading(false);
   };
 
   const getExpectedTokens = () => {
@@ -200,9 +219,9 @@ export function Wallet() {
                     <span>
                     <Button 
                       onClick={handleMintToken}
-                      disabled={mintAmount <= 0 || selectedCurrency === ""}
+                      disabled={mintAmount <= 0 || selectedCurrency === "" || isLoading}
                     >
-                      Mint
+                      {isLoading ? 'Processing...' : 'Mint'}
                     </Button>
                     </span>
                   </TooltipTrigger>
@@ -221,6 +240,15 @@ export function Wallet() {
             </div>
         </div>
       </CardContent>
+
+      <CheckoutModal
+        isOpen={isCheckoutOpen}
+        onClose={handleCheckoutClose}
+        amount={mintAmount}
+        currency={selectedCurrency}
+        onSuccess={handleCheckoutSuccess}
+        onError={handleCheckoutError}
+      />
     </Card>
   );
 } 

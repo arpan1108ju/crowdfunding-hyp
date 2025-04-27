@@ -5,6 +5,9 @@ import { sendError, sendSuccess } from "../../utils/responses.js";
 
 export const mintTokenHandler = async (req, res) => {
   try {
+
+    throw new CustomError("Not possible to call directly. call via /user/payments");
+
     const validation = mintTokenSchema.safeParse(req.body);
 
     if (!validation.success) {
