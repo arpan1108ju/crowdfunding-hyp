@@ -24,4 +24,8 @@
 4.profile/id --> for general purpsose user click on donors
 5.payment click opens campaign
 
-
+/////////////////////////
+1.new db create for payment details
+2.fix the admin campaign page
+3.file upload
+4.payment page dark mode fix 

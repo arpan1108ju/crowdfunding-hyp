@@ -8,7 +8,7 @@ export const getUserCampaignsHandler = async (req, res) => {
 
 
     const result = await getUserCampaigns();
-
+    
     const responseToReturn = await Promise.all((
       result.map(async(camp) => {
 

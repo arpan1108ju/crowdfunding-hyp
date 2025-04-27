@@ -43,7 +43,6 @@ export default function ProfilePage() {
       </div>
 
       <Separator className="my-8" />
-
       <PaymentHistory />
     </div>
   );
