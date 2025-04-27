@@ -77,6 +77,7 @@ export function SingleCampaign({ campaign, onCampaignUpdate }) {
   const canWithdraw = (isOwner || isAdmin) && !campaign?.withdrawn && !campaign?.canceled;
   const canCancel = (isOwner || isAdmin) && !campaign?.withdrawn && !campaign?.canceled;
   const canDonate = (isAdmin || isVerifiedUser) && !campaign?.withdrawn && !campaign?.canceled && Date.now() < campaign?.deadline;
+
   const fetchTokenMetadata = async () => {
     try {
       const response = await getTokenMetadata();
@@ -135,6 +136,17 @@ export function SingleCampaign({ campaign, onCampaignUpdate }) {
 
     return `${days}d ${hours}h left`;
   };
+
+
+  // Add this helper function at the top
+  const formatTimestampToInput = (timestamp) => {
+    const date = new Date(timestamp);
+    const offset = date.getTimezoneOffset();
+    const localDate = new Date(date.getTime() - offset * 60000);
+    return localDate.toISOString().slice(0, 16); // "YYYY-MM-DDTHH:MM"
+  };
+
+
 
   const formatDate = (timestamp) => {
     return new Date(timestamp).toLocaleDateString('en-US', {
@@ -214,9 +226,27 @@ export function SingleCampaign({ campaign, onCampaignUpdate }) {
     }
   };
 
+  // const handleEdit = () => {
+  //   if (!campaign) return;
+    
+  //   setEditDialogState({
+  //     isOpen: true,
+  //     data: {
+  //       title: campaign?.title || '',
+  //       description: campaign?.description || '',
+  //       campaignType: campaignTypes.includes(campaign?.campaignType) ? campaign?.campaignType : 'Other',
+  //       customType: campaignTypes.includes(campaign?.campaignType) ? '' : campaign?.campaignType,
+  //       goal: campaign?.target || 0,
+  //       deadline: campaign?.deadline || Date.now(),
+  //       image: campaign?.image || ''
+  //     }
+  //   });
+  // };
+
+
   const handleEdit = () => {
     if (!campaign) return;
-    
+  
     setEditDialogState({
       isOpen: true,
       data: {
@@ -225,11 +255,12 @@ export function SingleCampaign({ campaign, onCampaignUpdate }) {
         campaignType: campaignTypes.includes(campaign?.campaignType) ? campaign?.campaignType : 'Other',
         customType: campaignTypes.includes(campaign?.campaignType) ? '' : campaign?.campaignType,
         goal: campaign?.target || 0,
-        deadline: campaign?.deadline || Date.now(),
+        deadline: formatTimestampToInput(campaign?.deadline || Date.now()), // <-- fixed here
         image: campaign?.image || ''
       }
     });
   };
+  
 
   const handleSelectChange = (value) => {
     setEditDialogState(prev => ({
@@ -247,10 +278,18 @@ export function SingleCampaign({ campaign, onCampaignUpdate }) {
     
     setIsLoading(true);
     try {
+      // const campaignData = {
+      //   ...editDialogState.data,
+      //   campaignType: editDialogState.data.campaignType === 'Other' ? editDialogState.data.customType : editDialogState.data.campaignType
+      // };
+
       const campaignData = {
         ...editDialogState.data,
-        campaignType: editDialogState.data.campaignType === 'Other' ? editDialogState.data.customType : editDialogState.data.campaignType
+        campaignType: editDialogState.data.campaignType === 'Other' ? editDialogState.data.customType : editDialogState.data.campaignType,
+        deadline: new Date(editDialogState.data.deadline).getTime() // <-- fixed here
       };
+
+      
       const response = await updateCampaign(campaign.id, campaignData);
       if (!response.success) {
         throw new Error(response.message);
