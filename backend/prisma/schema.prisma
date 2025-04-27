@@ -37,6 +37,8 @@ model User {
   role            Role  @default(USER)
 
   createdAt       DateTime  @default(now())
+
+  payments        Payment[]
 }
 
 model File {
@@ -46,4 +48,17 @@ model File {
   size       Int
   ipfsHash   String
   uploadedAt DateTime @default(now())
+}
+
+
+model Payment {
+  id              String   @id @default(cuid())
+  userId          String
+  user            User     @relation(fields: [userId],references: [id],onDelete: Cascade)
+  paymentIntentId String   @unique
+  amountPaid      Float
+  currency        String
+  status          String   @default("requires_payment_method")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 }

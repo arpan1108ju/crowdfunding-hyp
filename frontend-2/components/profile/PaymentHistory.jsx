@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { useTokenService } from "@/hooks/use-token-service";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -10,6 +11,7 @@ import { toast } from "sonner";
 import { PAYMENT_TYPE } from "@/lib/constants";
 
 export function PaymentHistory() {
+  const router = useRouter();
   const { getPayments } = useTokenService();
   const [payments, setPayments] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -56,6 +58,10 @@ export function PaymentHistory() {
     } finally {
       setIsRefreshing(false);
     }
+  };
+
+  const handleRowClick = (campaignId) => {
+    router.push(`/campaign/${campaignId}`);
   };
 
   useEffect(() => {
@@ -108,7 +114,10 @@ export function PaymentHistory() {
               <TableBody>
                 {payments.length > 0 ? (
                   payments.map((payment, index) => (
-                    <TableRow key={payment.id || index}>
+                    <TableRow key={payment.id || index} 
+                      className="hover:cursor-pointer hover:bg-muted/50"
+                      onClick={() => handleRowClick(payment.campaignId)}
+                    >
                       <TableCell>{new Date(payment.timestamp).toLocaleDateString()}</TableCell>
                       <TableCell className="font-mono text-sm">{payment.campaignId}</TableCell>
                       <TableCell>{payment.amount}</TableCell>

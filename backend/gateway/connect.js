@@ -8,12 +8,18 @@ import { getCurrentUser } from '../utils/getCurrentUser.js';
 
 const currentRole = APP_USER;
 
-export const connectToGateway = async ({ enrollViaUser = null } = {}) => {
-    const user = enrollViaUser || await getCurrentUser();
+export const connectToGateway = async ({ enrollViaUser = null }) => {
+    let user;
+    if(enrollViaUser === null || enrollViaUser === undefined){
+        user = await getCurrentUser();
+    }
+    else {
+        user = enrollViaUser; 
+    }
 
 
     let gateway;
-    if (!enrollViaUser) {
+    if (!enrollViaUser || enrollViaUser===undefined) {
       gateway = await getGateway();
       if (gateway) return;
     }
