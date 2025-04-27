@@ -76,7 +76,7 @@ export const createPaymentIntent = async (req, res) => {
       data: {
         user: {
           connect: {
-            id: user.id,
+            id: userAgain.id,
           },
         },
         paymentIntentId: paymentIntent.id,

@@ -24,9 +24,11 @@ export function Wallet() {
 
   const [balance, setBalance] = useState(0);
   const [metadata, setMetadata] = useState(null);
-  const [rates, setRates] = useState([]);
+  // const [rates, setRates] = useState([]);
+  const [rates, setRates] = useState([{currency : "USD",rateToToken : 100}]);
   const [mintAmount, setMintAmount] = useState(0);
-  const [selectedCurrency, setSelectedCurrency] = useState("");
+  // const [selectedCurrency, setSelectedCurrency] = useState("");
+  const [selectedCurrency, setSelectedCurrency] = useState(rates[0].currency);
   const [isLoading, setIsLoading] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
