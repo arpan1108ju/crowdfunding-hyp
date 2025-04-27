@@ -77,18 +77,6 @@ export function SingleCampaign({ campaign, onCampaignUpdate }) {
   const canWithdraw = (isOwner || isAdmin) && !campaign?.withdrawn && !campaign?.canceled;
   const canCancel = (isOwner || isAdmin) && !campaign?.withdrawn && !campaign?.canceled;
   const canDonate = (isAdmin || isVerifiedUser) && !campaign?.withdrawn && !campaign?.canceled && Date.now() < campaign?.deadline;
-
-  // const isAdmin = false;
-  // const isSuperAdmin = false;
-  // const isVerifiedUser = true;
-  // const isOwner = false;
-  // const canWithdraw = false;
-  // const canCancel = false;
-  // const canDonate = false;
-
-
-
-
   const fetchTokenMetadata = async () => {
     try {
       const response = await getTokenMetadata();
