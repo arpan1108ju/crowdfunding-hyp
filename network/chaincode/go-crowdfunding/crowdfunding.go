@@ -861,7 +861,7 @@ func (s *SmartContract) CancelCampaign(ctx contractapi.TransactionContextInterfa
 //     log.Printf("Successfully deleted campaign: %s", id)
 //     return &ResponseMessage{Message: "campaign deleted successfully"}, nil
 // }
-func (s *SmartContract) DeleteCampaign(ctx contractapi.TransactionContextInterface, id string) (*ResponseMessage, error) {
+func (s *SmartContract) DeleteCampaign(ctx contractapi.TransactionContextInterface, id string,timestamp uint64) (*ResponseMessage, error) {
     // 1. Admin check
     isAdmin, err := s.isAdmin(ctx)
     if err != nil || !isAdmin {
@@ -875,9 +875,9 @@ func (s *SmartContract) DeleteCampaign(ctx contractapi.TransactionContextInterfa
     }
 
     // 3. Verify campaign state
-    currentTime := time.Now().Unix()
+    // currentTime := time.Now().Unix()
 
-    if !(campaign.Withdrawn || campaign.Canceled || (campaign.Deadline <= currentTime && campaign.FundCollected == 0)) {
+    if !(campaign.Withdrawn || campaign.Canceled || (campaign.Deadline <= timestamp && campaign.AmountCollected == 0)) {
         return nil, fmt.Errorf("only withdrawn, canceled, or expired campaigns with zero funds can be deleted")
     }
 
@@ -961,7 +961,13 @@ func (s *SmartContract) GetAllCampaigns(ctx contractapi.TransactionContextInterf
 
 // GetUserCampaigns returns all campaigns owned by the calling user
 func (s *SmartContract) GetUserCampaigns(ctx contractapi.TransactionContextInterface) ([]*Campaign, error) {
-    // 1. Get client identity first (before any other operations)
+    // admin check
+	isAdmin, err := s.isAdmin(ctx)
+    if err != nil || !isAdmin {
+        return nil, fmt.Errorf("unauthorized: only admin can get their self campaign")
+    }
+	
+	// 1. Get client identity first (before any other operations)
     clientID, err := ctx.GetClientIdentity().GetID()
     if err != nil {
         return nil, fmt.Errorf("failed to get client identity: %v", err)

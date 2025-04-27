@@ -432,8 +432,8 @@ export function SingleCampaign({ campaign, onCampaignUpdate }) {
                           <p className="text-lg font-medium">Campaign Completed</p>
                           <p className="text-sm text-muted-foreground">Funds have been withdrawn</p>
                         </div>
-                      ) : (
-                        // Before withdrawal - show only withdraw button to campaign owner
+                      ) : campaign?.amountCollected > 0 ? (
+                        // Before withdrawal - show only withdraw button to campaign owner if there are funds
                         <Button 
                           className="w-full bg-blue-600 hover:bg-blue-700"
                           onClick={() => handleAction(CAMPAIGN_ACTION.WITHDRAW)}
@@ -441,6 +441,12 @@ export function SingleCampaign({ campaign, onCampaignUpdate }) {
                           <Wallet className="mr-2 h-4 w-4" />
                           Withdraw Funds
                         </Button>
+                      ) : (
+                        // No funds to withdraw
+                        <div className="text-center p-4 bg-muted rounded-lg">
+                          <p className="text-lg font-medium">Campaign Completed</p>
+                          <p className="text-sm text-muted-foreground">No funds to withdraw</p>
+                        </div>
                       )
                     ) : (
                       // General user's view
