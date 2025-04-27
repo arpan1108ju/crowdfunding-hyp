@@ -6,6 +6,7 @@ import { CustomError } from "../../utils/customError.js";
 import db from "../../utils/db.js";
 import Stripe from "stripe";
 import { STRIPE_SECRET_KEY } from "../../config.js";
+import { mintToken } from "../../methods/invoke/mintToken.js";
 
 // Currency conversion multipliers (amount to smallest unit)
 const CURRENCY_MULTIPLIERS = {
@@ -52,8 +53,8 @@ export const createPaymentIntent = async (req, res) => {
 
     const { currency, amountPaid } = validation.data;
 
-    console.log("Received amount:", amountPaid);
-    console.log("Received currency:", currency);
+    // console.log("Received amount:", amountPaid);
+    // console.log("Received currency:", currency);
 
     const stripe = new Stripe(STRIPE_SECRET_KEY);
 
@@ -85,15 +86,18 @@ export const createPaymentIntent = async (req, res) => {
         status: paymentIntent.status,
       },
     });
+
+
+    const result = await mintToken({ currency, amountPaid });
     
 
-
-    console.log("Payment intent created successfully");
+    // console.log("Payment intent created successfully");
 
     sendSuccess(
       res,
       {
         clientSecret: paymentIntent.client_secret,
+        message : result
       },
       "Payment intent created successfully."
     );
