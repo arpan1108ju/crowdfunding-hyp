@@ -75,7 +75,13 @@ export const setTokenMetadataSchema = z.object({
 
 export const mintTokenSchema = z.object({
    currency : currencySchema,
-   amountPaid : z.number().positive({message : "amount paid must be positive"})
+   amountPaid : z.number().positive({message : "amount paid must be positive"}),
+   paymentId : z.string()
+})
+
+export const paymentSchema = z.object({
+  currency : currencySchema,
+  amountPaid : z.number().positive({message : "amount paid must be positive"})
 })
 
 

@@ -1,6 +1,6 @@
 import { sendSuccess, sendError } from "../../utils/responses.js";
 import { getCurrentUser } from "../../utils/getCurrentUser.js";
-import { mintTokenSchema } from "../../utils/apiSchema.js";
+import { paymentSchema } from "../../utils/apiSchema.js";
 import { CustomError } from "../../utils/customError.js";
 
 import db from "../../utils/db.js";
@@ -40,7 +40,7 @@ export const createPaymentIntent = async (req, res) => {
        }
     })
 
-    const validation = mintTokenSchema.safeParse(req.body);
+    const validation = paymentSchema.safeParse(req.body);
 
     if (!validation.success) {
       throw new CustomError(
@@ -73,7 +73,7 @@ export const createPaymentIntent = async (req, res) => {
       payment_method_types: ["card"],
     });
 
-    await db.payment.create({
+    const paymentDB =  await db.payment.create({
       data: {
         user: {
           connect: {
@@ -87,17 +87,11 @@ export const createPaymentIntent = async (req, res) => {
       },
     });
 
-
-    const result = await mintToken({ currency, amountPaid });
-    
-
-    // console.log("Payment intent created successfully");
-
     sendSuccess(
       res,
       {
         clientSecret: paymentIntent.client_secret,
-        message : result
+        paymentId : paymentDB.id
       },
       "Payment intent created successfully."
     );

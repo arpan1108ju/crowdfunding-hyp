@@ -309,22 +309,22 @@ func (s *SmartContract) GetAllExchangeRates(ctx contractapi.TransactionContextIn
 
 
 
-func (s *SmartContract) MintToken(ctx contractapi.TransactionContextInterface, currency string, amountPaid float64) (*ResponseMessage,error) {
+func (s *SmartContract) MintToken(ctx contractapi.TransactionContextInterface, currency string, amountPaid float64) (uint64,error) {
 	// Fetch exchange rate
 
 	rateKey, err := ctx.GetStub().CreateCompositeKey(RatePrefix, []string{currency})
 	if err != nil {
-		return  nil,fmt.Errorf("failed to create composite key for %s: %v", rateKey, err)
+		return  0,fmt.Errorf("failed to create composite key for %s: %v", rateKey, err)
 	}
 
 	rateBytes, err := ctx.GetStub().GetState(rateKey)
 	if err != nil || rateBytes == nil {
-		return nil,fmt.Errorf("no exchange rate for currency %s", currency)
+		return 0,fmt.Errorf("no exchange rate for currency %s", currency)
 	}
 
 	userID, err := ctx.GetClientIdentity().GetID()
 	if err != nil {
-		return nil,fmt.Errorf("failed to get client identity: %v", err)
+		return 0,fmt.Errorf("failed to get client identity: %v", err)
 	}
 
 
@@ -335,7 +335,7 @@ func (s *SmartContract) MintToken(ctx contractapi.TransactionContextInterface, c
 
 	balanceKey, err := ctx.GetStub().CreateCompositeKey(BalancePrefix, []string{userID})
 	if err != nil {
-		return  nil,fmt.Errorf("failed to create composite key for %s: %v", balanceKey, err)
+		return  0,fmt.Errorf("failed to create composite key for %s: %v", balanceKey, err)
 	}
 
 	balanceBytes, _ := ctx.GetStub().GetState(balanceKey)
@@ -357,7 +357,8 @@ func (s *SmartContract) MintToken(ctx contractapi.TransactionContextInterface, c
 	updatedMetaBytes, _ := json.Marshal(metadata)
 	ctx.GetStub().PutState(TOKEN_METADATA, updatedMetaBytes)
 
-	return &ResponseMessage{Message: "token minted successfully"}, nil
+	// return &ResponseMessage{Message: "token minted successfully"}, nil
+	return tokensToMint, nil
 }
 
 func (s *SmartContract) GetBalance(ctx contractapi.TransactionContextInterface) (uint64, error) {

@@ -8,6 +8,7 @@ import { ROLE } from "@/lib/constants";
 import { UserInfo } from "@/components/profile/UserInfo";
 import { Wallet } from "@/components/profile/Wallet";
 import { PaymentHistory } from "@/components/profile/PaymentHistory";
+import { TokenMintHistory } from "@/components/profile/TokenMintHistory";
 import { Separator } from "@/components/ui/separator";
 
 export default function ProfilePage() {
@@ -43,7 +44,11 @@ export default function ProfilePage() {
       </div>
 
       <Separator className="my-8" />
-      <PaymentHistory />
+      
+      <div className="space-y-6">
+        <PaymentHistory />
+        <TokenMintHistory />
+      </div>
     </div>
   );
 }

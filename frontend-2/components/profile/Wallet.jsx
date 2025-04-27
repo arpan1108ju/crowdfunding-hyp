@@ -108,10 +108,17 @@ export function Wallet() {
   };
 
   const handleCheckoutSuccess = async () => {
-    await fetchBalance();
-    dispatchBalanceUpdated();
-    setMintAmount(0);
-    setIsLoading(false);
+    try {
+      await fetchBalance();
+      dispatchBalanceUpdated();
+      setMintAmount(0);
+      // Dispatch event to refresh token mint history
+      window.dispatchEvent(new CustomEvent('tokenMintHistoryRefresh'));
+    } catch (error) {
+      console.error('Error in handleCheckoutSuccess:', error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleCheckoutError = (error) => {

@@ -58,7 +58,7 @@ model Payment {
   paymentIntentId String   @unique
   amountPaid      Float
   currency        String
+  tokenMinted     Int      @default(0)
   status          String   @default("requires_payment_method")
   createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
 }
