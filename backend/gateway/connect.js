@@ -8,7 +8,7 @@ import { getCurrentUser } from '../utils/getCurrentUser.js';
 
 const currentRole = APP_USER;
 
-export const connectToGateway = async ({ enrollViaUser = null }) => {
+export const connectToGateway = async ({ enrollViaUser = null } = {}) => {
     let user;
     if(enrollViaUser === null || enrollViaUser === undefined){
         user = await getCurrentUser();
@@ -19,10 +19,7 @@ export const connectToGateway = async ({ enrollViaUser = null }) => {
 
 
     let gateway;
-    if (!enrollViaUser || enrollViaUser===undefined) {
-      gateway = await getGateway();
-      if (gateway) return;
-    }
+    
 
     const ccp = JSON.parse(fs.readFileSync(CONNECTION_PROFILE_PATH, 'utf8'));
     // 1. Create in-memory wallet and load identity
