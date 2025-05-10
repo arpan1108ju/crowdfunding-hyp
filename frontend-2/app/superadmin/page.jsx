@@ -39,7 +39,7 @@ export default function SuperAdminPage() {
       <h1 className="text-3xl font-bold mb-6">Super Admin Dashboard</h1>
 
       <div className="grid gap-6 md:grid-cols-3">
-        <EnrollmentCard x509Identity={session.x509Identity} />
+        <EnrollmentCard x509Identity={session?.x509Identity} />
         
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
