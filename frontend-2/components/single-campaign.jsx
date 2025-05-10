@@ -72,8 +72,8 @@ export function SingleCampaign({ campaign, onCampaignUpdate }) {
 
   const isAdmin = session?.role === ROLE.ADMIN;
   // const isSuperAdmin = session?.role === ROLE.SUPER_ADMIN;
-  const isVerifiedUser = session?.role === ROLE.VERIFIED_USER;
-  const isOwner = session?.id === campaign?.owner?.id;
+  const isVerifiedUser = session?.isVerified ;
+  const isOwner = session?.username === campaign?.owner?.username;
   const canWithdraw = (isOwner || isAdmin) && !campaign?.withdrawn && !campaign?.canceled;
   const canCancel = (isOwner || isAdmin) && !campaign?.withdrawn && !campaign?.canceled;
   const canDonate = (isAdmin || isVerifiedUser) && !campaign?.withdrawn && !campaign?.canceled && Date.now() < campaign?.deadline;
@@ -347,7 +347,7 @@ export function SingleCampaign({ campaign, onCampaignUpdate }) {
                     </Badge>
                   </span>
                 </div>
-                {isOwner && (
+                {isOwner &&  (
                   <div className="flex gap-2">
                     <Button variant="outline" size="icon" onClick={handleEdit}>
                       <Edit className="h-4 w-4" />
