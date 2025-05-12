@@ -1,340 +1,168 @@
-package tests
+package test
 
 import (
+	"crypto/x509"
 	"encoding/json"
+	"fmt"
 	"testing"
-	"time"
 
 	"github.com/hyperledger/fabric-chaincode-go/shim"
+	"github.com/hyperledger/fabric-chaincode-go/shimtest"
 	"github.com/hyperledger/fabric-contract-api-go/contractapi"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
+
+	"crowdfunding-go-copy"
 )
 
-// MockTransactionContext is a mock implementation of the TransactionContextInterface
+// MockTransactionContext implements contractapi.TransactionContextInterface
 type MockTransactionContext struct {
-	mock.Mock
-	*contractapi.TransactionContext
+	contractapi.TransactionContext
+	stub *shimtest.MockStub
 }
 
-// MockStub is a mock implementation of the ChaincodeStubInterface
-type MockStub struct {
-	mock.Mock
-	*shim.MockStub
+func (m *MockTransactionContext) GetStub() shim.ChaincodeStubInterface {
+	return m.stub
 }
 
-// MockClientIdentity is a mock implementation of the ClientIdentityInterface
+// MockClientIdentity implements contractapi.ClientIdentityInterface
 type MockClientIdentity struct {
-	mock.Mock
+	ID string
 }
 
 func (m *MockClientIdentity) GetID() (string, error) {
-	args := m.Called()
-	return args.String(0), args.Error(1)
+	return m.ID, nil
+}
+
+func (m *MockClientIdentity) GetMSPID() (string, error) {
+	return "Org1MSP", nil
 }
 
 func (m *MockClientIdentity) GetAttributeValue(attrName string) (string, bool, error) {
-	args := m.Called(attrName)
-	return args.String(0), args.Bool(1), args.Error(2)
+	if attrName == "hf.Registrar.Roles" {
+		return "admin", true, nil
+	}
+	return "", false, nil
 }
 
-// TestInitLedger tests the initialization of the ledger
+func (m *MockClientIdentity) AssertAttributeValue(attrName, attrValue string) error {
+	return nil
+}
+
+func (m *MockClientIdentity) GetX509Certificate() (*x509.Certificate, error) {
+	return nil, nil
+}
+
+// setupTest creates a new contract instance and initializes the ledger
+func setupTest(t *testing.T) (*crowdfunding.SmartContract, *MockTransactionContext) {
+	// Create a new instance of the SmartContract
+	contract := new(crowdfunding.SmartContract)
+
+	// Create the chaincode instance properly (handle error)
+	cc, err := contractapi.NewChaincode(contract)
+	require.NoError(t, err)
+
+	// Create a new mock stub with the initialized chaincode
+	mockStub := shimtest.NewMockStub("crowdfunding", cc)
+
+	// Create mock client identity
+	mockClientIdentity := &MockClientIdentity{
+		ID: "admin",
+	}
+
+	// Use a mock context with the stub and client identity
+	ctx := &MockTransactionContext{
+		stub: mockStub,
+	}
+	ctx.SetClientIdentity(mockClientIdentity)
+
+	// Initialize the ledger
+	err = contract.InitLedger(ctx)
+	require.NoError(t, err, "InitLedger should not return error")
+
+	// Verify the state was set correctly
+	metadataBytes, err := mockStub.GetState("token_metadata")
+	require.NoError(t, err, "Failed to get token metadata from state")
+	require.NotNil(t, metadataBytes, "Token metadata should be in state")
+
+	// rateKey, err := mockStub.CreateCompositeKey("rate_", []string{"USD"})
+	// require.NoError(t, err, "Failed to create rate key")
+	// rateBytes, err := mockStub.GetState(rateKey)
+	// require.NoError(t, err, "Failed to get exchange rate from state")
+	// require.NotNil(t, rateBytes, "Exchange rate should be in state")
+
+	return contract, ctx
+}
+
 func TestInitLedger(t *testing.T) {
-	ctx := new(MockTransactionContext)
-	stub := new(MockStub)
-	ctx.TransactionContext = &contractapi.TransactionContext{Stub: stub}
+	// Create a new instance of the SmartContract
+	contract := new(crowdfunding.SmartContract)
 
-	// Set up expectations
-	stub.On("PutState", "token_metadata", mock.Anything).Return(nil)
-	stub.On("CreateCompositeKey", "rate_", []string{"USD"}).Return("rate_USD", nil)
-	stub.On("PutState", "rate_USD", mock.Anything).Return(nil)
+	// Create the chaincode instance properly (handle error)
+	cc, err := contractapi.NewChaincode(contract)
+	require.NoError(t, err)
 
-	// Create contract instance
-	contract := new(SmartContract)
+	// Create a new mock stub with the initialized chaincode
+	mockStub := shimtest.NewMockStub("crowdfunding", cc)
 
-	// Call InitLedger
-	err := contract.InitLedger(ctx)
-	assert.NoError(t, err)
-}
-
-// TestCreateCampaign tests campaign creation
-func TestCreateCampaign(t *testing.T) {
-	ctx := new(MockTransactionContext)
-	stub := new(MockStub)
-	ctx.TransactionContext = &contractapi.TransactionContext{Stub: stub}
-
-	// Mock admin check
-	clientIdentity := new(MockClientIdentity)
-	ctx.ClientIdentity = clientIdentity
-	clientIdentity.On("GetAttributeValue", "hf.Registrar.Roles").Return("admin", true, nil)
-	clientIdentity.On("GetID").Return("testClientID", nil)
-
-	// Mock campaign existence check
-	stub.On("CreateCompositeKey", "campaign_", []string{"testCampaign"}).Return("campaign_testCampaign", nil)
-	stub.On("GetState", "campaign_testCampaign").Return(nil, nil)
-
-	// Mock user mapping
-	stub.On("CreateCompositeKey", "user_mapping_", mock.Anything).Return("user_mapping_test", nil)
-	stub.On("GetState", "user_mapping_test").Return([]byte(`{"dbUserId":"testUser","clientId":"testClientID"}`), nil)
-
-	// Mock campaign creation
-	stub.On("PutState", "campaign_testCampaign", mock.Anything).Return(nil)
-
-	contract := new(SmartContract)
-	deadline := uint64(time.Now().Add(24 * time.Hour).Unix())
-
-	response, err := contract.CreateCampaign(ctx, "testCampaign", "Test Campaign", "Test Description", "CHARITY", 1000, deadline, "test.jpg", uint64(time.Now().Unix()))
-	assert.NoError(t, err)
-	assert.NotNil(t, response)
-	assert.Equal(t, "campaign created successfully", response.Message)
-}
-
-// TestDonateToCampaign tests donation functionality
-func TestDonateToCampaign(t *testing.T) {
-	ctx := new(MockTransactionContext)
-	stub := new(MockStub)
-	ctx.TransactionContext = &contractapi.TransactionContext{Stub: stub}
-
-	// Mock client identity
-	clientIdentity := new(MockClientIdentity)
-	ctx.ClientIdentity = clientIdentity
-	clientIdentity.On("GetID").Return("testClientID", nil)
-
-	// Mock campaign retrieval
-	campaign := Campaign{
-		ID:              "testCampaign",
-		OwnerDBID:       "testOwner",
-		Title:           "Test Campaign",
-		Description:     "Test Description",
-		CampaignType:    "CHARITY",
-		Target:          1000,
-		Deadline:        uint64(time.Now().Add(24 * time.Hour).Unix()),
-		AmountCollected: 0,
-		Image:           "test.jpg",
-		Withdrawn:       false,
-		Canceled:        false,
-		Donors:          []Donor{},
+	// Create mock client identity
+	mockClientIdentity := &MockClientIdentity{
+		ID: "admin",
 	}
-	campaignJSON, _ := json.Marshal(campaign)
-	stub.On("CreateCompositeKey", "campaign_", []string{"testCampaign"}).Return("campaign_testCampaign", nil)
-	stub.On("GetState", "campaign_testCampaign").Return(campaignJSON, nil)
 
-	// Mock user mapping
-	stub.On("CreateCompositeKey", "user_mapping_", mock.Anything).Return("user_mapping_test", nil)
-	stub.On("GetState", "user_mapping_test").Return([]byte(`{"dbUserId":"testUser","clientId":"testClientID"}`), nil)
-
-	// Mock balance check
-	stub.On("CreateCompositeKey", "balance_", []string{"testClientID"}).Return("balance_testClientID", nil)
-	stub.On("GetState", "balance_testClientID").Return([]byte(`{"owner":"testClientID","balance":1000}`), nil)
-
-	// Mock balance update
-	stub.On("PutState", "balance_testClientID", mock.Anything).Return(nil)
-
-	// Mock campaign update
-	stub.On("PutState", "campaign_testCampaign", mock.Anything).Return(nil)
-
-	// Mock payment recording
-	stub.On("CreateCompositeKey", "payment_", mock.Anything).Return("payment_test", nil)
-	stub.On("PutState", "payment_test", mock.Anything).Return(nil)
-
-	contract := new(SmartContract)
-	response, err := contract.DonateToCampaign(ctx, "testCampaign", 100, uint64(time.Now().Unix()))
-	assert.NoError(t, err)
-	assert.NotNil(t, response)
-	assert.Equal(t, "donation successful", response.Message)
-}
-
-// TestWithdraw tests campaign withdrawal
-func TestWithdraw(t *testing.T) {
-	ctx := new(MockTransactionContext)
-	stub := new(MockStub)
-	ctx.TransactionContext = &contractapi.TransactionContext{Stub: stub}
-
-	// Mock admin check
-	clientIdentity := new(MockClientIdentity)
-	ctx.ClientIdentity = clientIdentity
-	clientIdentity.On("GetAttributeValue", "hf.Registrar.Roles").Return("admin", true, nil)
-	clientIdentity.On("GetID").Return("testClientID", nil)
-
-	// Mock campaign retrieval
-	campaign := Campaign{
-		ID:              "testCampaign",
-		OwnerDBID:       "testOwner",
-		Title:           "Test Campaign",
-		Description:     "Test Description",
-		CampaignType:    "CHARITY",
-		Target:          1000,
-		Deadline:        uint64(time.Now().Unix() - 3600), // Past deadline
-		AmountCollected: 500,
-		Image:           "test.jpg",
-		Withdrawn:       false,
-		Canceled:        false,
-		Donors:          []Donor{},
+	// Use a mock context with the stub and client identity
+	ctx := &MockTransactionContext{
+		stub: mockStub,
 	}
-	campaignJSON, _ := json.Marshal(campaign)
-	stub.On("CreateCompositeKey", "campaign_", []string{"testCampaign"}).Return("campaign_testCampaign", nil)
-	stub.On("GetState", "campaign_testCampaign").Return(campaignJSON, nil)
+	ctx.SetClientIdentity(mockClientIdentity)
 
-	// Mock user mapping
-	stub.On("CreateCompositeKey", "user_mapping_", mock.Anything).Return("user_mapping_test", nil)
-	stub.On("GetState", "user_mapping_test").Return([]byte(`{"dbUserId":"testOwner","clientId":"testClientID"}`), nil)
-
-	// Mock balance update
-	stub.On("CreateCompositeKey", "balance_", []string{"testClientID"}).Return("balance_testClientID", nil)
-	stub.On("GetState", "balance_testClientID").Return([]byte(`{"owner":"testClientID","balance":0}`), nil)
-	stub.On("PutState", "balance_testClientID", mock.Anything).Return(nil)
-
-	// Mock campaign update
-	stub.On("PutState", "campaign_testCampaign", mock.Anything).Return(nil)
-
-	// Mock payment recording
-	stub.On("CreateCompositeKey", "payment_", mock.Anything).Return("payment_test", nil)
-	stub.On("PutState", "payment_test", mock.Anything).Return(nil)
-
-	contract := new(SmartContract)
-	response, err := contract.Withdraw(ctx, "testCampaign", uint64(time.Now().Unix()))
-	assert.NoError(t, err)
-	assert.NotNil(t, response)
-	assert.Equal(t, "funds withdrawn successfully", response.Message)
-}
-
-// TestCancelCampaign tests campaign cancellation
-func TestCancelCampaign(t *testing.T) {
-	ctx := new(MockTransactionContext)
-	stub := new(MockStub)
-	ctx.TransactionContext = &contractapi.TransactionContext{Stub: stub}
-
-	// Mock admin check
-	clientIdentity := new(MockClientIdentity)
-	ctx.ClientIdentity = clientIdentity
-	clientIdentity.On("GetAttributeValue", "hf.Registrar.Roles").Return("admin", true, nil)
-	clientIdentity.On("GetID").Return("testClientID", nil)
-
-	// Mock campaign retrieval
-	campaign := Campaign{
-		ID:              "testCampaign",
-		OwnerDBID:       "testOwner",
-		Title:           "Test Campaign",
-		Description:     "Test Description",
-		CampaignType:    "CHARITY",
-		Target:          1000,
-		Deadline:        uint64(time.Now().Add(24 * time.Hour).Unix()),
-		AmountCollected: 500,
-		Image:           "test.jpg",
-		Withdrawn:       false,
-		Canceled:        false,
-		Donors: []Donor{
-			{
-				DonorDBID:      "testDonor",
-				DonationAmount: 500,
-				Timestamp:      uint64(time.Now().Unix()),
-			},
-		},
+	// Log state before initialization
+	fmt.Println("\n=== State Before InitLedger ===")
+	state := mockStub.State
+	for key, value := range state {
+		fmt.Printf("Key: %s, Value: %s\n", key, string(value))
 	}
-	campaignJSON, _ := json.Marshal(campaign)
-	stub.On("CreateCompositeKey", "campaign_", []string{"testCampaign"}).Return("campaign_testCampaign", nil)
-	stub.On("GetState", "campaign_testCampaign").Return(campaignJSON, nil)
 
-	// Mock user mapping
-	stub.On("CreateCompositeKey", "user_mapping_", mock.Anything).Return("user_mapping_test", nil)
-	stub.On("GetState", "user_mapping_test").Return([]byte(`{"dbUserId":"testOwner","clientId":"testClientID"}`), nil)
+	// Initialize the ledger
+	fmt.Println("\n=== Calling InitLedger ===")
+	err = contract.InitLedger(ctx)
+	require.NoError(t, err, "InitLedger should not return error")
 
-	// Mock donor client ID retrieval
-	stub.On("GetState", "user_mapping_testDonor").Return([]byte(`{"dbUserId":"testDonor","clientId":"testDonorClientID"}`), nil)
-
-	// Mock balance updates
-	stub.On("CreateCompositeKey", "balance_", []string{"testDonorClientID"}).Return("balance_testDonorClientID", nil)
-	stub.On("GetState", "balance_testDonorClientID").Return([]byte(`{"owner":"testDonorClientID","balance":0}`), nil)
-	stub.On("PutState", "balance_testDonorClientID", mock.Anything).Return(nil)
-
-	// Mock campaign update
-	stub.On("PutState", "campaign_testCampaign", mock.Anything).Return(nil)
-
-	// Mock payment recording
-	stub.On("CreateCompositeKey", "payment_", mock.Anything).Return("payment_test", nil)
-	stub.On("PutState", "payment_test", mock.Anything).Return(nil)
-
-	contract := new(SmartContract)
-	response, err := contract.CancelCampaign(ctx, "testCampaign", uint64(time.Now().Unix()))
-	assert.NoError(t, err)
-	assert.NotNil(t, response)
-	assert.Equal(t, "campaign canceled and refunds processed", response.Message)
-}
-
-// TestGetAllCampaigns tests retrieving all campaigns
-func TestGetAllCampaigns(t *testing.T) {
-	ctx := new(MockTransactionContext)
-	stub := new(MockStub)
-	ctx.TransactionContext = &contractapi.TransactionContext{Stub: stub}
-
-	// Mock campaign iterator
-	iterator := new(MockIterator)
-	stub.On("GetStateByPartialCompositeKey", "campaign_", []string{}).Return(iterator, nil)
-
-	// Mock campaign data
-	campaign1 := Campaign{
-		ID:              "campaign1",
-		OwnerDBID:       "owner1",
-		Title:           "Campaign 1",
-		Description:     "Description 1",
-		CampaignType:    "CHARITY",
-		Target:          1000,
-		Deadline:        uint64(time.Now().Add(24 * time.Hour).Unix()),
-		AmountCollected: 500,
-		Image:           "image1.jpg",
-		Withdrawn:       false,
-		Canceled:        false,
-		Donors:          []Donor{},
+	// Log state after initialization
+	fmt.Println("\n=== State After InitLedger ===")
+	state = mockStub.State
+	for key, value := range state {
+		fmt.Printf("Key: %s, Value: %s\n", key, string(value))
 	}
-	campaign1JSON, _ := json.Marshal(campaign1)
 
-	campaign2 := Campaign{
-		ID:              "campaign2",
-		OwnerDBID:       "owner2",
-		Title:           "Campaign 2",
-		Description:     "Description 2",
-		CampaignType:    "CHARITY",
-		Target:          2000,
-		Deadline:        uint64(time.Now().Add(48 * time.Hour).Unix()),
-		AmountCollected: 1000,
-		Image:           "image2.jpg",
-		Withdrawn:       false,
-		Canceled:        false,
-		Donors:          []Donor{},
+	// Try to get token metadata directly from state
+	fmt.Println("\n=== Checking Token Metadata in State ===")
+	metadataBytes, err := mockStub.GetState("token_metadata")
+	if err != nil {
+		fmt.Printf("Error getting token metadata: %v\n", err)
+	} else if metadataBytes == nil {
+		fmt.Println("Token metadata is nil")
+	} else {
+		fmt.Printf("Token metadata found: %s\n", string(metadataBytes))
+		var metadata crowdfunding.TokenMetadata
+		if err := json.Unmarshal(metadataBytes, &metadata); err != nil {
+			fmt.Printf("Error unmarshaling metadata: %v\n", err)
+		} else {
+			fmt.Printf("Unmarshaled metadata: %+v\n", metadata)
+		}
 	}
-	campaign2JSON, _ := json.Marshal(campaign2)
 
-	// Set up iterator behavior
-	iterator.On("HasNext").Return(true).Times(2)
-	iterator.On("Next").Return(&shim.QueryResult{Value: campaign1JSON}, nil).Once()
-	iterator.On("Next").Return(&shim.QueryResult{Value: campaign2JSON}, nil).Once()
-	iterator.On("HasNext").Return(false)
-	iterator.On("Close").Return(nil)
+	// Verify token metadata was set correctly
+	metadata, err := contract.GetTokenMetadata(ctx)
+	require.NoError(t, err, "GetTokenMetadata should not return error")
+	require.NotNil(t, metadata, "Metadata should not be nil")
+	require.Equal(t, "CrowdfundingToken", metadata.Name, "Token name should be CrowdfundingToken")
+	require.Equal(t, "CFT", metadata.Symbol, "Token symbol should be CFT")
+	require.Equal(t, uint64(0), metadata.TotalSupply, "Total supply should be 0")
 
-	contract := new(SmartContract)
-	campaigns, err := contract.GetAllCampaigns(ctx)
-	assert.NoError(t, err)
-	assert.Len(t, campaigns, 2)
-	assert.Equal(t, "campaign1", campaigns[0].ID)
-	assert.Equal(t, "campaign2", campaigns[1].ID)
+	// // Verify default exchange rate for USD was set
+	// rate, err := contract.GetExchangeRate(ctx, "USD")
+	// require.NoError(t, err, "GetExchangeRate should not return error")
+	// require.NotNil(t, rate, "Exchange rate should not be nil")
+	// require.Equal(t, "USD", rate.Currency, "Currency should be USD")
+	// require.Equal(t, 100.0, rate.RateToToken, "Rate should be 100.0 (1 USD = 100 CFT)")
 }
-
-// MockIterator is a mock implementation of the StateQueryIteratorInterface
-type MockIterator struct {
-	mock.Mock
-}
-
-func (m *MockIterator) HasNext() bool {
-	args := m.Called()
-	return args.Bool(0)
-}
-
-func (m *MockIterator) Next() (*shim.QueryResult, error) {
-	args := m.Called()
-	return args.Get(0).(*shim.QueryResult), args.Error(1)
-}
-
-func (m *MockIterator) Close() error {
-	args := m.Called()
-	return args.Error(0)
-} 

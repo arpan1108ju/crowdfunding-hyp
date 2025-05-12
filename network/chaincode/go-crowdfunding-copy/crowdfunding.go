@@ -1,4 +1,4 @@
-package main
+package crowdfunding
 
 import (
 	"encoding/json"
@@ -829,7 +829,39 @@ func (s *SmartContract) CancelCampaign(ctx contractapi.TransactionContextInterfa
     return &ResponseMessage{Message: "campaign canceled and refunds processed"}, nil
 }
 
+// DeleteCampaign deletes a campaign if it exists and is either withdrawn or canceled
+// func (s *SmartContract) DeleteCampaign(ctx contractapi.TransactionContextInterface, id string) (*ResponseMessage, error) {
+//     // 1. Admin check
+//     isAdmin, err := s.isAdmin(ctx)
+//     if err != nil || !isAdmin {
+//         return nil, fmt.Errorf("unauthorized: only admin can delete campaign")
+//     }
 
+//     // 2. Get campaign
+//     campaign, err := s.ReadCampaign(ctx, id)
+//     if err != nil {
+//         return nil, err
+//     }
+
+//     // 3. Verify campaign state
+//     if !campaign.Withdrawn && !campaign.Canceled {
+//         return nil, fmt.Errorf("only withdrawn or canceled campaigns can be deleted")
+//     }
+
+//     // 4. Delete campaign
+//     campaignKey, err := ctx.GetStub().CreateCompositeKey(CampaignPrefix, []string{id})
+//     if err != nil {
+//         return nil, fmt.Errorf("failed to create composite key for %s: %v", campaignKey, err)
+//     }
+
+//     err = ctx.GetStub().DelState(campaignKey)
+//     if err != nil {
+//         return nil, fmt.Errorf("failed to delete campaign: %v", err)
+//     }
+
+//     log.Printf("Successfully deleted campaign: %s", id)
+//     return &ResponseMessage{Message: "campaign deleted successfully"}, nil
+// }
 func (s *SmartContract) DeleteCampaign(ctx contractapi.TransactionContextInterface, id string,timestamp uint64) (*ResponseMessage, error) {
     // 1. Admin check
     isAdmin, err := s.isAdmin(ctx)
@@ -1186,14 +1218,14 @@ func (s *SmartContract) UnregisterUser(ctx contractapi.TransactionContextInterfa
 
     return &ResponseMessage{Message: "user unregistered successfully"}, nil
 }
-func main() {
-	chaincode, err := contractapi.NewChaincode(new(SmartContract))
-	if err != nil {
-		panic(fmt.Sprintf("Error creating chaincode: %v", err))
-	}
+// func main() {
+// 	chaincode, err := contractapi.NewChaincode(new(SmartContract))
+// 	if err != nil {
+// 		panic(fmt.Sprintf("Error creating chaincode: %v", err))
+// 	}
 
-	if err := chaincode.Start(); err != nil {
-		panic(fmt.Sprintf("Error starting chaincode: %v", err))
-	}
-}
+// 	if err := chaincode.Start(); err != nil {
+// 		panic(fmt.Sprintf("Error starting chaincode: %v", err))
+// 	}
+// }
 
