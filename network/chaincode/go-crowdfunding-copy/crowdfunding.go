@@ -1,4 +1,4 @@
-package main
+package crowdfunding
 
 import (
 	"encoding/json"
@@ -1218,14 +1218,14 @@ func (s *SmartContract) UnregisterUser(ctx contractapi.TransactionContextInterfa
 
     return &ResponseMessage{Message: "user unregistered successfully"}, nil
 }
-func main() {
-	chaincode, err := contractapi.NewChaincode(new(SmartContract))
-	if err != nil {
-		panic(fmt.Sprintf("Error creating chaincode: %v", err))
-	}
+// func main() {
+// 	chaincode, err := contractapi.NewChaincode(new(SmartContract))
+// 	if err != nil {
+// 		panic(fmt.Sprintf("Error creating chaincode: %v", err))
+// 	}
 
-	if err := chaincode.Start(); err != nil {
-		panic(fmt.Sprintf("Error starting chaincode: %v", err))
-	}
-}
+// 	if err := chaincode.Start(); err != nil {
+// 		panic(fmt.Sprintf("Error starting chaincode: %v", err))
+// 	}
+// }
 
